@@ -1,0 +1,37 @@
+[
+{
+  "directory": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src",
+  "command": "/usr/bin/c++  -DRVO_EXPORTS -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src   -Wall -Wformat-security -Werror=format-security -Wno-unused -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden   -std=c++11 -o CMakeFiles/RVO.dir/Agent.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Agent.cpp",
+  "file": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Agent.cpp"
+},
+{
+  "directory": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src",
+  "command": "/usr/bin/c++  -DRVO_EXPORTS -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src   -Wall -Wformat-security -Werror=format-security -Wno-unused -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden   -std=c++11 -o CMakeFiles/RVO.dir/KdTree.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/KdTree.cpp",
+  "file": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/KdTree.cpp"
+},
+{
+  "directory": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src",
+  "command": "/usr/bin/c++  -DRVO_EXPORTS -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src   -Wall -Wformat-security -Werror=format-security -Wno-unused -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden   -std=c++11 -o CMakeFiles/RVO.dir/Obstacle.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Obstacle.cpp",
+  "file": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Obstacle.cpp"
+},
+{
+  "directory": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src",
+  "command": "/usr/bin/c++  -DRVO_EXPORTS -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src   -Wall -Wformat-security -Werror=format-security -Wno-unused -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden   -std=c++11 -o CMakeFiles/RVO.dir/RVOSimulator.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/RVOSimulator.cpp",
+  "file": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/RVOSimulator.cpp"
+},
+{
+  "directory": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/examples",
+  "command": "/usr/bin/c++  -DRVO_OUTPUT_TIME_AND_POSITIONS=1 -DRVO_SEED_RANDOM_NUMBER_GENERATOR=1 -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src   -Wall -Wformat-security -Werror=format-security -Wno-unused -O3 -DNDEBUG -fPIE   -std=c++11 -o CMakeFiles/Roadmap.dir/Roadmap.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/examples/Roadmap.cpp",
+  "file": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/examples/Roadmap.cpp"
+},
+{
+  "directory": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/examples",
+  "command": "/usr/bin/c++  -DRVO_OUTPUT_TIME_AND_POSITIONS=1 -DRVO_SEED_RANDOM_NUMBER_GENERATOR=1 -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src   -Wall -Wformat-security -Werror=format-security -Wno-unused -O3 -DNDEBUG -fPIE   -std=c++11 -o CMakeFiles/Circle.dir/Circle.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/examples/Circle.cpp",
+  "file": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/examples/Circle.cpp"
+},
+{
+  "directory": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/examples",
+  "command": "/usr/bin/c++  -DRVO_OUTPUT_TIME_AND_POSITIONS=1 -DRVO_SEED_RANDOM_NUMBER_GENERATOR=1 -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/src -I/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src   -Wall -Wformat-security -Werror=format-security -Wno-unused -O3 -DNDEBUG -fPIE   -std=c++11 -o CMakeFiles/Blocks.dir/Blocks.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/examples/Blocks.cpp",
+  "file": "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/examples/Blocks.cpp"
+}
+]

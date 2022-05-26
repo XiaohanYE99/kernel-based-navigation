@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="RVO"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\cmake\modules\;CMake Files\src\;CMake Files\examples\;CMake Files\doc\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Nightly">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 Nightly"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="package_source">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 package_source"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Experimental">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 Experimental"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Continuous">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 Continuous"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="package">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 package"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 test"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/msi/yxh/RVO2-main"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="RVO">
+				<Option output="/home/msi/yxh/RVO2-main/src/libRVO.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/src"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 RVO"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="RVO/fast">
+				<Option output="/home/msi/yxh/RVO2-main/src/libRVO.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/src"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 RVO/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/src/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Roadmap">
+				<Option output="/home/msi/yxh/RVO2-main/examples/Roadmap" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/examples"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRVO_OUTPUT_TIME_AND_POSITIONS=1"/>
+					<Add option="-DRVO_SEED_RANDOM_NUMBER_GENERATOR=1"/>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 Roadmap"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Roadmap/fast">
+				<Option output="/home/msi/yxh/RVO2-main/examples/Roadmap" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/examples"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRVO_OUTPUT_TIME_AND_POSITIONS=1"/>
+					<Add option="-DRVO_SEED_RANDOM_NUMBER_GENERATOR=1"/>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 Roadmap/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Circle">
+				<Option output="/home/msi/yxh/RVO2-main/examples/Circle" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/examples"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRVO_OUTPUT_TIME_AND_POSITIONS=1"/>
+					<Add option="-DRVO_SEED_RANDOM_NUMBER_GENERATOR=1"/>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 Circle"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Circle/fast">
+				<Option output="/home/msi/yxh/RVO2-main/examples/Circle" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/examples"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRVO_OUTPUT_TIME_AND_POSITIONS=1"/>
+					<Add option="-DRVO_SEED_RANDOM_NUMBER_GENERATOR=1"/>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 Circle/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Blocks">
+				<Option output="/home/msi/yxh/RVO2-main/examples/Blocks" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/examples"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRVO_OUTPUT_TIME_AND_POSITIONS=1"/>
+					<Add option="-DRVO_SEED_RANDOM_NUMBER_GENERATOR=1"/>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 Blocks"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Blocks/fast">
+				<Option output="/home/msi/yxh/RVO2-main/examples/Blocks" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msi/yxh/RVO2-main/examples"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRVO_OUTPUT_TIME_AND_POSITIONS=1"/>
+					<Add option="-DRVO_SEED_RANDOM_NUMBER_GENERATOR=1"/>
+					<Add directory="/home/msi/yxh/RVO2-main/src"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 Blocks/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/msi/yxh/RVO2-main/examples/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/msi/yxh/RVO2-main/examples/Blocks.cpp">
+			<Option target="Blocks"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/examples/Circle.cpp">
+			<Option target="Circle"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/examples/Roadmap.cpp">
+			<Option target="Roadmap"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/Agent.cpp">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/Agent.h">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/Definitions.h">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/KdTree.cpp">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/KdTree.h">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/Obstacle.cpp">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/Obstacle.h">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/RVO.h">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/RVOSimulator.cpp">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/RVOSimulator.h">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/Vector2.h">
+			<Option target="RVO"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/CTestConfig.cmake">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/RVO.pc.in">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/RVOConfig.cmake.in">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/cmake/modules/CheckCXXLinkerFlag.cmake">
+			<Option virtualFolder="CMake Files\cmake\modules\"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/examples/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\examples\"/>
+		</Unit>
+		<Unit filename="/home/msi/yxh/RVO2-main/doc/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\doc\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

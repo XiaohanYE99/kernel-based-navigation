@@ -72,8 +72,9 @@ if(BUILD_TESTING)
   add_executable(Blocks Blocks.cpp)
   target_compile_definitions(Blocks PRIVATE
     ${RVO_EXAMPLES_COMPILE_DEFINITIONS})
-  target_link_libraries(Blocks PRIVATE ${RVO_LIBRARY})
-  target_compile_options(Blocks PRIVATE ${RVO_EXAMPLES_COMPILE_OPTIONS})
+    target_link_libraries(Blocks PRIVATE ${GL_LIBRARY})
+    target_link_libraries(Blocks PRIVATE ${RVO_LIBRARY} ${GLUT_glut_LIBRARY})
+    target_compile_options(Blocks PRIVATE ${RVO_EXAMPLES_COMPILE_OPTIONS})
   set_target_properties(Blocks PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION ${RVO_EXAMPLES_INTERPROCEDURAL_OPTIMIZATION}
     LINK_FLAGS "${RVO_EXAMPLES_LINK_FLAGS}")

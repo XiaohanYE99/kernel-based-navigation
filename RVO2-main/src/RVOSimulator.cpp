@@ -45,16 +45,17 @@
 #include <omp.h>
 #endif
 #define USE_SPATIAL_HASH
+#define OBS
 using namespace Eigen;
 
 namespace RVO {
-	RVOSimulator::RVOSimulator() : defaultAgent_(NULL), globalTime_(0.0f), kdTree_(NULL), timeStep_(0.0f)
+	RVOSimulator::RVOSimulator() : defaultAgent_(NULL), globalTime_(0.0), kdTree_(NULL), timeStep_(0.0)
 	{
 		kdTree_ = new KdTree(this);
 
 	}
 
-	RVOSimulator::RVOSimulator(float timeStep, float neighborDist, size_t maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, const Vector2 &velocity) : defaultAgent_(NULL), globalTime_(0.0f), kdTree_(NULL), timeStep_(timeStep)
+	RVOSimulator::RVOSimulator(double timeStep, double neighborDist, size_t maxNeighbors, double timeHorizon, double timeHorizonObst, double radius, double maxSpeed, const Vector2 &velocity) : defaultAgent_(NULL), globalTime_(0.0), kdTree_(NULL), timeStep_(timeStep)
 	{
 		kdTree_ = new KdTree(this);
 		defaultAgent_ = new Agent(this);
@@ -109,7 +110,7 @@ namespace RVO {
 		return agents_.size() - 1;
 	}
 
-	size_t RVOSimulator::addAgent(const Vector2 &position, float neighborDist, size_t maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, const Vector2 &velocity)
+	size_t RVOSimulator::addAgent(const Vector2 &position, double neighborDist, size_t maxNeighbors, double timeHorizon, double timeHorizonObst, double radius, double maxSpeed, const Vector2 &velocity)
 	{
 		Agent *agent = new Agent(this);
 
@@ -157,7 +158,7 @@ namespace RVO {
 				obstacle->isConvex_ = true;
 			}
 			else {
-				obstacle->isConvex_ = (leftOf(vertices[(i == 0 ? vertices.size() - 1 : i - 1)], vertices[i], vertices[(i == vertices.size() - 1 ? 0 : i + 1)]) >= 0.0f);
+				obstacle->isConvex_ = (leftOf(vertices[(i == 0 ? vertices.size() - 1 : i - 1)], vertices[i], vertices[(i == vertices.size() - 1 ? 0 : i + 1)]) >= 0.0);
 			}
 
 			obstacle->id_ = obstacles_.size();
@@ -270,6 +271,7 @@ namespace RVO {
             }
         }
         //for other obstacle
+		#ifdef OBS
 		for(size_t i=0;i<x.size()/2;i++)
         {
 			double R=agents_[i]->radius_;
@@ -278,61 +280,86 @@ namespace RVO {
 				const Obstacle *obstacle1 = agents_[i]->obstacleNeighbors_[k].second;
 				const Obstacle *obstacle2 = obstacle1->nextObstacle_;
 
-				Vector2 pos=Vector2(newX[i],newX[i+newX.size()/2]);
-				const Vector2 relativePosition1 = obstacle1->point_ - pos;
-				const Vector2 relativePosition2 = obstacle2->point_ - pos;
-				const float distSq1 = absSq(relativePosition1);
-				const float distSq2 = absSq(relativePosition2);
+				Vector2d pos(newX[i],newX[i+newX.size()/2]);
+				const Vector2d relativePosition1(obstacle1->point_.x() - pos[0],obstacle1->point_.y()-pos[1]);
+				const Vector2d relativePosition2(obstacle2->point_.x() - pos[0],obstacle2->point_.y()-pos[1]);
+				const double distSq1 = relativePosition1.squaredNorm();
+				const double distSq2 = relativePosition2.squaredNorm();
 
-				const float radiusSq = sqr(R);
+				const double radiusSq = R*R;
 
-				const Vector2 obstacleVector = obstacle2->point_ - obstacle1->point_;
-				const float s = (-relativePosition1 * obstacleVector) / absSq(obstacleVector);
-				const float distSqLine = absSq(-relativePosition1 - s * obstacleVector);
+				const Vector2d obstacleVector(obstacle2->point_.x() - obstacle1->point_.x(),obstacle2->point_.y() - obstacle1->point_.y());
+				const double s = (-relativePosition1 .dot(obstacleVector)) / obstacleVector.squaredNorm();
+				const double distSqLine = (-relativePosition1 - s * obstacleVector).squaredNorm();
 
-				if (s < 0.0f && distSq1 <= radiusSq) {
-				/* Collision with left vertex. Ignore if non-convex. */
+				if (s < 0.0 && distSq1 < radiusSq+d0) {
+
 					double D,DD;
 					f+=clog(distSq1-radiusSq,
                     g?&D:NULL,
                     h?&DD:NULL,
-                    d0,
+                    d0*0.5,
                     coef);	//this can be infinite or nan
+					double px=obstacle1->point_.x();
+					double py=obstacle1->point_.y();
 					if(g) {
-						(*g)[i]+=D*2*(newX[i]-obstacle1->point_.x());
-						(*g)[i+newX.size()/2]+=D*2*(newX[i]-obstacle1->point_.y());
+						(*g)[i]+=D*2*(newX[i]-px);
+						(*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-py);
 					}
+					if(h) {
+                        (*h)(i,i)+=2*D+DD*4*pow(newX[i]-obstacle1->point_.x(),2);
+                        (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-py,2);
+                    }
 				}
 
-				else if (s > 1.0f && distSq2 <= radiusSq) {
-				/* Collision with left vertex. Ignore if non-convex. */
+				else if (s > 1.0f && distSq2 < radiusSq+d0) {
+
 					double D,DD;
 					f+=clog(distSq2-radiusSq,
                     g?&D:NULL,
                     h?&DD:NULL,
-                    d0,
+                    d0*0.5,
                     coef);	//this can be infinite or nan
+					double px=obstacle2->point_.x();
+					double py=obstacle2->point_.y();
 					if(g) {
-						(*g)[i]+=D*2*(newX[i]-obstacle2->point_.x());
-						(*g)[i+newX.size()/2]+=D*2*(newX[i]-obstacle2->point_.y());
+						(*g)[i]+=D*2*(newX[i]-px);
+						(*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-py);
 					}
+					if(h) {
+                        (*h)(i,i)+=2*D+DD*4*pow(newX[i]-px,2);
+                        (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-py,2);
+                    }
 				}
 
-				else if (s >= 0.0f && s <= 1.0f && distSqLine <= radiusSq) {
-				/* Collision with left vertex. Ignore if non-convex. */
+				else if (s >= 0.0 && s <= 1.0f && distSqLine < radiusSq+d0) {
+
 					double D,DD;
-					f+=clog(distSq2-radiusSq,
+					f+=clog(distSqLine-radiusSq,
                     g?&D:NULL,
                     h?&DD:NULL,
-                    d0,
+                    d0*0.5,
                     coef);	//this can be infinite or nan
+					double px=obstacle1->point_.x()+s*obstacleVector.x();
+					double py=obstacle1->point_.y()+s*obstacleVector.y();
 					if(g) {
-						(*g)[i]+=D*2*(newX[i]-obstacle2->point_.x());
-						(*g)[i+newX.size()/2]+=D*2*(newX[i]-obstacle2->point_.y());
+						(*g)[i]+=D*2*(newX[i]-px);
+						(*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-py);
 					}
+					if(h) {
+                        (*h)(i,i)+=2*D+DD*4*pow(newX[i]-px,2);
+                        (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-py,2);
+                    }
 				}
 			}
 		}
+		#endif
         return f;
     }
 	bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX)
@@ -353,6 +380,18 @@ namespace RVO {
         Eigen::LDLT<MatrixXd> invH;
         double lastAlpha;
         bool succ;
+		//IF TEST
+		VectorXd dx;
+		double delta=1e-8;
+		dx.setRandom(x.size());
+		double f=energy(v,x,newX,nBarrier,&g,&h);
+
+		double f2=energy(v,x,newX+dx*delta,nBarrier,&g2,NULL);
+		std::cout << "Gradient: " << g.dot(dx) <<
+		" Error: " << (f2-f)/delta -g.dot(dx)<< std::endl;
+		std::cout << "Hessian: " << (h*dx).norm() <<
+		" Error: " << (h*dx-(g2-g)/delta).norm() << std::endl;
+
         for(iter=0; iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++)
         {
 
@@ -528,12 +567,12 @@ namespace RVO {
 		return agents_[agentNo]->maxNeighbors_;
 	}
 
-	float RVOSimulator::getAgentMaxSpeed(size_t agentNo) const
+	double RVOSimulator::getAgentMaxSpeed(size_t agentNo) const
 	{
 		return agents_[agentNo]->maxSpeed_;
 	}
 
-	float RVOSimulator::getAgentNeighborDist(size_t agentNo) const
+	double RVOSimulator::getAgentNeighborDist(size_t agentNo) const
 	{
 		return agents_[agentNo]->neighborDist_;
 	}
@@ -573,17 +612,17 @@ namespace RVO {
 		return agents_[agentNo]->prefVelocity_;
 	}
 
-	float RVOSimulator::getAgentRadius(size_t agentNo) const
+	double RVOSimulator::getAgentRadius(size_t agentNo) const
 	{
 		return agents_[agentNo]->radius_;
 	}
 
-	float RVOSimulator::getAgentTimeHorizon(size_t agentNo) const
+	double RVOSimulator::getAgentTimeHorizon(size_t agentNo) const
 	{
 		return agents_[agentNo]->timeHorizon_;
 	}
 
-	float RVOSimulator::getAgentTimeHorizonObst(size_t agentNo) const
+	double RVOSimulator::getAgentTimeHorizonObst(size_t agentNo) const
 	{
 		return agents_[agentNo]->timeHorizonObst_;
 	}
@@ -593,7 +632,7 @@ namespace RVO {
 		return agents_[agentNo]->velocity_;
 	}
 
-	float RVOSimulator::getGlobalTime() const
+	double RVOSimulator::getGlobalTime() const
 	{
 		return globalTime_;
 	}
@@ -623,7 +662,7 @@ namespace RVO {
 		return obstacles_[vertexNo]->prevObstacle_->id_;
 	}
 
-	float RVOSimulator::getTimeStep() const
+	double RVOSimulator::getTimeStep() const
 	{
 		return timeStep_;
 	}
@@ -633,12 +672,12 @@ namespace RVO {
 		kdTree_->buildObstacleTree();
 	}
 
-	bool RVOSimulator::queryVisibility(const Vector2 &point1, const Vector2 &point2, float radius) const
+	bool RVOSimulator::queryVisibility(const Vector2 &point1, const Vector2 &point2, double radius) const
 	{
 		return kdTree_->queryVisibility(point1, point2, radius);
 	}
 
-	void RVOSimulator::setAgentDefaults(float neighborDist, size_t maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, const Vector2 &velocity)
+	void RVOSimulator::setAgentDefaults(double neighborDist, size_t maxNeighbors, double timeHorizon, double timeHorizonObst, double radius, double maxSpeed, const Vector2 &velocity)
 	{
 		if (defaultAgent_ == NULL) {
 			defaultAgent_ = new Agent(this);
@@ -658,12 +697,12 @@ namespace RVO {
 		agents_[agentNo]->maxNeighbors_ = maxNeighbors;
 	}
 
-	void RVOSimulator::setAgentMaxSpeed(size_t agentNo, float maxSpeed)
+	void RVOSimulator::setAgentMaxSpeed(size_t agentNo, double maxSpeed)
 	{
 		agents_[agentNo]->maxSpeed_ = maxSpeed;
 	}
 
-	void RVOSimulator::setAgentNeighborDist(size_t agentNo, float neighborDist)
+	void RVOSimulator::setAgentNeighborDist(size_t agentNo, double neighborDist)
 	{
 		agents_[agentNo]->neighborDist_ = neighborDist;
 	}
@@ -678,17 +717,17 @@ namespace RVO {
 		agents_[agentNo]->prefVelocity_ = prefVelocity;
 	}
 
-	void RVOSimulator::setAgentRadius(size_t agentNo, float radius)
+	void RVOSimulator::setAgentRadius(size_t agentNo, double radius)
 	{
 		agents_[agentNo]->radius_ = radius;
 	}
 
-	void RVOSimulator::setAgentTimeHorizon(size_t agentNo, float timeHorizon)
+	void RVOSimulator::setAgentTimeHorizon(size_t agentNo, double timeHorizon)
 	{
 		agents_[agentNo]->timeHorizon_ = timeHorizon;
 	}
 
-	void RVOSimulator::setAgentTimeHorizonObst(size_t agentNo, float timeHorizonObst)
+	void RVOSimulator::setAgentTimeHorizonObst(size_t agentNo, double timeHorizonObst)
 	{
 		agents_[agentNo]->timeHorizonObst_ = timeHorizonObst;
 	}
@@ -698,7 +737,7 @@ namespace RVO {
 		agents_[agentNo]->velocity_ = velocity;
 	}
 
-	void RVOSimulator::setTimeStep(float timeStep)
+	void RVOSimulator::setTimeStep(double timeStep)
 	{
 		timeStep_ = timeStep;
 	}

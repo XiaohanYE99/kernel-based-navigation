@@ -254,13 +254,13 @@
  sim->setTimeStep(0.25f);
 
  // Specify default parameters for agents that are subsequently added.
- sim->setAgentDefaults(15.0f, 10, 10.0f, 5.0f, 2.0f, 2.0f);
+ sim->setAgentDefaults(15.0f, 10, 10.0, 5.0f, 2.0f, 2.0f);
 
  // Add agents, specifying their start position.
- sim->addAgent(RVO::Vector2(-50.0f, -50.0f));
- sim->addAgent(RVO::Vector2(50.0f, -50.0f));
- sim->addAgent(RVO::Vector2(50.0f, 50.0f));
- sim->addAgent(RVO::Vector2(-50.0f, 50.0f));
+ sim->addAgent(RVO::Vector2(-50.0, -50.0));
+ sim->addAgent(RVO::Vector2(50.0, -50.0));
+ sim->addAgent(RVO::Vector2(50.0, 50.0));
+ sim->addAgent(RVO::Vector2(-50.0, 50.0));
 
  // Create goals (simulator is unaware of these).
  for (size_t i = 0; i < sim->getNumAgents(); ++i) {
@@ -269,10 +269,10 @@
 
  // Add (polygonal) obstacle(s), specifying vertices in counterclockwise order.
  std::vector<RVO::Vector2> vertices;
- vertices.push_back(RVO::Vector2(-7.0f, -20.0f));
- vertices.push_back(RVO::Vector2(7.0f, -20.0f));
- vertices.push_back(RVO::Vector2(7.0f, 20.0f));
- vertices.push_back(RVO::Vector2(-7.0f, 20.0f));
+ vertices.push_back(RVO::Vector2(-7.0f, -20.0));
+ vertices.push_back(RVO::Vector2(7.0f, -20.0));
+ vertices.push_back(RVO::Vector2(7.0f, 20.0));
+ vertices.push_back(RVO::Vector2(-7.0f, 20.0));
 
  sim->addObstacle(vertices);
 
@@ -356,7 +356,7 @@
  for (size_t i = 0; i < sim->getNumAgents(); ++i) {
  if (absSq(goals[i] - sim->getAgentPosition(i)) < sim->getAgentRadius(i) * sim->getAgentRadius(i) ) {
  // Agent is within one radius of its goal, set preferred velocity to zero
- sim->setAgentPrefVelocity(i, RVO::Vector2(0.0f, 0.0f));
+ sim->setAgentPrefVelocity(i, RVO::Vector2(0.0, 0.0));
  } else {
  // Agent is far away from its goal, set preferred velocity as unit vector towards agent's goal.
  sim->setAgentPrefVelocity(i, normalize(goals[i] - sim->getAgentPosition(i)));
@@ -404,7 +404,7 @@
  </tr>
  <tr>
  <td valign="top">timeStep</td>
- <td valign="top">float (time)</td>
+ <td valign="top">double (time)</td>
  <td valign="top">The time step of the simulation. Must be positive.</td>
  </tr>
  </table>
@@ -427,12 +427,12 @@
  </tr>
  <tr>
  <td valign="top">maxSpeed</td>
- <td valign="top">float (distance/time)</td>
+ <td valign="top">double (distance/time)</td>
  <td valign="top">The maximum speed of the agent. Must be non-negative.</td>
  </tr>
  <tr>
  <td valign="top">neighborDist</td>
- <td valign="top">float (distance)</td>
+ <td valign="top">double (distance)</td>
  <td valign="top">The maximum distance (center point to center point) to
  other agents the agent takes into account in the
  navigation. The larger this number, the longer the running
@@ -457,12 +457,12 @@
  </tr>
  <tr>
  <td valign="top">radius</td>
- <td valign="top">float (distance)</td>
+ <td valign="top">double (distance)</td>
  <td valign="top">The radius of the agent. Must be non-negative.</td>
  </tr>
  <tr>
  <td valign="top" width="150">timeHorizon</td>
- <td valign="top" width="150">float (time)</td>
+ <td valign="top" width="150">double (time)</td>
  <td valign="top">The minimal amount of time for which the agent's velocities
  that are computed by the simulation are safe with respect
  to other agents. The larger this number, the sooner this
@@ -472,7 +472,7 @@
  </tr>
  <tr>
  <td valign="top">timeHorizonObst</td>
- <td valign="top">float (time)</td>
+ <td valign="top">double (time)</td>
  <td valign="top">The minimal amount of time for which the agent's velocities
  that are computed by the simulation are safe with respect
  to obstacles. The larger this number, the sooner this agent

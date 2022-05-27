@@ -61,7 +61,7 @@
 #include <RVO.h>
 //#define TEST
 #ifndef M_PI
-const float M_PI = 3.14159265358979323846f;
+const double M_PI = 3.14159265358979323846f;
 #endif
 const static int WINDOW_WIDTH = 1000;
 const static int WINDOW_HEIGHT = 1000;
@@ -105,16 +105,16 @@ void setupScenario(RVO::RVOSimulator *sim)
 	sim->setTimeStep(0.5f);
     sim->setNewtonParameters(100,1e-2,50,1e0,1e-6);
 	/* Specify the default parameters for agents that are subsequently added. */
-	sim->setAgentDefaults(15.0f, 100, 10.0f, 10.0f, 1.5f, 2.0f);
+	sim->setAgentDefaults(15.0f, 100, 10.0, 10.0, 1.5f, 2.0f);
 
 	/*
 	 * Add agents, specifying their start position, and store their goals on the
 	 * opposite side of the environment.
 	 */
 	for (size_t i = 0; i < 100; ++i) {
-		sim->addAgent(200.0f *
-		              RVO::Vector2(std::cos(i * 2.0f * M_PI / 100.0f),
-		                           std::sin(i * 2.0f * M_PI / 100.0f))
+		sim->addAgent(200.0 *
+		              RVO::Vector2(std::cos(i * 2.0f * M_PI / 100.0),
+		                           std::sin(i * 2.0f * M_PI / 100.0))
 								   +0.001*RVO::Vector2(rand()%1000,rand()%1000));
 		goals.push_back(-sim->getAgentPosition(i));
 	}

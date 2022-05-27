@@ -49,7 +49,7 @@
 /**
  * \brief       A sufficiently small positive number.
  */
-const float RVO_EPSILON = 0.00001f;
+const double RVO_EPSILON = 0.00001f;
 
 namespace RVO {
 	class Agent;
@@ -65,12 +65,12 @@ namespace RVO {
 	 *                             be calculated.
 	 * \return     The squared distance from the line segment to the point.
 	 */
-	inline float distSqPointLineSegment(const Vector2 &a, const Vector2 &b,
+	inline double distSqPointLineSegment(const Vector2 &a, const Vector2 &b,
 										const Vector2 &c)
 	{
-		const float r = ((c - a) * (b - a)) / absSq(b - a);
+		const double r = ((c - a) * (b - a)) / absSq(b - a);
 
-		if (r < 0.0f) {
+		if (r < 0.0) {
 			return absSq(c - a);
 		}
 		else if (r > 1.0f) {
@@ -90,15 +90,15 @@ namespace RVO {
 	 *                             be calculated.
 	 * \return     Positive when the point c lies to the left of the line ab.
 	 */
-	inline float leftOf(const Vector2 &a, const Vector2 &b, const Vector2 &c)
+	inline double leftOf(const Vector2 &a, const Vector2 &b, const Vector2 &c)
 	{
 		return det(a - c, b - a);
 	}
 
 	/**
-	 * \brief      Computes the square of a float.
-	 * \param      a               The float to be squared.
-	 * \return     The square of the float.
+	 * \brief      Computes the square of a double.
+	 * \param      a               The double to be squared.
+	 * \return     The square of the double.
 	 */
     inline double clog(double d,double* D,double* DD,double d0,double coef)
     {
@@ -123,7 +123,7 @@ namespace RVO {
             *DD=-(4*relD-relD*relD+2*valLog)*coef;
           return -valLogC*(d-d0)*coef;
     }
-	inline float sqr(float a)
+	inline double sqr(double a)
 	{
 		return a * a;
 	}

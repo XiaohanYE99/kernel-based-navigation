@@ -65,14 +65,14 @@
 #include <RVO.h>
 
 #ifndef M_PI
-const float M_PI = 3.14159265358979323846f;
+const double M_PI = 3.14159265358979323846f;
 #endif
 
 class RoadmapVertex {
 public:
 	RVO::Vector2 position;
 	std::vector<int> neighbors;
-	std::vector<float> distToGoal;
+	std::vector<double> distToGoal;
 };
 
 /* Store the roadmap. */
@@ -96,25 +96,25 @@ void setupScenario(RVO::RVOSimulator *sim)
 	 */
 	std::vector<RVO::Vector2> obstacle1, obstacle2, obstacle3, obstacle4;
 
-	obstacle1.push_back(RVO::Vector2(-10.0f, 40.0f));
-	obstacle1.push_back(RVO::Vector2(-40.0f, 40.0f));
-	obstacle1.push_back(RVO::Vector2(-40.0f, 10.0f));
-	obstacle1.push_back(RVO::Vector2(-10.0f, 10.0f));
+	obstacle1.push_back(RVO::Vector2(-10.0, 40.0));
+	obstacle1.push_back(RVO::Vector2(-40.0, 40.0));
+	obstacle1.push_back(RVO::Vector2(-40.0, 10.0));
+	obstacle1.push_back(RVO::Vector2(-10.0, 10.0));
 
-	obstacle2.push_back(RVO::Vector2(10.0f, 40.0f));
-	obstacle2.push_back(RVO::Vector2(10.0f, 10.0f));
-	obstacle2.push_back(RVO::Vector2(40.0f, 10.0f));
-	obstacle2.push_back(RVO::Vector2(40.0f, 40.0f));
+	obstacle2.push_back(RVO::Vector2(10.0, 40.0));
+	obstacle2.push_back(RVO::Vector2(10.0, 10.0));
+	obstacle2.push_back(RVO::Vector2(40.0, 10.0));
+	obstacle2.push_back(RVO::Vector2(40.0, 40.0));
 
-	obstacle3.push_back(RVO::Vector2(10.0f, -40.0f));
-	obstacle3.push_back(RVO::Vector2(40.0f, -40.0f));
-	obstacle3.push_back(RVO::Vector2(40.0f, -10.0f));
-	obstacle3.push_back(RVO::Vector2(10.0f, -10.0f));
+	obstacle3.push_back(RVO::Vector2(10.0, -40.0));
+	obstacle3.push_back(RVO::Vector2(40.0, -40.0));
+	obstacle3.push_back(RVO::Vector2(40.0, -10.0));
+	obstacle3.push_back(RVO::Vector2(10.0, -10.0));
 
-	obstacle4.push_back(RVO::Vector2(-10.0f, -40.0f));
-	obstacle4.push_back(RVO::Vector2(-10.0f, -10.0f));
-	obstacle4.push_back(RVO::Vector2(-40.0f, -10.0f));
-	obstacle4.push_back(RVO::Vector2(-40.0f, -40.0f));
+	obstacle4.push_back(RVO::Vector2(-10.0, -40.0));
+	obstacle4.push_back(RVO::Vector2(-10.0, -10.0));
+	obstacle4.push_back(RVO::Vector2(-40.0, -10.0));
+	obstacle4.push_back(RVO::Vector2(-40.0, -40.0));
 
 	sim->addObstacle(obstacle1);
 	sim->addObstacle(obstacle2);
@@ -180,16 +180,16 @@ void setupScenario(RVO::RVOSimulator *sim)
 	 */
 	for (size_t i = 0; i < 5; ++i) {
 		for (size_t j = 0; j < 5; ++j) {
-			sim->addAgent(RVO::Vector2(55.0f + i * 10.0f,  55.0f + j * 10.0f));
+			sim->addAgent(RVO::Vector2(55.0f + i * 10.0,  55.0f + j * 10.0));
 			goals.push_back(0);
 
-			sim->addAgent(RVO::Vector2(-55.0f - i * 10.0f,  55.0f + j * 10.0f));
+			sim->addAgent(RVO::Vector2(-55.0f - i * 10.0,  55.0f + j * 10.0));
 			goals.push_back(1);
 
-			sim->addAgent(RVO::Vector2(55.0f + i * 10.0f, -55.0f - j * 10.0f));
+			sim->addAgent(RVO::Vector2(55.0f + i * 10.0, -55.0f - j * 10.0));
 			goals.push_back(2);
 
-			sim->addAgent(RVO::Vector2(-55.0f - i * 10.0f, -55.0f - j * 10.0f));
+			sim->addAgent(RVO::Vector2(-55.0f - i * 10.0, -55.0f - j * 10.0));
 			goals.push_back(3);
 		}
 	}
@@ -238,11 +238,11 @@ void buildRoadmap(RVO::RVOSimulator *sim)
 #pragma omp parallel for
 #endif
 	for (int i = 0; i < 4; ++i) {
-		std::multimap<float, int> Q;
-		std::vector<std::multimap<float, int>::iterator> posInQ(roadmap.size(), Q.end());
+		std::multimap<double, int> Q;
+		std::vector<std::multimap<double, int>::iterator> posInQ(roadmap.size(), Q.end());
 
-		roadmap[i].distToGoal[i] = 0.0f;
-		posInQ[i] = Q.insert(std::make_pair(0.0f, i));
+		roadmap[i].distToGoal[i] = 0.0;
+		posInQ[i] = Q.insert(std::make_pair(0.0, i));
 
 		while (!Q.empty()) {
 			const int u = Q.begin()->second;
@@ -251,7 +251,7 @@ void buildRoadmap(RVO::RVOSimulator *sim)
 
 			for (int j = 0; j < static_cast<int>(roadmap[u].neighbors.size()); ++j) {
 				const int v = roadmap[u].neighbors[j];
-				const float dist_uv = RVO::abs(roadmap[v].position - roadmap[u].position);
+				const double dist_uv = RVO::abs(roadmap[v].position - roadmap[u].position);
 
 				if (roadmap[v].distToGoal[i] > roadmap[u].distToGoal[i] + dist_uv) {
 					roadmap[v].distToGoal[i] = roadmap[u].distToGoal[i] + dist_uv;
@@ -280,7 +280,7 @@ void setPreferredVelocities(RVO::RVOSimulator *sim)
 #pragma omp parallel for
 #endif
 	for (int i = 0; i < static_cast<int>(sim->getNumAgents()); ++i) {
-		float minDist = 9e9f;
+		double minDist = 9e9f;
 		int minVertex = -1;
 
 		for (int j = 0; j < static_cast<int>(roadmap.size()); ++j) {
@@ -298,7 +298,7 @@ void setPreferredVelocities(RVO::RVOSimulator *sim)
 		}
 		else {
 			if (RVO::absSq(roadmap[minVertex].position -
-			               sim->getAgentPosition(i)) == 0.0f) {
+			               sim->getAgentPosition(i)) == 0.0) {
 				if (minVertex == goals[i]) {
 					sim->setAgentPrefVelocity(i, RVO::Vector2());
 				}
@@ -314,8 +314,8 @@ void setPreferredVelocities(RVO::RVOSimulator *sim)
 		/*
 		 * Perturb a little to avoid deadlocks due to perfect symmetry.
 		 */
-		float angle = std::rand() * 2.0f * M_PI / RAND_MAX;
-		float dist = std::rand() * 0.0001f / RAND_MAX;
+		double angle = std::rand() * 2.0f * M_PI / RAND_MAX;
+		double dist = std::rand() * 0.0001f / RAND_MAX;
 
 		sim->setAgentPrefVelocity(i, sim->getAgentPrefVelocity(i) +
 		                          dist * RVO::Vector2(std::cos(angle), std::sin(angle)));
@@ -326,7 +326,7 @@ bool reachedGoal(RVO::RVOSimulator *sim)
 {
 	/* Check if all agents have reached their goals. */
 	for (size_t i = 0; i < sim->getNumAgents(); ++i) {
-		if (RVO::absSq(sim->getAgentPosition(i) - roadmap[goals[i]].position) > 20.0f * 20.0f) {
+		if (RVO::absSq(sim->getAgentPosition(i) - roadmap[goals[i]].position) > 20.0 * 20.0) {
 			return false;
 		}
 	}

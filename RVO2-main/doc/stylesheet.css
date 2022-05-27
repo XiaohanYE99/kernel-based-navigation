@@ -527,7 +527,7 @@ table.memberdecls {
 	background-color: #E2E8F2;
 	line-height: 1.25;
 	font-weight: 300;
-	float:left;
+	double:left;
 }
 
 .permalink
@@ -989,7 +989,7 @@ table.fieldtable {
 .navpath li
 {
 	list-style-type:none;
-	float:left;
+	double:left;
 	padding-left:10px;
 	padding-right:15px;
 	background-image:url('bc_s.png');
@@ -1018,7 +1018,7 @@ table.fieldtable {
 .navpath li.footer
 {
         list-style-type:none;
-        float:right;
+        double:right;
         padding-left:10px;
         padding-right:15px;
         background-image:none;
@@ -1031,7 +1031,7 @@ table.fieldtable {
 
 div.summary
 {
-	float: right;
+	double: right;
 	font-size: 8pt;
 	padding-right: 5px;
 	width: 50%;
@@ -1241,7 +1241,7 @@ dl.citelist {
 
 dl.citelist dt {
         color:#334975;
-        float:left;
+        double:left;
         font-weight:bold;
         margin-right:10px;
         padding:5px;
@@ -1257,7 +1257,7 @@ div.toc {
         background-color: #F4F6FA;
         border: 1px solid #D8DFEE;
         border-radius: 7px 7px 7px 7px;
-        float: right;
+        double: right;
         height: auto;
         margin: 0 8px 10px 10px;
         width: 200px;

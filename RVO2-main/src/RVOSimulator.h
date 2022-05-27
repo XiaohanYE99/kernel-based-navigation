@@ -129,9 +129,9 @@ namespace RVO {
 		 * \param      velocity        The default initial two-dimensional linear
 		 *                             velocity of a new agent (optional).
 		 */
-		RVOSimulator(float timeStep, float neighborDist, size_t maxNeighbors,
-					 float timeHorizon, float timeHorizonObst, float radius,
-					 float maxSpeed, const Vector2 &velocity = Vector2());
+		RVOSimulator(double timeStep, double neighborDist, size_t maxNeighbors,
+					 double timeHorizon, double timeHorizonObst, double radius,
+					 double maxSpeed, const Vector2 &velocity = Vector2());
 
 		/**
 		 * \brief      Destroys this simulator instance.
@@ -189,9 +189,9 @@ namespace RVO {
 		 *                             of this agent (optional).
 		 * \return     The number of the agent.
 		 */
-		size_t addAgent(const Vector2 &position, float neighborDist,
-						size_t maxNeighbors, float timeHorizon,
-						float timeHorizonObst, float radius, float maxSpeed,
+		size_t addAgent(const Vector2 &position, double neighborDist,
+						size_t maxNeighbors, double timeHorizon,
+						double timeHorizonObst, double radius, double maxSpeed,
 						const Vector2 &velocity = Vector2());
 
 		/**
@@ -238,7 +238,7 @@ namespace RVO {
 		 *                             is to be retrieved.
 		 * \return     The present maximum speed of the agent.
 		 */
-		float getAgentMaxSpeed(size_t agentNo) const;
+		double getAgentMaxSpeed(size_t agentNo) const;
 
 		/**
 		 * \brief      Returns the maximum neighbor distance of a specified
@@ -247,7 +247,7 @@ namespace RVO {
 		 *                             neighbor distance is to be retrieved.
 		 * \return     The present maximum neighbor distance of the agent.
 		 */
-		float getAgentNeighborDist(size_t agentNo) const;
+		double getAgentNeighborDist(size_t agentNo) const;
 
 		/**
 		 * \brief      Returns the count of agent neighbors taken into account to
@@ -332,7 +332,7 @@ namespace RVO {
 		 *                             be retrieved.
 		 * \return     The present radius of the agent.
 		 */
-		float getAgentRadius(size_t agentNo) const;
+		double getAgentRadius(size_t agentNo) const;
 
 		/**
 		 * \brief      Returns the time horizon of a specified agent.
@@ -340,7 +340,7 @@ namespace RVO {
 		 *                             is to be retrieved.
 		 * \return     The present time horizon of the agent.
 		 */
-		float getAgentTimeHorizon(size_t agentNo) const;
+		double getAgentTimeHorizon(size_t agentNo) const;
 
 		/**
 		 * \brief      Returns the time horizon with respect to obstacles of a
@@ -351,7 +351,7 @@ namespace RVO {
 		 * \return     The present time horizon with respect to obstacles of the
 		 *             agent.
 		 */
-		float getAgentTimeHorizonObst(size_t agentNo) const;
+		double getAgentTimeHorizonObst(size_t agentNo) const;
 
 		/**
 		 * \brief      Returns the two-dimensional linear velocity of a
@@ -367,7 +367,7 @@ namespace RVO {
 		 * \brief      Returns the global time of the simulation.
 		 * \return     The present global time of the simulation (zero initially).
 		 */
-		float getGlobalTime() const;
+		double getGlobalTime() const;
 
 		/**
 		 * \brief      Returns the count of agents in the simulation.
@@ -415,7 +415,7 @@ namespace RVO {
 		 * \brief      Returns the time step of the simulation.
 		 * \return     The present time step of the simulation.
 		 */
-		float getTimeStep() const;
+		double getTimeStep() const;
 
 		/**
 		 * \brief      Processes the obstacles that have been added so that they
@@ -439,7 +439,7 @@ namespace RVO {
 		 *             processed.
 		 */
 		bool queryVisibility(const Vector2 &point1, const Vector2 &point2,
-							 float radius = 0.0f) const;
+							 double radius = 0.0) const;
 
 		/**
 		 * \brief      Sets the default properties for any new agent that is
@@ -480,9 +480,9 @@ namespace RVO {
 		 * \param      velocity        The default initial two-dimensional linear
 		 *                             velocity of a new agent (optional).
 		 */
-		void setAgentDefaults(float neighborDist, size_t maxNeighbors,
-							  float timeHorizon, float timeHorizonObst,
-							  float radius, float maxSpeed,
+		void setAgentDefaults(double neighborDist, size_t maxNeighbors,
+							  double timeHorizon, double timeHorizonObst,
+							  double radius, double maxSpeed,
 							  const Vector2 &velocity = Vector2());
 
 		/**
@@ -500,7 +500,7 @@ namespace RVO {
 		 * \param      maxSpeed        The replacement maximum speed. Must be
 		 *                             non-negative.
 		 */
-		void setAgentMaxSpeed(size_t agentNo, float maxSpeed);
+		void setAgentMaxSpeed(size_t agentNo, double maxSpeed);
 
 		/**
 		 * \brief      Sets the maximum neighbor distance of a specified agent.
@@ -509,7 +509,7 @@ namespace RVO {
 		 * \param      neighborDist    The replacement maximum neighbor distance.
 		 *                             Must be non-negative.
 		 */
-		void setAgentNeighborDist(size_t agentNo, float neighborDist);
+		void setAgentNeighborDist(size_t agentNo, double neighborDist);
 
 		/**
 		 * \brief      Sets the two-dimensional position of a specified agent.
@@ -538,7 +538,7 @@ namespace RVO {
 		 * \param      radius          The replacement radius.
 		 *                             Must be non-negative.
 		 */
-		void setAgentRadius(size_t agentNo, float radius);
+		void setAgentRadius(size_t agentNo, double radius);
 
 		/**
 		 * \brief      Sets the time horizon of a specified agent with respect
@@ -548,7 +548,7 @@ namespace RVO {
 		 * \param      timeHorizon     The replacement time horizon with respect
 		 *                             to other agents. Must be positive.
 		 */
-		void setAgentTimeHorizon(size_t agentNo, float timeHorizon);
+		void setAgentTimeHorizon(size_t agentNo, double timeHorizon);
 
 		/**
 		 * \brief      Sets the time horizon of a specified agent with respect
@@ -558,7 +558,7 @@ namespace RVO {
 		 * \param      timeHorizonObst The replacement time horizon with respect to
 		 *                             obstacles. Must be positive.
 		 */
-		void setAgentTimeHorizonObst(size_t agentNo, float timeHorizonObst);
+		void setAgentTimeHorizonObst(size_t agentNo, double timeHorizonObst);
 
 		/**
 		 * \brief      Sets the two-dimensional linear velocity of a specified
@@ -577,7 +577,7 @@ namespace RVO {
 		 *                             Must be positive.
 		 */
         void setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin);
-		void setTimeStep(float timeStep);
+		void setTimeStep(double timeStep);
 		double energy(const Eigen::VectorXd& v, const Eigen::VectorXd& x, const Eigen::VectorXd& newX,
 				int& nBarrier,Eigen::VectorXd* g, Eigen::MatrixXd* h);
 		bool optimize(const Eigen::VectorXd& v, const Eigen::VectorXd& x, Eigen::VectorXd& xNew);
@@ -590,10 +590,10 @@ namespace RVO {
 	private:
 		std::vector<Agent *> agents_;
 		Agent *defaultAgent_;
-		float globalTime_;
+		double globalTime_;
 		KdTree *kdTree_;
 		std::vector<Obstacle *> obstacles_;
-		float timeStep_;
+		double timeStep_;
 
 		int maxIter;
         double tol;

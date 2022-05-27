@@ -53,7 +53,7 @@ namespace RVO {
 		 * \brief      Constructs and initializes a two-dimensional vector instance
 		 *             to (0.0, 0.0).
 		 */
-		inline Vector2() : x_(0.0f), y_(0.0f) { }
+		inline Vector2() : x_(0.0), y_(0.0) { }
 
 		/**
 		 * \brief      Constructs and initializes a two-dimensional vector from
@@ -63,19 +63,19 @@ namespace RVO {
 		 * \param      y               The y-coordinate of the two-dimensional
 		 *                             vector.
 		 */
-		inline Vector2(float x, float y) : x_(x), y_(y) { }
+		inline Vector2(double x, double y) : x_(x), y_(y) { }
 
 		/**
 		 * \brief      Returns the x-coordinate of this two-dimensional vector.
 		 * \return     The x-coordinate of the two-dimensional vector.
 		 */
-		inline float x() const { return x_; }
+		inline double x() const { return x_; }
 
 		/**
 		 * \brief      Returns the y-coordinate of this two-dimensional vector.
 		 * \return     The y-coordinate of the two-dimensional vector.
 		 */
-		inline float y() const { return y_; }
+		inline double y() const { return y_; }
 
 		/**
 		 * \brief      Computes the negation of this two-dimensional vector.
@@ -94,7 +94,7 @@ namespace RVO {
 		 * \return     The dot product of this two-dimensional vector with a
 		 *             specified two-dimensional vector.
 		 */
-		inline float operator*(const Vector2 &vector) const
+		inline double operator*(const Vector2 &vector) const
 		{
 			return x_ * vector.x() + y_ * vector.y();
 		}
@@ -107,7 +107,7 @@ namespace RVO {
 		 * \return     The scalar multiplication of this two-dimensional vector
 		 *             with a specified scalar value.
 		 */
-		inline Vector2 operator*(float s) const
+		inline Vector2 operator*(double s) const
 		{
 			return Vector2(x_ * s, y_ * s);
 		}
@@ -120,9 +120,9 @@ namespace RVO {
 		 * \return     The scalar division of this two-dimensional vector with a
 		 *             specified scalar value.
 		 */
-		inline Vector2 operator/(float s) const
+		inline Vector2 operator/(double s) const
 		{
-			const float invS = 1.0f / s;
+			const double invS = 1.0f / s;
 
 			return Vector2(x_ * invS, y_ * invS);
 		}
@@ -184,7 +184,7 @@ namespace RVO {
 		 *                             multiplication should be computed.
 		 * \return     A reference to this two-dimensional vector.
 		 */
-		inline Vector2 &operator*=(float s)
+		inline Vector2 &operator*=(double s)
 		{
 			x_ *= s;
 			y_ *= s;
@@ -199,9 +199,9 @@ namespace RVO {
 		 *                             division should be computed.
 		 * \return     A reference to this two-dimensional vector.
 		 */
-		inline Vector2 &operator/=(float s)
+		inline Vector2 &operator/=(double s)
 		{
-			const float invS = 1.0f / s;
+			const double invS = 1.0f / s;
 			x_ *= invS;
 			y_ *= invS;
 
@@ -240,8 +240,8 @@ namespace RVO {
 		}
 
 	private:
-		float x_;
-		float y_;
+		double x_;
+		double y_;
 	};
 
 	/**
@@ -255,7 +255,7 @@ namespace RVO {
 	 * \return     The scalar multiplication of the two-dimensional vector with the
 	 *             scalar value.
 	 */
-	RVO_EXPORT inline Vector2 operator*(float s, const Vector2 &vector)
+	RVO_EXPORT inline Vector2 operator*(double s, const Vector2 &vector)
 	{
 		return Vector2(s * vector.x(), s * vector.y());
 	}
@@ -285,7 +285,7 @@ namespace RVO {
 	 *                             computed.
 	 * \return     The length of the two-dimensional vector.
 	 */
-	RVO_EXPORT inline float abs(const Vector2 &vector)
+	RVO_EXPORT inline double abs(const Vector2 &vector)
 	{
 		return std::sqrt(vector * vector);
 	}
@@ -298,7 +298,7 @@ namespace RVO {
 	 *                             is to be computed.
 	 * \return     The squared length of the two-dimensional vector.
 	 */
-	RVO_EXPORT inline float absSq(const Vector2 &vector)
+	RVO_EXPORT inline double absSq(const Vector2 &vector)
 	{
 		return vector * vector;
 	}
@@ -313,7 +313,7 @@ namespace RVO {
 	 *                             matrix.
 	 * \return     The determinant of the two-dimensional square matrix.
 	 */
-	RVO_EXPORT inline float det(const Vector2 &vector1, const Vector2 &vector2)
+	RVO_EXPORT inline double det(const Vector2 &vector1, const Vector2 &vector2)
 	{
 		return vector1.x() * vector2.y() - vector1.y() * vector2.x();
 	}

@@ -69,7 +69,7 @@ namespace RVO {
 		 * \param      agent           A pointer to the agent to be inserted.
 		 * \param      rangeSq         The squared range around this agent.
 		 */
-		void insertAgentNeighbor(const Agent *agent, float &rangeSq);
+		void insertAgentNeighbor(const Agent *agent, double &rangeSq);
 
 		/**
 		 * \brief      Inserts a static obstacle neighbor into the set of neighbors
@@ -78,7 +78,7 @@ namespace RVO {
 		 *                             inserted.
 		 * \param      rangeSq         The squared range around this agent.
 		 */
-		void insertObstacleNeighbor(const Obstacle *obstacle, float rangeSq);
+		void insertObstacleNeighbor(const Obstacle *obstacle, double rangeSq);
 
 		/**
 		 * \brief      Updates the two-dimensional position and two-dimensional
@@ -86,19 +86,19 @@ namespace RVO {
 		 */
 		void update();
 
-		std::vector<std::pair<float, const Agent *> > agentNeighbors_;
+		std::vector<std::pair<double, const Agent *> > agentNeighbors_;
 		size_t maxNeighbors_;
-		float maxSpeed_;
-		float neighborDist_;
+		double maxSpeed_;
+		double neighborDist_;
 		Vector2 newVelocity_;
-		std::vector<std::pair<float, const Obstacle *> > obstacleNeighbors_;
+		std::vector<std::pair<double, const Obstacle *> > obstacleNeighbors_;
 		std::vector<Line> orcaLines_;
 		Vector2 position_;
 		Vector2 prefVelocity_;
-		float radius_;
+		double radius_;
 		RVOSimulator *sim_;
-		float timeHorizon_;
-		float timeHorizonObst_;
+		double timeHorizon_;
+		double timeHorizonObst_;
 		Vector2 velocity_;
 
 		size_t id_;
@@ -121,7 +121,7 @@ namespace RVO {
 	 * \return     True if successful.
 	 */
 	bool linearProgram1(const std::vector<Line> &lines, size_t lineNo,
-						float radius, const Vector2 &optVelocity,
+						double radius, const Vector2 &optVelocity,
 						bool directionOpt, Vector2 &result);
 
 	/**
@@ -135,7 +135,7 @@ namespace RVO {
 	 * \param      result        A reference to the result of the linear program.
 	 * \return     The number of the line it fails on, and the number of lines if successful.
 	 */
-	size_t linearProgram2(const std::vector<Line> &lines, float radius,
+	size_t linearProgram2(const std::vector<Line> &lines, double radius,
 						  const Vector2 &optVelocity, bool directionOpt,
 						  Vector2 &result);
 
@@ -150,7 +150,7 @@ namespace RVO {
 	 * \param      result        A reference to the result of the linear program.
 	 */
 	void linearProgram3(const std::vector<Line> &lines, size_t numObstLines, size_t beginLine,
-						float radius, Vector2 &result);
+						double radius, Vector2 &result);
 }
 
 #endif /* RVO_AGENT_H_ */

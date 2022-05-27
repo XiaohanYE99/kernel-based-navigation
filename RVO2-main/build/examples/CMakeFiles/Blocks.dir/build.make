@@ -90,7 +90,9 @@ Blocks_EXTERNAL_OBJECTS =
 
 examples/Blocks: examples/CMakeFiles/Blocks.dir/Blocks.cpp.o
 examples/Blocks: examples/CMakeFiles/Blocks.dir/build.make
+examples/Blocks: /usr/lib/x86_64-linux-gnu/libGL.so.1
 examples/Blocks: src/libRVO.so.2.0.3
+examples/Blocks: /usr/lib/x86_64-linux-gnu/libglut.so
 examples/Blocks: examples/CMakeFiles/Blocks.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable Blocks"
 	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Blocks.dir/link.txt --verbose=$(VERBOSE)

@@ -303,6 +303,34 @@ namespace RVO {
 						(*g)[i+newX.size()/2]+=D*2*(newX[i]-obstacle1->point_.y());
 					}
 				}
+
+				else if (s > 1.0f && distSq2 <= radiusSq) {
+				/* Collision with left vertex. Ignore if non-convex. */
+					double D,DD;
+					f+=clog(distSq2-radiusSq,
+                    g?&D:NULL,
+                    h?&DD:NULL,
+                    d0,
+                    coef);	//this can be infinite or nan
+					if(g) {
+						(*g)[i]+=D*2*(newX[i]-obstacle2->point_.x());
+						(*g)[i+newX.size()/2]+=D*2*(newX[i]-obstacle2->point_.y());
+					}
+				}
+
+				else if (s >= 0.0f && s <= 1.0f && distSqLine <= radiusSq) {
+				/* Collision with left vertex. Ignore if non-convex. */
+					double D,DD;
+					f+=clog(distSq2-radiusSq,
+                    g?&D:NULL,
+                    h?&DD:NULL,
+                    d0,
+                    coef);	//this can be infinite or nan
+					if(g) {
+						(*g)[i]+=D*2*(newX[i]-obstacle2->point_.x());
+						(*g)[i+newX.size()/2]+=D*2*(newX[i]-obstacle2->point_.y());
+					}
+				}
 			}
 		}
         return f;

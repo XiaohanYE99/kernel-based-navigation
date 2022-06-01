@@ -44,7 +44,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#define USE_SPATIAL_HASH
+//#define USE_SPATIAL_HASH
 #define OBS
 using namespace Eigen;
 
@@ -377,21 +377,21 @@ namespace RVO {
         double perturbation=1;
         double perturbationDec=0.8;
         double perturbationInc=2.0;
-        Eigen::LDLT<MatrixXd> invH;
+        Eigen::LDLT<MatrixXd> invH,invB;
         double lastAlpha;
         bool succ;
 		//IF TEST
-		VectorXd dx;
+		/*VectorXd dx,dv;
 		double delta=1e-8;
 		dx.setRandom(x.size());
+		dv.setRandom(x.size());
 		double f=energy(v,x,newX,nBarrier,&g,&h);
 
 		double f2=energy(v,x,newX+dx*delta,nBarrier,&g2,NULL);
 		std::cout << "Gradient: " << g.dot(dx) <<
 		" Error: " << (f2-f)/delta -g.dot(dx)<< std::endl;
 		std::cout << "Hessian: " << (h*dx).norm() <<
-		" Error: " << (h*dx-(g2-g)/delta).norm() << std::endl;
-
+		" Error: " << (h*dx-(g2-g)/delta).norm() << std::endl;*/
         for(iter=0; iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++)
         {
 
@@ -446,6 +446,8 @@ namespace RVO {
                 std::cout<<"Increase perturbation to "<<perturbation<<std::endl;
             }
         }
+		//invB=(MatrixXd::Identity(x.size(), x.size())/(-timeStep_)+h).ldlt();
+		//partialxStar_v=invB.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_-1.0));
         //std::cout <<  iter <<"  "<<alpha<<" " <<perturbation << std::endl;
         succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
         //std::cout<<"status="<<succ<<std::endl;
@@ -453,6 +455,7 @@ namespace RVO {
 		printf("time=%f\n",(double)(end-start)/CLOCKS_PER_SEC);
         return succ;
     }
+
 	void RVOSimulator::checkEnergyFD()
 	{
 		std::ofstream fout;
@@ -464,7 +467,7 @@ namespace RVO {
 		int N=static_cast<int>(agents_.size());
 		VectorXd v;
 		VectorXd x,dx;
-		VectorXd newX;
+		VectorXd newX,newX1;
 		VectorXd g,g2;
 		MatrixXd h;
 		while(true) {
@@ -475,8 +478,9 @@ namespace RVO {
 
 			v*=200;
 			x*=100;
-			dx*=100;
+			dx*=1;
 			newX=x;
+			newX1=x;
 			int nBarrier;
 			double f=energy(v,x,newX,nBarrier,&g,&h);
 
@@ -488,7 +492,7 @@ namespace RVO {
 			break;
 
 		}
-		
+		printf("######");
 		#ifndef USE_SPATIAL_HASH
 		#define USE_SPATIAL_HASH
 		std::vector<RVO::Vector2> goals;
@@ -503,7 +507,11 @@ namespace RVO {
 			agents_[i]->computeNeighbors();
 		#endif
 		optimize(v, x, newX);
-		fout<<"newX error: "<<newX.norm()<<std::endl;
+		MatrixXd q=partialxStar_v;
+		double delta=1e-4;
+		optimize(v+dx*delta,x,newX1);
+		std::cout<<"Vstar error: "<<((newX1-newX)/delta-q*dx).squaredNorm()<<std::endl;
+		//fout<<"newX error: "<<newX.norm()<<std::endl;
 
 	}
     void RVOSimulator::doStep()
@@ -525,8 +533,16 @@ namespace RVO {
 		for(size_t i=0;i<agent_size;i++)
 			agents_[i]->computeNeighbors();
 		#endif
-		
-        optimize(v,x,xNew);
+		optimize(v,x,xNew);
+		/*VectorXd dx;
+		dx.setRandom(x.size());
+		VectorXd xNew1=xNew;
+        
+		optimize(v, x, xNew);
+		MatrixXd q=partialxStar_v;
+		double delta=1e-4;
+		optimize(v+dx*delta,x,xNew1);
+		std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<((xNew1-xNew)/delta-q*dx).squaredNorm()<<std::endl;*/
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif

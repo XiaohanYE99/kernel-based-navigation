@@ -65,7 +65,7 @@
 #include <RVO.h>
 #include <Eigen/Dense>
 #include <GL/glut.h>
-
+//#define TEST
 #ifndef M_PI
 const double M_PI = 3.14159265358979323846f;
 #endif
@@ -125,7 +125,7 @@ void setupScenario(RVO::RVOSimulator *sim)
 #endif
 
 	/* Specify the global time step of the simulation. */
-	sim->setTimeStep(0.75f);
+	sim->setTimeStep(0.5f);
 	sim->setNewtonParameters(100,1e-2,50,1e0,1e-6);
 	/* Specify the default parameters for agents that are subsequently added. */
 	sim->setAgentDefaults(15.0f, 100, 10.0, 10.0, 1.5f, 2.0f);

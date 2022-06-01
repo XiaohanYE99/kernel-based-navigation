@@ -594,6 +594,7 @@ namespace RVO {
 		KdTree *kdTree_;
 		std::vector<Obstacle *> obstacles_;
 		double timeStep_;
+		Eigen::MatrixXd partialxStar_x,partialxStar_v;
 
 		int maxIter;
         double tol;

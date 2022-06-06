@@ -1,2 +1,0 @@
-/home/msi/yxh/RVO2-main/examples/CMakeFiles/rebuild_cache.dir
-/home/msi/yxh/RVO2-main/examples/CMakeFiles/edit_cache.dir

@@ -12,6 +12,7 @@ from datetime import datetime
 import torch
 import numpy as np
 import taichi as ti
+
 import rvo2
 from robot_envs.robot_env import *
 
@@ -20,12 +21,12 @@ from PPO import PPO
 ################################### Training ###################################
 def train():
     print("============================================================================================")
-
+    print(torch.cuda.is_available())
     ####### initialize environment hyperparameters ######
     env_name = "Robot-v1"
     
     use_kernel_loop=False               # calculating grid velocity with kernel loop
-    use_sparse_FEM=True                # use sparse FEM solver  
+    use_sparse_FEM=False                # use sparse FEM solver
     
     has_continuous_action_space = True  # continuous action space; else discrete
 

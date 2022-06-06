@@ -1,4 +1,4 @@
-# Install script for directory: /home/msi/yxh/robot-master/src
+# Install script for directory: /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -12,7 +12,7 @@ if(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
     string(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
            CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
   else()
-    set(CMAKE_INSTALL_CONFIG_NAME "")
+    set(CMAKE_INSTALL_CONFIG_NAME "Release")
   endif()
   message(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
 endif()
@@ -37,15 +37,54 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE FILE FILES
-    "/home/msi/yxh/robot-master/src/RVO.h"
-    "/home/msi/yxh/robot-master/src/RVOSimulator.h"
-    "/home/msi/yxh/robot-master/src/Vector2.h"
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xruntimex" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES
+    "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/libRVO.so.2.0.3"
+    "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/libRVO.so.2"
+    "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/libRVO.so"
+    )
+  foreach(file
+      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libRVO.so.2.0.3"
+      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libRVO.so.2"
+      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libRVO.so"
+      )
+    if(EXISTS "${file}" AND
+       NOT IS_SYMLINK "${file}")
+      if(CMAKE_INSTALL_DO_STRIP)
+        execute_process(COMMAND "/usr/bin/strip" "${file}")
+      endif()
+    endif()
+  endforeach()
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xdevelopmentx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/RVO" TYPE FILE FILES
+    "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/RVO.h"
+    "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/RVOSimulator.h"
+    "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Vector2.h"
     )
 endif()
 
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/msi/yxh/robot-master/src/libRVO.a")
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xdevelopmentx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/RVO" TYPE FILE FILES "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Export.h")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xdevelopmentx" OR NOT CMAKE_INSTALL_COMPONENT)
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/RVO/RVOTargets.cmake")
+    file(DIFFERENT EXPORT_FILE_CHANGED FILES
+         "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/RVO/RVOTargets.cmake"
+         "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/CMakeFiles/Export/lib/cmake/RVO/RVOTargets.cmake")
+    if(EXPORT_FILE_CHANGED)
+      file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/RVO/RVOTargets-*.cmake")
+      if(OLD_CONFIG_FILES)
+        message(STATUS "Old export file \"$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/RVO/RVOTargets.cmake\" will be replaced.  Removing files [${OLD_CONFIG_FILES}].")
+        file(REMOVE ${OLD_CONFIG_FILES})
+      endif()
+    endif()
+  endif()
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/RVO" TYPE FILE FILES "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/CMakeFiles/Export/lib/cmake/RVO/RVOTargets.cmake")
+  if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/RVO" TYPE FILE FILES "/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/CMakeFiles/Export/lib/cmake/RVO/RVOTargets-release.cmake")
+  endif()
 endif()
 

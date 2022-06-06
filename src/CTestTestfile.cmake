@@ -1,6 +1,6 @@
 # CMake generated Testfile for 
-# Source directory: /home/msi/yxh/robot-master/src
-# Build directory: /home/msi/yxh/robot-master/src
+# Source directory: /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src
+# Build directory: /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src
 # 
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.

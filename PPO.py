@@ -240,7 +240,7 @@ class PPO:
     def update(self):
         # Monte Carlo estimate of returns
         t0=time.time()
-        batch=2000
+        batch=250
         rewards_ = []
         discounted_reward = 0
         for reward, is_terminal in zip(reversed(self.buffer.rewards), reversed(self.buffer.is_terminals)):

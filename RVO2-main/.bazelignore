@@ -1,5 +1,0 @@
-# -*- mode: gitignore; -*-
-# vi: set ft=gitignore:
-
-_build/
-cmake/

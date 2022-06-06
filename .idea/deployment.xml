@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="linzhuo@10.137.144.67:22" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@9.135.117.1:36000" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
     <serverData>
-      <paths name="linzhuo@10.137.144.67:22">
+      <paths name="root@9.135.117.1:36000">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/linzhuo/yxh/pipe3D5" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/kernel" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

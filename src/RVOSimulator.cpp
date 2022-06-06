@@ -8,7 +8,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  * Chapel Hill, N.C. 27599-3175
  * United States of America
  *
- * <http://gamma.cs.unc.edu/RVO2/>
+ * <https://gamma.cs.unc.edu/RVO2/>
  */
 
 #include "RVOSimulator.h"
@@ -36,19 +36,26 @@
 #include "KdTree.h"
 #include "Obstacle.h"
 
+#include <iostream>
+#include "time.h"
+#include <fstream>
+#include <string>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include "AgentCar.h"
+//#define USE_SPATIAL_HASH
+#define OBS
+using namespace Eigen;
 
 namespace RVO {
-	RVOSimulator::RVOSimulator() : defaultAgent_(NULL), globalTime_(0.0f), kdTree_(NULL), timeStep_(0.0f), carTime_(0.f)
+	RVOSimulator::RVOSimulator() : defaultAgent_(NULL), globalTime_(0.0), kdTree_(NULL), timeStep_(0.0)
 	{
 		kdTree_ = new KdTree(this);
+
 	}
 
-	RVOSimulator::RVOSimulator(float timeStep, float neighborDist, size_t maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, const Vector2& velocity) : defaultAgent_(NULL), globalTime_(0.0f), kdTree_(NULL), timeStep_(timeStep), carTime_(0.f)
+	RVOSimulator::RVOSimulator(double timeStep, double neighborDist, size_t maxNeighbors, double timeHorizon, double timeHorizonObst, double radius, double maxSpeed, const Vector2 &velocity) : defaultAgent_(NULL), globalTime_(0.0), kdTree_(NULL), timeStep_(timeStep)
 	{
 		kdTree_ = new KdTree(this);
 		defaultAgent_ = new Agent(this);
@@ -79,13 +86,13 @@ namespace RVO {
 		delete kdTree_;
 	}
 
-	size_t RVOSimulator::addAgent(const Vector2& position)
+	size_t RVOSimulator::addAgent(const Vector2 &position)
 	{
 		if (defaultAgent_ == NULL) {
 			return RVO_ERROR;
 		}
 
-		Agent* agent = new Agent(this);
+		Agent *agent = new Agent(this);
 
 		agent->position_ = position;
 		agent->maxNeighbors_ = defaultAgent_->maxNeighbors_;
@@ -103,43 +110,9 @@ namespace RVO {
 		return agents_.size() - 1;
 	}
 
-	size_t RVOSimulator::addAgentCar(const Vector2& position)
+	size_t RVOSimulator::addAgent(const Vector2 &position, double neighborDist, size_t maxNeighbors, double timeHorizon, double timeHorizonObst, double radius, double maxSpeed, const Vector2 &velocity)
 	{
-		if (defaultAgent_ == NULL) {
-			return RVO_ERROR;
-		}
-
-		Agent* car = new AgentCar(this, position, 0, 0);
-		car->velocity_ = defaultAgent_->velocity_;
-		car->maxSpeed_ = Car::vDrivingMax;
-		car->radius_ = Car::radius;
-		car->position_ = position;
-		car->timeHorizon_ = defaultAgent_->timeHorizon_;
-		car->maxNeighbors_ = defaultAgent_->maxNeighbors_;
-		car->neighborDist_ = defaultAgent_->neighborDist_;
-		car->timeHorizon_ = defaultAgent_->timeHorizon_;
-		car->timeHorizonObst_ = defaultAgent_->timeHorizonObst_;
-		car->lambda = defaultAgent_->lambda;
-		car->id_ = agents_.size();
-
-		agents_.push_back(car);
-		size_t index = agents_.size() - 1;
-		carIndices_.push_back(index);
-
-		return index;
-	}
-
-	void RVOSimulator::setCarLookupTable()
-	{
-		if(!Car::readFromFile()) {
-			Car::computeLookupTable(getTimeStep(),5);
-			Car::saveToFile();
-		}
-	}
-
-	size_t RVOSimulator::addAgent(const Vector2& position, float neighborDist, size_t maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, const Vector2& velocity)
-	{
-		Agent* agent = new Agent(this);
+		Agent *agent = new Agent(this);
 
 		agent->position_ = position;
 		agent->maxNeighbors_ = maxNeighbors;
@@ -157,28 +130,7 @@ namespace RVO {
 		return agents_.size() - 1;
 	}
 
-	size_t RVOSimulator::addAgentCar(const Vector2& position, float neighborDist, size_t maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, const Vector2& velocity, float lambda)
-	{
-		Agent* car = new AgentCar(this, position, 0, 0);
-		car->position_ = position;
-		car->maxNeighbors_ = maxNeighbors;
-		car->maxSpeed_ = maxSpeed;
-		car->neighborDist_ = neighborDist;
-		car->radius_ = radius;
-		car->timeHorizon_ = timeHorizon;
-		car->timeHorizonObst_ = timeHorizonObst;
-		car->velocity_ = velocity;
-		car->id_ = agents_.size();
-		car->lambda = defaultAgent_->lambda;
-
-		agents_.push_back(car);
-		size_t index = agents_.size() - 1;
-		carIndices_.push_back(index);
-
-		return index;
-	}
-
-	size_t RVOSimulator::addObstacle(const std::vector<Vector2>& vertices)
+	size_t RVOSimulator::addObstacle(const std::vector<Vector2> &vertices)
 	{
 		if (vertices.size() < 2) {
 			return RVO_ERROR;
@@ -187,7 +139,7 @@ namespace RVO {
 		const size_t obstacleNo = obstacles_.size();
 
 		for (size_t i = 0; i < vertices.size(); ++i) {
-			Obstacle* obstacle = new Obstacle();
+			Obstacle *obstacle = new Obstacle();
 			obstacle->point_ = vertices[i];
 
 			if (i != 0) {
@@ -206,7 +158,7 @@ namespace RVO {
 				obstacle->isConvex_ = true;
 			}
 			else {
-				obstacle->isConvex_ = (leftOf(vertices[(i == 0 ? vertices.size() - 1 : i - 1)], vertices[i], vertices[(i == vertices.size() - 1 ? 0 : i + 1)]) >= 0.0f);
+				obstacle->isConvex_ = (leftOf(vertices[(i == 0 ? vertices.size() - 1 : i - 1)], vertices[i], vertices[(i == vertices.size() - 1 ? 0 : i + 1)]) >= 0.0);
 			}
 
 			obstacle->id_ = obstacles_.size();
@@ -216,15 +168,390 @@ namespace RVO {
 
 		return obstacleNo;
 	}
+	bool RVOSimulator::linesearch(const VectorXd& v,const VectorXd& x, const double Ex,
+				const VectorXd& g,const VectorXd& d,
+				double& alpha,VectorXd& xNew,
+				std::function<double(const VectorXd&)> E)
+    {
+        //we want to find: x+alpha*d
+        //double alphaMin=1e-6;	//this is global
+        double alphaInc=1.1;
+        double alphaDec=0.6;
+        double c=0.1;
+        VectorXd X;
 
-	void RVOSimulator::clearObstacle() {
-		for (size_t i = 0; i < obstacles_.size(); ++i) {
-			delete obstacles_[i];
+        while(alpha>alphaMin) {
+            double ExNew=E(xNew+alpha*d);
+
+            if(std::isfinite(ExNew) && ExNew<Ex+c*g.dot(d)*alpha) {
+                    xNew+=alpha*d;
+                alpha*=alphaInc;
+                break;
+            } else {
+                alpha*=alphaDec;
+            }
+        }
+
+        return alpha>alphaMin;
+    }
+
+	double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd& newX,
+				int& nBarrier,VectorXd* g, MatrixXd* h)
+    {
+
+        nBarrier=0;
+        double f=0.5/(timeStep_*timeStep_)*(newX-(x+v*timeStep_)).squaredNorm();
+        if(g)
+            *g=(newX-(x+v*timeStep_))/(timeStep_*timeStep_);
+        if(h)
+        {
+            h->setIdentity(x.size(),x.size());
+            (*h)/=(timeStep_*timeStep_);
+        }
+        //for other agent
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    #ifdef USE_SPATIAL_HASH
+        //has a global variable SpatialHash hash;
+        for(size_t i=0;i<x.size()/2;i++)
+        {
+			//agents_[i]->computeNeighbors();
+            for (size_t k = 0; k < agents_[i]->agentNeighbors_.size(); k++)
+            {
+				size_t j=agents_[i]->agentNeighbors_[k].second->id_;
+                if(i>=j)
+                    continue;
+    #else
+		
+        for(int i=0;i<x.size()/2;i++)
+        {
+            for (int j = i+1; j < x.size()/2; ++j)
+            {
+    #endif
+                double R=agents_[i]->radius_;
+                Vector2d dist(newX[i]-newX[j],newX[i+newX.size()/2]-newX[j+newX.size()/2]);
+                if(dist.squaredNorm()<4*R*R+d0) {
+                    double D,DD;
+                    f+=clog(dist.squaredNorm()-4*R*R,
+                    g?&D:NULL,
+                    h?&DD:NULL,
+                    d0,
+                    coef);	//this can be infinite or nan
+                    if(g) {
+                        (*g)[i]+=D*2*(newX[i]-newX[j]);
+                        (*g)[j]-=D*2*(newX[i]-newX[j]);
+                        (*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-newX[j+newX.size()/2]);
+                        (*g)[j+newX.size()/2]-=D*2*(newX[i+newX.size()/2]-newX[j+newX.size()/2]);
+                    }
+                    if(h) {
+                        (*h)(i,i)+=2*D+DD*4*pow(newX[i]-newX[j],2);
+                        (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]);
+                        (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-newX[j+newX.size()/2],2);
+
+                        (*h)(j,j)+=2*D+DD*4*pow(newX[i]-newX[j],2);
+                        (*h)(j,j+newX.size()/2)+=DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]);
+                        (*h)(j+newX.size()/2,j)+=DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]);
+                        (*h)(j+newX.size()/2,j+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-newX[j+newX.size()/2],2);
+
+                        (*h)(i,j)+=-(2*D+DD*4*pow(newX[i]-newX[j],2));
+                        (*h)(i,j+newX.size()/2)+=-(DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]));
+                        (*h)(i+newX.size()/2,j)+=-(DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]));
+                        (*h)(i+newX.size()/2,j+newX.size()/2)+=-(2*D+DD*4*pow(newX[i+newX.size()/2]-newX[j+newX.size()/2],2));
+
+                        (*h)(j,i)+=-(2*D+DD*4*pow(newX[i]-newX[j],2));
+                        (*h)(j,i+newX.size()/2)+=-(DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]));
+                        (*h)(j+newX.size()/2,i)+=-(DD*4*(newX[i]-newX[j])*(newX[i+newX.size()/2]-newX[j+newX.size()/2]));
+                        (*h)(j+newX.size()/2,i+newX.size()/2)+=-(2*D+DD*4*pow(newX[i+newX.size()/2]-newX[j+newX.size()/2],2));
+
+                    }
+                    nBarrier++;
+                }
+            }
+        }
+        //for other obstacle
+		#ifdef OBS
+		for(size_t i=0;i<x.size()/2;i++)
+        {
+			double R=agents_[i]->radius_;
+            for (size_t k = 0; k < agents_[i]->obstacleNeighbors_.size(); k++)
+            {
+				const Obstacle *obstacle1 = agents_[i]->obstacleNeighbors_[k].second;
+				const Obstacle *obstacle2 = obstacle1->nextObstacle_;
+
+				Vector2d pos(newX[i],newX[i+newX.size()/2]);
+				const Vector2d relativePosition1(obstacle1->point_.x() - pos[0],obstacle1->point_.y()-pos[1]);
+				const Vector2d relativePosition2(obstacle2->point_.x() - pos[0],obstacle2->point_.y()-pos[1]);
+				const double distSq1 = relativePosition1.squaredNorm();
+				const double distSq2 = relativePosition2.squaredNorm();
+
+				const double radiusSq = R*R;
+
+				const Vector2d obstacleVector(obstacle2->point_.x() - obstacle1->point_.x(),obstacle2->point_.y() - obstacle1->point_.y());
+				const double s = (-relativePosition1 .dot(obstacleVector)) / obstacleVector.squaredNorm();
+				const double distSqLine = (-relativePosition1 - s * obstacleVector).squaredNorm();
+
+				if (s < 0.0 && distSq1 < radiusSq+d0) {
+
+					double D,DD;
+					f+=clog(distSq1-radiusSq,
+                    g?&D:NULL,
+                    h?&DD:NULL,
+                    d0*0.5,
+                    coef);	//this can be infinite or nan
+					double px=obstacle1->point_.x();
+					double py=obstacle1->point_.y();
+					if(g) {
+						(*g)[i]+=D*2*(newX[i]-px);
+						(*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-py);
+					}
+					if(h) {
+                        (*h)(i,i)+=2*D+DD*4*pow(newX[i]-obstacle1->point_.x(),2);
+                        (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-py,2);
+                    }
+				}
+
+				else if (s > 1.0f && distSq2 < radiusSq+d0) {
+
+					double D,DD;
+					f+=clog(distSq2-radiusSq,
+                    g?&D:NULL,
+                    h?&DD:NULL,
+                    d0*0.5,
+                    coef);	//this can be infinite or nan
+					double px=obstacle2->point_.x();
+					double py=obstacle2->point_.y();
+					if(g) {
+						(*g)[i]+=D*2*(newX[i]-px);
+						(*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-py);
+					}
+					if(h) {
+                        (*h)(i,i)+=2*D+DD*4*pow(newX[i]-px,2);
+                        (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-py,2);
+                    }
+				}
+
+				else if (s >= 0.0 && s <= 1.0f && distSqLine < radiusSq+d0) {
+
+					double D,DD;
+					f+=clog(distSqLine-radiusSq,
+                    g?&D:NULL,
+                    h?&DD:NULL,
+                    d0*0.5,
+                    coef);	//this can be infinite or nan
+					double px=obstacle1->point_.x()+s*obstacleVector.x();
+					double py=obstacle1->point_.y()+s*obstacleVector.y();
+					if(g) {
+						(*g)[i]+=D*2*(newX[i]-px);
+						(*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-py);
+					}
+					if(h) {
+                        (*h)(i,i)+=2*D+DD*4*pow(newX[i]-px,2);
+                        (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-py,2);
+                    }
+				}
+			}
 		}
-		obstacles_.clear();
-	}
+		#endif
+        return f;
+    }
+	bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX)
+    {
+		clock_t start,end;
+		start=clock();
+        newX=x;
+        VectorXd g;
+        VectorXd g2;
+        MatrixXd h;
+        double alpha=1;
+        int nBarrier,iter;
+        double maxPerturbation=1e2;
+        double minPertubation=1e-9;
+        double perturbation=1;
+        double perturbationDec=0.8;
+        double perturbationInc=2.0;
+        Eigen::LDLT<MatrixXd> invH,invB;
+        double lastAlpha;
+        bool succ;
+		//IF TEST
+		/*VectorXd dx,dv;
+		double delta=1e-8;
+		dx.setRandom(x.size());
+		dv.setRandom(x.size());
+		double f=energy(v,x,newX,nBarrier,&g,&h);
 
-	void RVOSimulator::doStep()
+		double f2=energy(v,x,newX+dx*delta,nBarrier,&g2,NULL);
+		std::cout << "Gradient: " << g.dot(dx) <<
+		" Error: " << (f2-f)/delta -g.dot(dx)<< std::endl;
+		std::cout << "Hessian: " << (h*dx).norm() <<
+		" Error: " << (h*dx-(g2-g)/delta).norm() << std::endl;*/
+        for(iter=0; iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++)
+        {
+
+            double E=energy(v,x,newX,nBarrier,&g,&h);
+
+            if(g.cwiseAbs().maxCoeff()<tol)
+            {
+                std::cout<<"Exit on gNormInf<"<<tol<<std::endl;
+                break;
+            }
+
+            if(iter==0) {
+                maxPerturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());
+                minPertubation*=std::max(1.0,h.cwiseAbs().maxCoeff());
+                perturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());
+            }
+            /*std::cout << "iter=" << iter << " alpha=" << alpha << " E=" << E << " gNormInf=" << g.cwiseAbs().maxCoeff()
+            <<" perturbation=" <<perturbation<<" minPertubation=" << minPertubation <<std::endl;*/
+            //outer-loop of line search and newton direction computation
+
+            while(true) {
+                //ensure hessian factorization is successful
+                while(perturbation<maxPerturbation) {
+                    invH=(MatrixXd::Identity(x.size(), x.size())*perturbation+h).ldlt();
+                    if(invH.info()==Eigen::Success) {
+                        //perturbation=std::max(perturbation*perturbationDec,minPertubation);
+                        break;
+                    } else {
+                        perturbation*=perturbationInc;
+                    }
+                }
+                if(perturbation>=maxPerturbation)
+                {
+                    std::cout<<"Exit on perturbation>=maxPerturbation"<<std::endl;
+                    break;
+                }
+
+                //line search
+                lastAlpha=alpha;
+                succ=linesearch(v,x,E,g,-invH.solve(g),alpha,newX,[&](const VectorXd& evalPt)->double{
+                    return energy(v,x,evalPt,nBarrier,NULL,NULL);
+                });
+                if(succ)
+                {
+                    perturbation=std::max(perturbation*perturbationDec,minPertubation);
+                    break;
+                }
+
+                //probably we need more perturbation to h
+                perturbation*=perturbationInc;
+                alpha=lastAlpha;
+                std::cout<<"Increase perturbation to "<<perturbation<<std::endl;
+            }
+        }
+		//invB=(MatrixXd::Identity(x.size(), x.size())/(-timeStep_)+h).ldlt();
+		//partialxStar_v=invB.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_-1.0));
+        //std::cout <<  iter <<"  "<<alpha<<" " <<perturbation << std::endl;
+        succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
+        //std::cout<<"status="<<succ<<std::endl;
+		end=clock();
+		printf("time=%f\n",(double)(end-start)/CLOCKS_PER_SEC);
+        return succ;
+    }
+
+	void RVOSimulator::checkEnergyFD()
+	{
+		std::ofstream fout;
+		std::string filename= "/home/yxhan/yxh/kernel-based-navigation-master/hash.txt" ;
+		fout.open(filename.c_str(),std::ios::out|std::ios::app);
+		#ifdef USE_SPATIAL_HASH
+		#undef USE_SPATIAL_HASH
+		#endif
+		int N=static_cast<int>(agents_.size());
+		VectorXd v;
+		VectorXd x,dx;
+		VectorXd newX,newX1;
+		VectorXd g,g2;
+		MatrixXd h;
+		while(true) {
+
+			v.setRandom(N*2);
+			x.setRandom(N*2);
+			dx.setRandom(N*2);
+
+			v*=200;
+			x*=100;
+			dx*=1;
+			newX=x;
+			newX1=x;
+			int nBarrier;
+			double f=energy(v,x,newX,nBarrier,&g,&h);
+
+			if(!std::isfinite(f))
+				continue;
+			if(nBarrier<=0)
+				continue;
+
+			break;
+
+		}
+		printf("######");
+		#ifndef USE_SPATIAL_HASH
+		#define USE_SPATIAL_HASH
+		std::vector<RVO::Vector2> goals;
+		for (size_t i = 0; i < 100; ++i) {
+			setAgentPosition(i,Vector2(x[i],x[i+x.size()/2]));
+		}
+		for (int i = 0; i < static_cast<int>(getNumAgents()); ++i) {
+				setAgentPrefVelocity(i, Vector2(v[i],v[i+x.size()/2]));
+			}
+		kdTree_->buildAgentTree();
+		for(size_t i=0;i<N;i++)
+			agents_[i]->computeNeighbors();
+		#endif
+		optimize(v, x, newX);
+		MatrixXd q=partialxStar_v;
+		double delta=1e-4;
+		optimize(v+dx*delta,x,newX1);
+		std::cout<<"Vstar error: "<<((newX1-newX)/delta-q*dx).squaredNorm()<<std::endl;
+		//fout<<"newX error: "<<newX.norm()<<std::endl;
+
+	}
+    void RVOSimulator::doStep()
+    {
+        size_t agent_size=static_cast<int>(agents_.size());
+        VectorXd v(2*agent_size),x(2*agent_size),xNew(2*agent_size);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(size_t i=0;i<agent_size;i++)
+        {
+            v[i]=agents_[i]->prefVelocity_.x();
+            v[i+agent_size]=agents_[i]->prefVelocity_.y();
+            xNew[i]=x[i]=agents_[i]->position_.x();
+            xNew[i+agent_size]=x[i+agent_size]=agents_[i]->position_.y();
+        }
+		#ifdef USE_SPATIAL_HASH
+		kdTree_->buildAgentTree();
+		for(size_t i=0;i<agent_size;i++)
+			agents_[i]->computeNeighbors();
+		#endif
+		optimize(v,x,xNew);
+		/*VectorXd dx;
+		dx.setRandom(x.size());
+		VectorXd xNew1=xNew;
+        
+		optimize(v, x, xNew);
+		MatrixXd q=partialxStar_v;
+		double delta=1e-4;
+		optimize(v+dx*delta,x,xNew1);
+		std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<((xNew1-xNew)/delta-q*dx).squaredNorm()<<std::endl;*/
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+		for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
+			agents_[i]->newVelocity_=Vector2((xNew[i]-x[i])/timeStep_,(xNew[i+agent_size]-x[i+agent_size])/timeStep_);
+			agents_[i]->update();
+		}
+    }
+	/*void RVOSimulator::doStep()
 	{
 		kdTree_->buildAgentTree();
 
@@ -244,40 +571,7 @@ namespace RVO {
 		}
 
 		globalTime_ += timeStep_;
-	}
-
-	void RVOSimulator::computeAgents() {
-		kdTree_->buildAgentTree();
-
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-		for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
-			agents_[i]->computeNeighbors();
-			agents_[i]->computeNewVelocity();
-		}
-	}
-
-	void RVOSimulator::updateAgents() {
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-		for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
-			agents_[i]->update();
-		}
-
-		globalTime_ += timeStep_;
-	}
-
-	void RVOSimulator::doStepCar() {
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-		for (int i = 0; i < static_cast<int>(carIndices_.size()); ++i) {
-			static_cast<AgentCar*>(agents_[carIndices_[i]])->track();
-		}
-		carTime_ += Car::dtc;
-	}
+	}*/
 
 	size_t RVOSimulator::getAgentAgentNeighbor(size_t agentNo, size_t neighborNo) const
 	{
@@ -289,26 +583,12 @@ namespace RVO {
 		return agents_[agentNo]->maxNeighbors_;
 	}
 
-	AgentCar* RVOSimulator::getAgentCar(size_t agentNo) const {
-		return (AgentCar*)agents_[carIndices_[agentNo]];
-	}
-
-	float RVOSimulator::getAgentCarTheta(size_t agentNo) const
-	{
-		return ((AgentCar*)agents_[carIndices_[agentNo]])->car.theta;
-	}
-
-	float RVOSimulator::getAgentCarPhi(size_t agentNo) const
-	{
-		return ((AgentCar*)agents_[carIndices_[agentNo]])->car.phi;
-	}
-
-	float RVOSimulator::getAgentMaxSpeed(size_t agentNo) const
+	double RVOSimulator::getAgentMaxSpeed(size_t agentNo) const
 	{
 		return agents_[agentNo]->maxSpeed_;
 	}
 
-	float RVOSimulator::getAgentNeighborDist(size_t agentNo) const
+	double RVOSimulator::getAgentNeighborDist(size_t agentNo) const
 	{
 		return agents_[agentNo]->neighborDist_;
 	}
@@ -333,52 +613,42 @@ namespace RVO {
 		return agents_[agentNo]->obstacleNeighbors_[neighborNo].second->id_;
 	}
 
-	const Line& RVOSimulator::getAgentORCALine(size_t agentNo, size_t lineNo) const
+	const Line &RVOSimulator::getAgentORCALine(size_t agentNo, size_t lineNo) const
 	{
 		return agents_[agentNo]->orcaLines_[lineNo];
 	}
 
-
-	const std::vector<Line>& RVOSimulator::getAgentORCA(size_t agentNo) const {
-		return agents_[agentNo]->orcaLines_;
-	}
-
-	const Vector2& RVOSimulator::getAgentPosition(size_t agentNo) const
+	const Vector2 &RVOSimulator::getAgentPosition(size_t agentNo) const
 	{
 		return agents_[agentNo]->position_;
 	}
 
-	const Vector2& RVOSimulator::getAgentPrefVelocity(size_t agentNo) const
+	const Vector2 &RVOSimulator::getAgentPrefVelocity(size_t agentNo) const
 	{
 		return agents_[agentNo]->prefVelocity_;
 	}
 
-	float RVOSimulator::getAgentRadius(size_t agentNo) const
+	double RVOSimulator::getAgentRadius(size_t agentNo) const
 	{
 		return agents_[agentNo]->radius_;
 	}
 
-	float RVOSimulator::getAgentTimeHorizon(size_t agentNo) const
+	double RVOSimulator::getAgentTimeHorizon(size_t agentNo) const
 	{
 		return agents_[agentNo]->timeHorizon_;
 	}
 
-	float RVOSimulator::getAgentTimeHorizonObst(size_t agentNo) const
+	double RVOSimulator::getAgentTimeHorizonObst(size_t agentNo) const
 	{
 		return agents_[agentNo]->timeHorizonObst_;
 	}
 
-	const Vector2& RVOSimulator::getAgentVelocity(size_t agentNo) const
+	const Vector2 &RVOSimulator::getAgentVelocity(size_t agentNo) const
 	{
 		return agents_[agentNo]->velocity_;
 	}
 
-	const Vector2& RVOSimulator::getAgentNewVelocity(size_t agentNo) const
-	{
-		return agents_[agentNo]->newVelocity_;
-	}
-
-	float RVOSimulator::getGlobalTime() const
+	double RVOSimulator::getGlobalTime() const
 	{
 		return globalTime_;
 	}
@@ -388,17 +658,12 @@ namespace RVO {
 		return agents_.size();
 	}
 
-	size_t RVOSimulator::getNumAgentCars() const
-	{
-		return carIndices_.size();
-	}
-
 	size_t RVOSimulator::getNumObstacleVertices() const
 	{
 		return obstacles_.size();
 	}
 
-	const Vector2& RVOSimulator::getObstacleVertex(size_t vertexNo) const
+	const Vector2 &RVOSimulator::getObstacleVertex(size_t vertexNo) const
 	{
 		return obstacles_[vertexNo]->point_;
 	}
@@ -413,7 +678,7 @@ namespace RVO {
 		return obstacles_[vertexNo]->prevObstacle_->id_;
 	}
 
-	float RVOSimulator::getTimeStep() const
+	double RVOSimulator::getTimeStep() const
 	{
 		return timeStep_;
 	}
@@ -423,12 +688,12 @@ namespace RVO {
 		kdTree_->buildObstacleTree();
 	}
 
-	bool RVOSimulator::queryVisibility(const Vector2& point1, const Vector2& point2, float radius) const
+	bool RVOSimulator::queryVisibility(const Vector2 &point1, const Vector2 &point2, double radius) const
 	{
 		return kdTree_->queryVisibility(point1, point2, radius);
 	}
 
-	void RVOSimulator::setAgentDefaults(float neighborDist, size_t maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, const Vector2& velocity)
+	void RVOSimulator::setAgentDefaults(double neighborDist, size_t maxNeighbors, double timeHorizon, double timeHorizonObst, double radius, double maxSpeed, const Vector2 &velocity)
 	{
 		if (defaultAgent_ == NULL) {
 			defaultAgent_ = new Agent(this);
@@ -443,95 +708,61 @@ namespace RVO {
 		defaultAgent_->velocity_ = velocity;
 	}
 
-	void RVOSimulator::setAgentLambda(size_t agentNo, float lambda) {
-		agents_[agentNo]->lambda = lambda;
-	}
-
 	void RVOSimulator::setAgentMaxNeighbors(size_t agentNo, size_t maxNeighbors)
 	{
 		agents_[agentNo]->maxNeighbors_ = maxNeighbors;
 	}
 
-	void RVOSimulator::setAgentMaxSpeed(size_t agentNo, float maxSpeed)
+	void RVOSimulator::setAgentMaxSpeed(size_t agentNo, double maxSpeed)
 	{
 		agents_[agentNo]->maxSpeed_ = maxSpeed;
 	}
 
-	void RVOSimulator::setAgentNeighborDist(size_t agentNo, float neighborDist)
+	void RVOSimulator::setAgentNeighborDist(size_t agentNo, double neighborDist)
 	{
 		agents_[agentNo]->neighborDist_ = neighborDist;
 	}
 
-	void RVOSimulator::setAgentPosition(size_t agentNo, const Vector2& position)
+	void RVOSimulator::setAgentPosition(size_t agentNo, const Vector2 &position)
 	{
 		agents_[agentNo]->position_ = position;
 	}
 
-	void RVOSimulator::setAgentPrefVelocity(size_t agentNo, const Vector2& prefVelocity)
+	void RVOSimulator::setAgentPrefVelocity(size_t agentNo, const Vector2 &prefVelocity)
 	{
 		agents_[agentNo]->prefVelocity_ = prefVelocity;
 	}
 
-	void RVOSimulator::setAgentRadius(size_t agentNo, float radius)
+	void RVOSimulator::setAgentRadius(size_t agentNo, double radius)
 	{
 		agents_[agentNo]->radius_ = radius;
 	}
 
-	void RVOSimulator::setAgentTimeHorizon(size_t agentNo, float timeHorizon)
+	void RVOSimulator::setAgentTimeHorizon(size_t agentNo, double timeHorizon)
 	{
 		agents_[agentNo]->timeHorizon_ = timeHorizon;
 	}
 
-	void RVOSimulator::setAgentTimeHorizonObst(size_t agentNo, float timeHorizonObst)
+	void RVOSimulator::setAgentTimeHorizonObst(size_t agentNo, double timeHorizonObst)
 	{
 		agents_[agentNo]->timeHorizonObst_ = timeHorizonObst;
 	}
 
-	void RVOSimulator::setAgentVelocity(size_t agentNo, const Vector2& velocity)
+	void RVOSimulator::setAgentVelocity(size_t agentNo, const Vector2 &velocity)
 	{
 		agents_[agentNo]->velocity_ = velocity;
 	}
 
-	void RVOSimulator::setCarProperties(float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi)
-	{
-		Car::initCars(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp);
-		Car::deltaPhi = deltaPhi;
-		Car::deltav1 = deltaV;
-		Car::vNum = 2 * (size_t)(Car::vDrivingMax / deltaV) + 1;
-		Car::phiNum = (size_t)(Car::phiMax / deltaPhi) + 1;//due to symmetry
-		//if (!Car::readFromFile())
-		//	Car::computeLookupTable(timeStep_, 5);
-	}
-
-	void RVOSimulator::setAgentCar(size_t agentCarNo, const Vector2& position)
-	{
-		AgentCar* car = static_cast<AgentCar*>(agents_[carIndices_[agentCarNo]]);
-		car->velocity_ = defaultAgent_->velocity_;
-		car->maxSpeed_ = Car::vDrivingMax;
-		car->radius_ = Car::radius;
-		car->position_ = position;
-		car->timeHorizon_ = defaultAgent_->timeHorizon_;
-		car->maxNeighbors_ = defaultAgent_->maxNeighbors_;
-		car->neighborDist_ = defaultAgent_->neighborDist_;
-		car->timeHorizon_ = defaultAgent_->timeHorizon_;
-		car->timeHorizonObst_ = defaultAgent_->timeHorizonObst_;
-		car->lambda = defaultAgent_->lambda;
-		
-	 	car->car=Car(position.x(),position.y(),0,0);
-	}
-
-	void RVOSimulator::setTimeStep(float timeStep)
+	void RVOSimulator::setTimeStep(double timeStep)
 	{
 		timeStep_ = timeStep;
 	}
-
-	bool RVOSimulator::shouldUpdate() {
-		if (carTime_ > timeStep_ - Car::dtc / 2.f)
-		{
-			carTime_ = 0.f;
-			return true;
-		}
-		else
-			return false;
+	void RVOSimulator::setNewtonParameters(size_t maxIter_, double tol_, double d0_, double coef_, double alphaMin_)
+	{
+	    maxIter=maxIter_;
+	    tol=tol_;
+	    d0=d0_;
+	    coef=coef_;
+	    alphaMin=alphaMin_;
 	}
 }

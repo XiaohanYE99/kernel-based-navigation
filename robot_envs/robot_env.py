@@ -204,9 +204,9 @@ class NavigationEnvs():
         self.vel=np.zeros([self.n_robots*2])
         self.oldvel=np.zeros([self.n_robots*2])
         self.angle=np.zeros([self.n_robots])
-        self.size=150
-        self.size_x=150
-        self.size_y=150
+        self.size=100
+        self.size_x=100
+        self.size_y=100
         self.dx=1.0/self.size_x
         self.aim=[0.7,0.5]
         self.goal=np.zeros([self.n_robots*2])

@@ -8,7 +8,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  * Chapel Hill, N.C. 27599-3175
  * United States of America
  *
- * <http://gamma.cs.unc.edu/RVO2/>
+ * <https://gamma.cs.unc.edu/RVO2/>
  */
 
 #ifndef RVO_KD_TREE_H_
@@ -70,22 +70,22 @@ namespace RVO {
 			/**
 			 * \brief      The maximum x-coordinate.
 			 */
-			float maxX;
+			double maxX;
 
 			/**
 			 * \brief      The maximum y-coordinate.
 			 */
-			float maxY;
+			double maxY;
 
 			/**
 			 * \brief      The minimum x-coordinate.
 			 */
-			float minX;
+			double minX;
 
 			/**
 			 * \brief      The minimum y-coordinate.
 			 */
-			float minY;
+			double minY;
 
 			/**
 			 * \brief      The right node number.
@@ -146,7 +146,7 @@ namespace RVO {
 		 *                             neighbors are to be computed.
 		 * \param      rangeSq         The squared range around the agent.
 		 */
-		void computeAgentNeighbors(Agent *agent, float &rangeSq) const;
+		void computeAgentNeighbors(Agent *agent, double &rangeSq) const;
 
 		/**
 		 * \brief      Computes the obstacle neighbors of the specified agent.
@@ -154,7 +154,7 @@ namespace RVO {
 		 *                             neighbors are to be computed.
 		 * \param      rangeSq         The squared range around the agent.
 		 */
-		void computeObstacleNeighbors(Agent *agent, float rangeSq) const;
+		void computeObstacleNeighbors(Agent *agent, double rangeSq) const;
 
 		/**
 		 * \brief      Deletes the specified obstacle tree node.
@@ -163,10 +163,10 @@ namespace RVO {
 		 */
 		void deleteObstacleTree(ObstacleTreeNode *node);
 
-		void queryAgentTreeRecursive(Agent *agent, float &rangeSq,
+		void queryAgentTreeRecursive(Agent *agent, double &rangeSq,
 									 size_t node) const;
 
-		void queryObstacleTreeRecursive(Agent *agent, float rangeSq,
+		void queryObstacleTreeRecursive(Agent *agent, double rangeSq,
 										const ObstacleTreeNode *node) const;
 
 		/**
@@ -182,10 +182,10 @@ namespace RVO {
 		 *             false otherwise.
 		 */
 		bool queryVisibility(const Vector2 &q1, const Vector2 &q2,
-							 float radius) const;
+							 double radius) const;
 
 		bool queryVisibilityRecursive(const Vector2 &q1, const Vector2 &q2,
-									  float radius,
+									  double radius,
 									  const ObstacleTreeNode *node) const;
 
 		std::vector<Agent *> agents_;

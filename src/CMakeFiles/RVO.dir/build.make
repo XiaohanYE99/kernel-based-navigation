@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/msi/yxh/robot-master
+CMAKE_SOURCE_DIR = /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/msi/yxh/robot-master
+CMAKE_BINARY_DIR = /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main
 
 # Include any dependencies generated for this target.
 include src/CMakeFiles/RVO.dir/depend.make
@@ -57,66 +57,18 @@ include src/CMakeFiles/RVO.dir/progress.make
 # Include the compile flags for this target's objects.
 include src/CMakeFiles/RVO.dir/flags.make
 
-src/CMakeFiles/RVO.dir/Car.cpp.o: src/CMakeFiles/RVO.dir/flags.make
-src/CMakeFiles/RVO.dir/Car.cpp.o: src/Car.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/msi/yxh/robot-master/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/RVO.dir/Car.cpp.o"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/Car.cpp.o -c /home/msi/yxh/robot-master/src/Car.cpp
-
-src/CMakeFiles/RVO.dir/Car.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RVO.dir/Car.cpp.i"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/msi/yxh/robot-master/src/Car.cpp > CMakeFiles/RVO.dir/Car.cpp.i
-
-src/CMakeFiles/RVO.dir/Car.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RVO.dir/Car.cpp.s"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/msi/yxh/robot-master/src/Car.cpp -o CMakeFiles/RVO.dir/Car.cpp.s
-
-src/CMakeFiles/RVO.dir/Car.cpp.o.requires:
-
-.PHONY : src/CMakeFiles/RVO.dir/Car.cpp.o.requires
-
-src/CMakeFiles/RVO.dir/Car.cpp.o.provides: src/CMakeFiles/RVO.dir/Car.cpp.o.requires
-	$(MAKE) -f src/CMakeFiles/RVO.dir/build.make src/CMakeFiles/RVO.dir/Car.cpp.o.provides.build
-.PHONY : src/CMakeFiles/RVO.dir/Car.cpp.o.provides
-
-src/CMakeFiles/RVO.dir/Car.cpp.o.provides.build: src/CMakeFiles/RVO.dir/Car.cpp.o
-
-
-src/CMakeFiles/RVO.dir/AgentCar.cpp.o: src/CMakeFiles/RVO.dir/flags.make
-src/CMakeFiles/RVO.dir/AgentCar.cpp.o: src/AgentCar.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/msi/yxh/robot-master/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/CMakeFiles/RVO.dir/AgentCar.cpp.o"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/AgentCar.cpp.o -c /home/msi/yxh/robot-master/src/AgentCar.cpp
-
-src/CMakeFiles/RVO.dir/AgentCar.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RVO.dir/AgentCar.cpp.i"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/msi/yxh/robot-master/src/AgentCar.cpp > CMakeFiles/RVO.dir/AgentCar.cpp.i
-
-src/CMakeFiles/RVO.dir/AgentCar.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RVO.dir/AgentCar.cpp.s"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/msi/yxh/robot-master/src/AgentCar.cpp -o CMakeFiles/RVO.dir/AgentCar.cpp.s
-
-src/CMakeFiles/RVO.dir/AgentCar.cpp.o.requires:
-
-.PHONY : src/CMakeFiles/RVO.dir/AgentCar.cpp.o.requires
-
-src/CMakeFiles/RVO.dir/AgentCar.cpp.o.provides: src/CMakeFiles/RVO.dir/AgentCar.cpp.o.requires
-	$(MAKE) -f src/CMakeFiles/RVO.dir/build.make src/CMakeFiles/RVO.dir/AgentCar.cpp.o.provides.build
-.PHONY : src/CMakeFiles/RVO.dir/AgentCar.cpp.o.provides
-
-src/CMakeFiles/RVO.dir/AgentCar.cpp.o.provides.build: src/CMakeFiles/RVO.dir/AgentCar.cpp.o
-
-
 src/CMakeFiles/RVO.dir/Agent.cpp.o: src/CMakeFiles/RVO.dir/flags.make
 src/CMakeFiles/RVO.dir/Agent.cpp.o: src/Agent.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/msi/yxh/robot-master/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object src/CMakeFiles/RVO.dir/Agent.cpp.o"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/Agent.cpp.o -c /home/msi/yxh/robot-master/src/Agent.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/RVO.dir/Agent.cpp.o"
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/Agent.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Agent.cpp
 
 src/CMakeFiles/RVO.dir/Agent.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RVO.dir/Agent.cpp.i"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/msi/yxh/robot-master/src/Agent.cpp > CMakeFiles/RVO.dir/Agent.cpp.i
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Agent.cpp > CMakeFiles/RVO.dir/Agent.cpp.i
 
 src/CMakeFiles/RVO.dir/Agent.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RVO.dir/Agent.cpp.s"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/msi/yxh/robot-master/src/Agent.cpp -o CMakeFiles/RVO.dir/Agent.cpp.s
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Agent.cpp -o CMakeFiles/RVO.dir/Agent.cpp.s
 
 src/CMakeFiles/RVO.dir/Agent.cpp.o.requires:
 
@@ -131,16 +83,16 @@ src/CMakeFiles/RVO.dir/Agent.cpp.o.provides.build: src/CMakeFiles/RVO.dir/Agent.
 
 src/CMakeFiles/RVO.dir/KdTree.cpp.o: src/CMakeFiles/RVO.dir/flags.make
 src/CMakeFiles/RVO.dir/KdTree.cpp.o: src/KdTree.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/msi/yxh/robot-master/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object src/CMakeFiles/RVO.dir/KdTree.cpp.o"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/KdTree.cpp.o -c /home/msi/yxh/robot-master/src/KdTree.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/CMakeFiles/RVO.dir/KdTree.cpp.o"
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/KdTree.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/KdTree.cpp
 
 src/CMakeFiles/RVO.dir/KdTree.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RVO.dir/KdTree.cpp.i"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/msi/yxh/robot-master/src/KdTree.cpp > CMakeFiles/RVO.dir/KdTree.cpp.i
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/KdTree.cpp > CMakeFiles/RVO.dir/KdTree.cpp.i
 
 src/CMakeFiles/RVO.dir/KdTree.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RVO.dir/KdTree.cpp.s"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/msi/yxh/robot-master/src/KdTree.cpp -o CMakeFiles/RVO.dir/KdTree.cpp.s
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/KdTree.cpp -o CMakeFiles/RVO.dir/KdTree.cpp.s
 
 src/CMakeFiles/RVO.dir/KdTree.cpp.o.requires:
 
@@ -155,16 +107,16 @@ src/CMakeFiles/RVO.dir/KdTree.cpp.o.provides.build: src/CMakeFiles/RVO.dir/KdTre
 
 src/CMakeFiles/RVO.dir/Obstacle.cpp.o: src/CMakeFiles/RVO.dir/flags.make
 src/CMakeFiles/RVO.dir/Obstacle.cpp.o: src/Obstacle.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/msi/yxh/robot-master/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/CMakeFiles/RVO.dir/Obstacle.cpp.o"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/Obstacle.cpp.o -c /home/msi/yxh/robot-master/src/Obstacle.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object src/CMakeFiles/RVO.dir/Obstacle.cpp.o"
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/Obstacle.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Obstacle.cpp
 
 src/CMakeFiles/RVO.dir/Obstacle.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RVO.dir/Obstacle.cpp.i"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/msi/yxh/robot-master/src/Obstacle.cpp > CMakeFiles/RVO.dir/Obstacle.cpp.i
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Obstacle.cpp > CMakeFiles/RVO.dir/Obstacle.cpp.i
 
 src/CMakeFiles/RVO.dir/Obstacle.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RVO.dir/Obstacle.cpp.s"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/msi/yxh/robot-master/src/Obstacle.cpp -o CMakeFiles/RVO.dir/Obstacle.cpp.s
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/Obstacle.cpp -o CMakeFiles/RVO.dir/Obstacle.cpp.s
 
 src/CMakeFiles/RVO.dir/Obstacle.cpp.o.requires:
 
@@ -179,16 +131,16 @@ src/CMakeFiles/RVO.dir/Obstacle.cpp.o.provides.build: src/CMakeFiles/RVO.dir/Obs
 
 src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o: src/CMakeFiles/RVO.dir/flags.make
 src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o: src/RVOSimulator.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/msi/yxh/robot-master/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/RVOSimulator.cpp.o -c /home/msi/yxh/robot-master/src/RVOSimulator.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o"
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RVO.dir/RVOSimulator.cpp.o -c /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/RVOSimulator.cpp
 
 src/CMakeFiles/RVO.dir/RVOSimulator.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RVO.dir/RVOSimulator.cpp.i"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/msi/yxh/robot-master/src/RVOSimulator.cpp > CMakeFiles/RVO.dir/RVOSimulator.cpp.i
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/RVOSimulator.cpp > CMakeFiles/RVO.dir/RVOSimulator.cpp.i
 
 src/CMakeFiles/RVO.dir/RVOSimulator.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RVO.dir/RVOSimulator.cpp.s"
-	cd /home/msi/yxh/robot-master/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/msi/yxh/robot-master/src/RVOSimulator.cpp -o CMakeFiles/RVO.dir/RVOSimulator.cpp.s
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/RVOSimulator.cpp -o CMakeFiles/RVO.dir/RVOSimulator.cpp.s
 
 src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o.requires:
 
@@ -203,8 +155,6 @@ src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o.provides.build: src/CMakeFiles/RVO.dir
 
 # Object files for target RVO
 RVO_OBJECTS = \
-"CMakeFiles/RVO.dir/Car.cpp.o" \
-"CMakeFiles/RVO.dir/AgentCar.cpp.o" \
 "CMakeFiles/RVO.dir/Agent.cpp.o" \
 "CMakeFiles/RVO.dir/KdTree.cpp.o" \
 "CMakeFiles/RVO.dir/Obstacle.cpp.o" \
@@ -213,25 +163,27 @@ RVO_OBJECTS = \
 # External object files for target RVO
 RVO_EXTERNAL_OBJECTS =
 
-src/libRVO.a: src/CMakeFiles/RVO.dir/Car.cpp.o
-src/libRVO.a: src/CMakeFiles/RVO.dir/AgentCar.cpp.o
-src/libRVO.a: src/CMakeFiles/RVO.dir/Agent.cpp.o
-src/libRVO.a: src/CMakeFiles/RVO.dir/KdTree.cpp.o
-src/libRVO.a: src/CMakeFiles/RVO.dir/Obstacle.cpp.o
-src/libRVO.a: src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o
-src/libRVO.a: src/CMakeFiles/RVO.dir/build.make
-src/libRVO.a: src/CMakeFiles/RVO.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/msi/yxh/robot-master/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX static library libRVO.a"
-	cd /home/msi/yxh/robot-master/src && $(CMAKE_COMMAND) -P CMakeFiles/RVO.dir/cmake_clean_target.cmake
-	cd /home/msi/yxh/robot-master/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/RVO.dir/link.txt --verbose=$(VERBOSE)
+src/libRVO.so.2.0.3: src/CMakeFiles/RVO.dir/Agent.cpp.o
+src/libRVO.so.2.0.3: src/CMakeFiles/RVO.dir/KdTree.cpp.o
+src/libRVO.so.2.0.3: src/CMakeFiles/RVO.dir/Obstacle.cpp.o
+src/libRVO.so.2.0.3: src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o
+src/libRVO.so.2.0.3: src/CMakeFiles/RVO.dir/build.make
+src/libRVO.so.2.0.3: src/CMakeFiles/RVO.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX shared library libRVO.so"
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/RVO.dir/link.txt --verbose=$(VERBOSE)
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && $(CMAKE_COMMAND) -E cmake_symlink_library libRVO.so.2.0.3 libRVO.so.2 libRVO.so
+
+src/libRVO.so.2: src/libRVO.so.2.0.3
+	@$(CMAKE_COMMAND) -E touch_nocreate src/libRVO.so.2
+
+src/libRVO.so: src/libRVO.so.2.0.3
+	@$(CMAKE_COMMAND) -E touch_nocreate src/libRVO.so
 
 # Rule to build all files generated by this target.
-src/CMakeFiles/RVO.dir/build: src/libRVO.a
+src/CMakeFiles/RVO.dir/build: src/libRVO.so
 
 .PHONY : src/CMakeFiles/RVO.dir/build
 
-src/CMakeFiles/RVO.dir/requires: src/CMakeFiles/RVO.dir/Car.cpp.o.requires
-src/CMakeFiles/RVO.dir/requires: src/CMakeFiles/RVO.dir/AgentCar.cpp.o.requires
 src/CMakeFiles/RVO.dir/requires: src/CMakeFiles/RVO.dir/Agent.cpp.o.requires
 src/CMakeFiles/RVO.dir/requires: src/CMakeFiles/RVO.dir/KdTree.cpp.o.requires
 src/CMakeFiles/RVO.dir/requires: src/CMakeFiles/RVO.dir/Obstacle.cpp.o.requires
@@ -240,10 +192,10 @@ src/CMakeFiles/RVO.dir/requires: src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o.requi
 .PHONY : src/CMakeFiles/RVO.dir/requires
 
 src/CMakeFiles/RVO.dir/clean:
-	cd /home/msi/yxh/robot-master/src && $(CMAKE_COMMAND) -P CMakeFiles/RVO.dir/cmake_clean.cmake
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src && $(CMAKE_COMMAND) -P CMakeFiles/RVO.dir/cmake_clean.cmake
 .PHONY : src/CMakeFiles/RVO.dir/clean
 
 src/CMakeFiles/RVO.dir/depend:
-	cd /home/msi/yxh/robot-master && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/msi/yxh/robot-master /home/msi/yxh/robot-master/src /home/msi/yxh/robot-master /home/msi/yxh/robot-master/src /home/msi/yxh/robot-master/src/CMakeFiles/RVO.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src /home/yxhan/yxh/kernel-based-navigation-master/RVO2-main/src/CMakeFiles/RVO.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : src/CMakeFiles/RVO.dir/depend
 

@@ -109,7 +109,7 @@
  library more flexible to use in varying application domains. In one of the
  example applications that comes with <b>RVO2 Library</b>, we show how a roadmap
  similar to %RVO Library 1.x is used externally to guide the global navigation of
- the agents. As a consequence of this change, <b>RVO2 Library</b> does not have a
+ the agents. As a consequencenumber_of_threads of this change, <b>RVO2 Library</b> does not have a
  concept of a &quot;goal position&quot; or &quot;preferred speed&quot; for each
  agent, but only relies on the preferred velocities of the agents set by the
  external application.
@@ -119,10 +119,7 @@
  The structure of <b>RVO2 Library</b> is similar to that of %RVO Library 1.x.
  Users familiar with %RVO Library 1.x should find little trouble in using <b>RVO2
  Library</b>. However, <b>RVO2 Library</b> is not backwards compatible with %RVO
- Library 1.x. The main reason for this is that the ORCA technique requires
- different (and fewer) parameters to be set than %RVO. Also, the way obstacles
- are represented is different. In %RVO Library 1.x, obstacles are represented by
- an arbitrary collection of line segments. In <b>RVO2 Library</b>, obstacles are
+ Library 1.x. The main reasonnumber_of_threadsine segments. In <b>RVO2 Library</b>, obstacles are
  non-intersecting polygons, specified by lists of vertices in counterclockwise
  order. Further, in %RVO Library 1.x agents cannot be added to the simulation
  after the simulation is initialized. In <b>RVO2 Library</b> this restriction is

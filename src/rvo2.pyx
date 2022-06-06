@@ -41,6 +41,7 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
         size_t addObstacle(const vector[Vector2] & vertices)
         void clearObstacle()
         void doStep() nogil
+        void doNewtonStep(bool require_grad) nogil
         void computeAgents()
         void updateAgents()
         void doStepCar() nogil

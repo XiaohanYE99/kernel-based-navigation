@@ -46,7 +46,8 @@ set(RVO_SOURCES
   KdTree.h
   Obstacle.cpp
   Obstacle.h
-  RVOSimulator.cpp)
+  RVOSimulator.cpp
+  RVOSimulatorOptimize.cpp)
 
 add_library(${RVO_LIBRARY} ${RVO_HEADERS} ${RVO_SOURCES})
 

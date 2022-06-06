@@ -6,9 +6,9 @@ from libcpp cimport bool
 cdef extern from "Vector2.h" namespace "RVO":
     cdef cppclass Vector2:
         Vector2() except +
-        Vector2(float x, float y) except +
-        float x() const
-        float y() const
+        Vector2(double x, double y) except +
+        double x() const
+        double y() const
 
 
 cdef extern from "RVOSimulator.h" namespace "RVO":
@@ -24,31 +24,27 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
 cdef extern from "RVOSimulator.h" namespace "RVO":
     cdef cppclass RVOSimulator:
         RVOSimulator()
-        RVOSimulator(float timeStep, float neighborDist, size_t maxNeighbors,
-                     float timeHorizon, float timeHorizonObst, float radius,
-                     float maxSpeed, const Vector2 & velocity)
+        RVOSimulator(double timeStep, double neighborDist, size_t maxNeighbors,
+                     double timeHorizon, double timeHorizonObst, double radius,
+                     double maxSpeed, const Vector2 & velocity)
         size_t addAgent(const Vector2 & position)
-        size_t addAgentCar(const Vector2 & position)
-        void setCarLookupTable()
-        size_t addAgent(const Vector2 & position, float neighborDist,
-                        size_t maxNeighbors, float timeHorizon,
-                        float timeHorizonObst, float radius, float maxSpeed,
+
+        size_t addAgent(const Vector2 & position, double neighborDist,
+                        size_t maxNeighbors, double timeHorizon,
+                        double timeHorizonObst, double radius, double maxSpeed,
                         const Vector2 & velocity)
-        size_t addAgentCar(const Vector2 & position, float neighborDist,
-                           size_t maxNeighbors, float timeHorizon,
-                           float timeHorizonObst, float radius, float maxSpeed,
-                           const Vector2 & velocity)
+
         size_t addObstacle(const vector[Vector2] & vertices)
-        void clearObstacle()
+
         void doStep() nogil
         void doNewtonStep(bool require_grad) nogil
         void computeAgents()
-        void updateAgents()
-        void doStepCar() nogil
+
+
         size_t getAgentAgentNeighbor(size_t agentNo, size_t neighborNo) const
         size_t getAgentMaxNeighbors(size_t agentNo) const
-        float getAgentMaxSpeed(size_t agentNo) const
-        float getAgentNeighborDist(size_t agentNo) const
+        double getAgentMaxSpeed(size_t agentNo) const
+        double getAgentNeighborDist(size_t agentNo) const
         size_t getAgentNumAgentNeighbors(size_t agentNo) const
         size_t getAgentNumObstacleNeighbors(size_t agentNo) const
         size_t getAgentNumORCALines(size_t agentNo) const
@@ -56,46 +52,44 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
         const Line & getAgentORCALine(size_t agentNo, size_t lineNo) const
         const Vector2 & getAgentPosition(size_t agentNo) const
         const Vector2 & getAgentPrefVelocity(size_t agentNo) const
-        float getAgentRadius(size_t agentNo) const
-        float getAgentTimeHorizon(size_t agentNo) const
-        float getAgentTimeHorizonObst(size_t agentNo) const
+        double getAgentRadius(size_t agentNo) const
+        double getAgentTimeHorizon(size_t agentNo) const
+        double getAgentTimeHorizonObst(size_t agentNo) const
         const Vector2 & getAgentVelocity(size_t agentNo) const
-        float getGlobalTime() const
+        double getGlobalTime() const
         size_t getNumAgents() const
         size_t getNumObstacleVertices() const
         const Vector2 & getObstacleVertex(size_t vertexNo) const
         size_t getNextObstacleVertexNo(size_t vertexNo) const
         size_t getPrevObstacleVertexNo(size_t vertexNo) const
-        float getTimeStep() const
+        double getTimeStep() const
         void processObstacles() nogil
         bool queryVisibility(const Vector2 & point1, const Vector2 & point2,
-                             float radius) nogil const
-        void setAgentDefaults(float neighborDist, size_t maxNeighbors,
-                              float timeHorizon, float timeHorizonObst,
-                              float radius, float maxSpeed,
+                             double radius) nogil const
+        void setAgentDefaults(double neighborDist, size_t maxNeighbors,
+                              double timeHorizon, double timeHorizonObst,
+                              double radius, double maxSpeed,
                               const Vector2 & velocity)
         void setAgentMaxNeighbors(size_t agentNo, size_t maxNeighbors)
-        void setAgentMaxSpeed(size_t agentNo, float maxSpeed)
-        void setAgentNeighborDist(size_t agentNo, float neighborDist)
+        void setAgentMaxSpeed(size_t agentNo, double maxSpeed)
+        void setAgentNeighborDist(size_t agentNo, double neighborDist)
         void setAgentPosition(size_t agentNo, const Vector2 & position)
         void setAgentPrefVelocity(size_t agentNo, const Vector2 & prefVelocity)
-        void setAgentRadius(size_t agentNo, float radius)
-        void setAgentTimeHorizon(size_t agentNo, float timeHorizon)
-        void setAgentTimeHorizonObst(size_t agentNo, float timeHorizonObst)
+        void setAgentRadius(size_t agentNo, double radius)
+        void setAgentTimeHorizon(size_t agentNo, double timeHorizon)
+        void setAgentTimeHorizonObst(size_t agentNo, double timeHorizonObst)
         void setAgentVelocity(size_t agentNo, const Vector2 & velocity)
-        void setCarProperties(float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi)
-        void setTimeStep(float timeStep)
-        bool shouldUpdate()
-        void setAgentCar(size_t agentCarNo, const Vector2 & position)
-        float getAgentCarTheta(size_t agentNo)
-        float getAgentCarPhi(size_t agentNo)
+
+        void setTimeStep(double timeStep)
+
+
 
 cdef class PyRVOSimulator:
     cdef RVOSimulator *thisptr
 
-    def __cinit__(self, float timeStep, float neighborDist, size_t maxNeighbors,
-                  float timeHorizon, float timeHorizonObst, float radius,
-                  float maxSpeed, tuple velocity=(0, 0)):
+    def __cinit__(self, double timeStep, double neighborDist, size_t maxNeighbors,
+                  double timeHorizon, double timeHorizonObst, double radius,
+                  double maxSpeed, tuple velocity=(0, 0)):
         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
 
         self.thisptr = new RVOSimulator(timeStep, neighborDist, maxNeighbors,
@@ -125,33 +119,7 @@ cdef class PyRVOSimulator:
             raise RuntimeError('Error adding agent to RVO simulation')
 
         return agent_nr
-    
-    def addAgentCar(self, tuple pos, neighborDist=None,
-                 maxNeighbors=None, timeHorizon=None,
-                 timeHorizonObst=None, radius=None, maxSpeed=None,
-                 velocity=None):
-        cdef Vector2 c_pos = Vector2(pos[0], pos[1])
-        cdef Vector2 c_velocity
 
-        if neighborDist is not None and velocity is None:
-            raise ValueError("Either pass only 'pos', or pass all parameters.")
-
-        if neighborDist is None:
-            agent_nr = self.thisptr.addAgentCar(c_pos)
-        else:
-            c_velocity = Vector2(velocity[0], velocity[1])
-            agent_nr = self.thisptr.addAgentCar(c_pos, neighborDist,
-                                                maxNeighbors, timeHorizon,
-                                                timeHorizonObst, radius, maxSpeed,
-                                                c_velocity)
-
-        if agent_nr == RVO_ERROR:
-            raise RuntimeError('Error adding agent to RVO simulation')
-
-        return agent_nr
-
-    def setCarLookupTable(self):
-        self.thisptr.setCarLookupTable()
 
     def addObstacle(self, list vertices):
         cdef vector[Vector2] c_vertices
@@ -163,22 +131,16 @@ cdef class PyRVOSimulator:
         if obstacle_nr == RVO_ERROR:
             raise RuntimeError('Error adding obstacle to RVO simulation')
         return obstacle_nr
-    def clearObstacle(self):
-        self.thisptr.clearObstacle()
+
 
     def doStep(self):
         with nogil:
             self.thisptr.doStep()
 
-    def computeAgents(self):
-        self.thisptr.computeAgents()
-    
-    def updateAgents(self):
-        self.thisptr.updateAgents()
-    
-    def doStepCar(self):
+    def doNewtonStep(self,require_grad=True):
         with nogil:
-            self.thisptr.doStepCar()
+            self.thisptr.doNewtonStep(require_grad=True)
+
 
     def getAgentAgentNeighbor(self, size_t agent_no, size_t neighbor_no):
         return self.thisptr.getAgentAgentNeighbor(agent_no, neighbor_no)
@@ -234,7 +196,7 @@ cdef class PyRVOSimulator:
         with nogil:
             self.thisptr.processObstacles()
 
-    def queryVisibility(self, tuple point1, tuple point2, float radius=0.0):
+    def queryVisibility(self, tuple point1, tuple point2, double radius=0.0):
         cdef Vector2 c_point1 = Vector2(point1[0], point1[1])
         cdef Vector2 c_point2 = Vector2(point2[0], point2[1])
         cdef bool visible
@@ -244,8 +206,8 @@ cdef class PyRVOSimulator:
 
         return visible
 
-    def setAgentDefaults(self, float neighbor_dist, size_t max_neighbors, float time_horizon,
-                         float time_horizon_obst, float radius, float max_speed,
+    def setAgentDefaults(self, double neighbor_dist, size_t max_neighbors, double time_horizon,
+                         double time_horizon_obst, double radius, double max_speed,
                          tuple velocity=(0, 0)):
         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
         self.thisptr.setAgentDefaults(neighbor_dist, max_neighbors, time_horizon,
@@ -253,11 +215,11 @@ cdef class PyRVOSimulator:
 
     def setAgentMaxNeighbors(self, size_t agent_no, size_t max_neighbors):
         self.thisptr.setAgentMaxNeighbors(agent_no, max_neighbors)
-    def setAgentMaxSpeed(self, size_t agent_no, float max_speed):
+    def setAgentMaxSpeed(self, size_t agent_no, double max_speed):
         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)
-    def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+    def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
-    def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+    def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
     def setAgentPosition(self, size_t agent_no, tuple position):
         cdef Vector2 c_pos = Vector2(position[0], position[1])
@@ -265,25 +227,17 @@ cdef class PyRVOSimulator:
     def setAgentPrefVelocity(self, size_t agent_no, tuple velocity):
         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
         self.thisptr.setAgentPrefVelocity(agent_no, c_velocity)
-    def setAgentRadius(self, size_t agent_no, float radius):
+    def setAgentRadius(self, size_t agent_no, double radius):
         self.thisptr.setAgentRadius(agent_no, radius)
-    def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):
+    def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):
         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)
-    def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):
+    def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):
         self.thisptr.setAgentTimeHorizonObst(agent_no, timeHorizonObst)
     def setAgentVelocity(self, size_t agent_no, tuple velocity):
         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
         self.thisptr.setAgentVelocity(agent_no, c_velocity)
-    def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):
-        self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)
-    def setTimeStep(self, float time_step):
+
+    def setTimeStep(self, double time_step):
         self.thisptr.setTimeStep(time_step)
-    def shouldUpdate(self):
-        return self.thisptr.shouldUpdate()
-    def setAgentCar(self, size_t agentCarNo, tuple position):
-        cdef Vector2 c_pos = Vector2(position[0], position[1])
-        self.thisptr.setAgentCar(agentCarNo, c_pos)
-    def getAgentCarTheta(self, size_t agentNo):
-        return self.thisptr.getAgentCarTheta(agentNo)
-    def getAgentCarPhi(self, size_t agentNo):
-        return self.thisptr.getAgentCarPhi(agentNo)
+
+

@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC  -Wall -Wformat-security -Werror=format-security -Wno-unused  -Wl,--as-needed -shared -Wl,-soname,libRVO.so.2 -o libRVO.so.2.0.3 CMakeFiles/RVO.dir/Agent.cpp.o CMakeFiles/RVO.dir/KdTree.cpp.o CMakeFiles/RVO.dir/Obstacle.cpp.o CMakeFiles/RVO.dir/RVOSimulator.cpp.o 

@@ -8,7 +8,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  * Chapel Hill, N.C. 27599-3175
  * United States of America
  *
- * <https://gamma.cs.unc.edu/RVO2/>
+ * <http://gamma.cs.unc.edu/RVO2/>
  */
 
 #ifndef RVO_DEFINITIONS_H_
@@ -49,7 +49,7 @@
 /**
  * \brief       A sufficiently small positive number.
  */
-const double RVO_EPSILON = 0.00001f;
+const float RVO_EPSILON = 0.00001f;
 
 namespace RVO {
 	class Agent;
@@ -65,12 +65,12 @@ namespace RVO {
 	 *                             be calculated.
 	 * \return     The squared distance from the line segment to the point.
 	 */
-	inline double distSqPointLineSegment(const Vector2 &a, const Vector2 &b,
+	inline float distSqPointLineSegment(const Vector2 &a, const Vector2 &b,
 										const Vector2 &c)
 	{
-		const double r = ((c - a) * (b - a)) / absSq(b - a);
+		const float r = ((c - a) * (b - a)) / absSq(b - a);
 
-		if (r < 0.0) {
+		if (r < 0.0f) {
 			return absSq(c - a);
 		}
 		else if (r > 1.0f) {
@@ -90,40 +90,17 @@ namespace RVO {
 	 *                             be calculated.
 	 * \return     Positive when the point c lies to the left of the line ab.
 	 */
-	inline double leftOf(const Vector2 &a, const Vector2 &b, const Vector2 &c)
+	inline float leftOf(const Vector2 &a, const Vector2 &b, const Vector2 &c)
 	{
 		return det(a - c, b - a);
 	}
 
 	/**
-	 * \brief      Computes the square of a double.
-	 * \param      a               The double to be squared.
-	 * \return     The square of the double.
+	 * \brief      Computes the square of a float.
+	 * \param      a               The float to be squared.
+	 * \return     The square of the float.
 	 */
-    inline double clog(double d,double* D,double* DD,double d0,double coef)
-    {
-          if(d<=0.0)
-          {
-              return std::numeric_limits<double>::quiet_NaN();
-          }
-
-          else if(d>d0) {
-            if(D)
-              *D=0;
-            if(DD)
-              *DD=0;
-            return 0;
-          }
-          double valLog=log(d/d0);
-          double valLogC=valLog*(d-d0);
-          double relD=(d-d0)/d;
-          if(D)
-            *D=-(2*valLogC+(d-d0)*relD)*coef;
-          if(DD)
-            *DD=-(4*relD-relD*relD+2*valLog)*coef;
-          return -valLogC*(d-d0)*coef;
-    }
-	inline double sqr(double a)
+	inline float sqr(float a)
 	{
 		return a * a;
 	}

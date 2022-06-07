@@ -1,0 +1,2 @@
+/usr/bin/ar qc libRVO.a  CMakeFiles/RVO.dir/Car.o CMakeFiles/RVO.dir/AgentCar.o CMakeFiles/RVO.dir/Agent.o CMakeFiles/RVO.dir/KdTree.o CMakeFiles/RVO.dir/Obstacle.o CMakeFiles/RVO.dir/RVOSimulator.o CMakeFiles/RVO.dir/RVOSimulatorOptimize.o
+/usr/bin/ranlib libRVO.a

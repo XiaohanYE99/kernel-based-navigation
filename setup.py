@@ -29,7 +29,6 @@ extensions = [
               library_dirs=['build/RVO2/src'],
               extra_compile_args=['-fPIC']),
 ]
-
 setup(
     name="pyrvo2",
     ext_modules=cythonize(extensions),
@@ -40,10 +39,7 @@ setup(
         'Intended Audience :: Education',
         'Intended Audience :: Information Technology',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Cython',
         'Topic :: Games/Entertainment :: Simulation',
         'Topic :: Software Development :: Libraries :: Python Modules',

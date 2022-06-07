@@ -5,6 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.path
 from robot_envs.sparse_solver import *#SparseSolve
+import time
 plt.ion()
 
 import time
@@ -187,7 +188,7 @@ class NavigationEnvs():
         self.use_kernel_loop=use_kernel_loop
         self.use_sparse_FEM=use_sparse_FEM
         
-        self.sim.setNewtonParameters(100,1e-2,5e-4,5e4,1e-6)
+        self.sim.setNewtonParameters(100,1e-0,5e-4,5e4,1e-6)
 
         self.N=20           #kernel number
         self.radius=0.01    #robot radius
@@ -575,9 +576,9 @@ class NavigationEnvs():
                 self.sim.setAgentPrefVelocity(self.agent[i], (dx, dy))
                 self.sim.setAgentPosition(self.agent[i], (pos[i][0], pos[i][1]))
                 self.deltap[i]=[dx,dy]
-                
-            self.sim.doNewtonStep(True)
-            
+
+            self.sim.doNewtonStep(False)
+
             for i in range(self.n_robots):
                 self.state[i*2:i*2+2]=self.sim.getAgentPosition(self.agent[i])
         for i in range(self.n_robots):

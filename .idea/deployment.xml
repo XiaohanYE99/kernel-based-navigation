@@ -7,6 +7,9 @@
           <mappings>
             <mapping deploy="/home/kernel" local="$PROJECT_DIR$" />
           </mappings>
+          <excludedPaths>
+            <excludedPath path="/home/kernel/build/RVO2/src/libRVO.so" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

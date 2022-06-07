@@ -8,7 +8,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  * Chapel Hill, N.C. 27599-3175
  * United States of America
  *
- * <https://gamma.cs.unc.edu/RVO2/>
+ * <http://gamma.cs.unc.edu/RVO2/>
  */
 
 #ifndef RVO_AGENT_H_
@@ -56,12 +56,12 @@ namespace RVO {
 		/**
 		 * \brief      Computes the neighbors of this agent.
 		 */
-		void computeNeighbors();
+		virtual void computeNeighbors();
 
 		/**
 		 * \brief      Computes the new velocity of this agent.
 		 */
-		void computeNewVelocity();
+		virtual void computeNewVelocity();
 
 		/**
 		 * \brief      Inserts an agent neighbor into the set of neighbors of
@@ -84,7 +84,7 @@ namespace RVO {
 		 * \brief      Updates the two-dimensional position and two-dimensional
 		 *             velocity of this agent.
 		 */
-		void update();
+		virtual void update();
 
 		std::vector<std::pair<double, const Agent *> > agentNeighbors_;
 		size_t maxNeighbors_;
@@ -100,11 +100,13 @@ namespace RVO {
 		double timeHorizon_;
 		double timeHorizonObst_;
 		Vector2 velocity_;
+		double lambda;
 
 		size_t id_;
 
 		friend class KdTree;
 		friend class RVOSimulator;
+		friend class AgentCar;
 	};
 
 	/**

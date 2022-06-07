@@ -35,11 +35,11 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
                         const Vector2 & velocity)
 
         size_t addObstacle(const vector[Vector2] & vertices)
-
+        void clearObstacle()
         void doStep() nogil
         void doNewtonStep(bool require_grad) nogil
         void computeAgents()
-
+        void updateAgents()
 
         size_t getAgentAgentNeighbor(size_t agentNo, size_t neighborNo) const
         size_t getAgentMaxNeighbors(size_t agentNo) const
@@ -79,9 +79,10 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
         void setAgentTimeHorizon(size_t agentNo, double timeHorizon)
         void setAgentTimeHorizonObst(size_t agentNo, double timeHorizonObst)
         void setAgentVelocity(size_t agentNo, const Vector2 & velocity)
-
+        #void setCarProperties(double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi)
         void setTimeStep(double timeStep)
-
+        void setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin)
+        bool shouldUpdate()
 
 
 cdef class PyRVOSimulator:
@@ -119,6 +120,7 @@ cdef class PyRVOSimulator:
             raise RuntimeError('Error adding agent to RVO simulation')
 
         return agent_nr
+    
 
 
     def addObstacle(self, list vertices):
@@ -131,15 +133,23 @@ cdef class PyRVOSimulator:
         if obstacle_nr == RVO_ERROR:
             raise RuntimeError('Error adding obstacle to RVO simulation')
         return obstacle_nr
-
+    def clearObstacle(self):
+        self.thisptr.clearObstacle()
 
     def doStep(self):
         with nogil:
             self.thisptr.doStep()
 
-    def doNewtonStep(self,require_grad=True):
+    def doNewtonStep(self,bool require_grad):
         with nogil:
-            self.thisptr.doNewtonStep(require_grad=True)
+            self.thisptr.doNewtonStep(require_grad)
+
+    def computeAgents(self):
+        self.thisptr.computeAgents()
+    
+    def updateAgents(self):
+        self.thisptr.updateAgents()
+    
 
 
     def getAgentAgentNeighbor(self, size_t agent_no, size_t neighbor_no):
@@ -239,5 +249,8 @@ cdef class PyRVOSimulator:
 
     def setTimeStep(self, double time_step):
         self.thisptr.setTimeStep(time_step)
-
+    def setNewtonParameters(self, size_t maxIter, double tol, double d0, double coef, double alphaMin):
+        self.thisptr.setNewtonParameters(maxIter, tol, d0, coef, alphaMin)
+    def shouldUpdate(self):
+        return self.thisptr.shouldUpdate()
 

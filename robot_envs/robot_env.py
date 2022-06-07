@@ -187,6 +187,7 @@ class NavigationEnvs():
         self.use_kernel_loop=use_kernel_loop
         self.use_sparse_FEM=use_sparse_FEM
         
+        self.sim.setNewtonParameters(100,1e-2,5e-4,5e4,1e-6)
 
         self.N=20           #kernel number
         self.radius=0.01    #robot radius
@@ -266,7 +267,7 @@ class NavigationEnvs():
                 self.state[idx*2+1]=j*0.02+0.3
                 self.oldstate[idx*2]=i*0.02+0.35
                 self.oldstate[idx*2+1]=j*0.02+0.3
-                self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 5, 0.04, 0.04, 0.01, 1, (0, 0)))
+                self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 100, 0.04, 0.04, 0.009, 1, (0, 0)))
                 
         self.sim.addObstacle([(0.2, 0.2), (0.54, 0.2), (0.54, 0.8),(0.2,0.8),(0.2,0.76),(0.5,0.76),(0.5,0.24),(0.2,0.24)])
         self.sim.addObstacle([(0.04, 0.04),(0.04,0.96),(0.96,0.96),(0.96,0.04) ])
@@ -320,7 +321,7 @@ class NavigationEnvs():
         for i in range(self.N):
             q[i]=[self.x0[i],self.y0[i]]
         #self.gui.circles(q, radius=5, color=0x068587)
-        self.gui.circles(pos, radius=5, color=0xF7EED6)
+        self.gui.circles(pos, radius=4.5, color=0xF7EED6)
         #self.gui.circles(bd, radius=2, color=0xFF0000)
         self.gui.rect([0.5, 0.2], [0.54, 0.8], radius=1, color=0xF4A460)
         self.gui.rect([0.2, 0.2], [0.5, 0.24], radius=1, color=0xF4A460)
@@ -546,8 +547,6 @@ class NavigationEnvs():
         for it in range(2):
             pos=self.state.reshape([-1,2])
 
-            
-            
             for i in range(self.n_robots):
                 if i<self.n_robots/2:
                     self.deltap[i]=[vx[i]*0.1,vy[i]*0.0]
@@ -577,7 +576,7 @@ class NavigationEnvs():
                 self.sim.setAgentPosition(self.agent[i], (pos[i][0], pos[i][1]))
                 self.deltap[i]=[dx,dy]
                 
-            self.sim.doStep()
+            self.sim.doNewtonStep(True)
             
             for i in range(self.n_robots):
                 self.state[i*2:i*2+2]=self.sim.getAgentPosition(self.agent[i])
@@ -599,7 +598,7 @@ class NavigationEnvs():
         b=np.append(self.omega,self.alpha)
         c=np.append(a,b)
         '''
-        if self.cnt%10==0:
+        if self.cnt%1==0:
             self.render()
         self.cnt+=1
         return self.state,reward,done,dict(reward=reward)

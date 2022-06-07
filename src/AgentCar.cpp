@@ -12,11 +12,11 @@ void RVO::AgentCar::track() {
 
 void RVO::AgentCar::computeNeighbors() {
 	Agent::computeNeighbors();
-	float minDistSq = INFINITY;
-	float minObsDistSq = INFINITY;
+	double minDistSq = INFINITY;
+	double minObsDistSq = INFINITY;
 	for (size_t i = 0; i < Agent::agentNeighbors_.size(); i++)
 	{
-		float distSq = Agent::agentNeighbors_[i].first;
+		double distSq = Agent::agentNeighbors_[i].first;
 		if (distSq < minDistSq)
 		{
 			minDistSq = distSq;
@@ -24,7 +24,7 @@ void RVO::AgentCar::computeNeighbors() {
 	}
 	for (size_t i = 0; i < Agent::obstacleNeighbors_.size(); i++)
 	{
-		float distSq = Agent::obstacleNeighbors_[i].first;
+		double distSq = Agent::obstacleNeighbors_[i].first;
 		if (distSq < minObsDistSq)
 		{
 			minObsDistSq = distSq;
@@ -63,16 +63,16 @@ void RVO::AgentCar::computeNewVelocity() {
 bool RVO::AgentCar::searchDesiredVelocity(RVO::Vector2& vd) {
 	const auto& vi = Agent::newVelocity_;
 	const auto& orca = Agent::orcaLines_;
-	const float errorMax = Agent::radius_ - Car::radius;
+	const double errorMax = Agent::radius_ - Car::radius;
 	
-	float cosTheta = cos(car.theta);
-	float sinTheta = sin(car.theta);
-	float vxWorld = vi.x();
-	float vyWorld = vi.y();
-	float vxLocal = vxWorld * cosTheta + vyWorld * sinTheta;
-	float vyLocal = -vxWorld * sinTheta + vyWorld * cosTheta;
+	double cosTheta = cos(car.theta);
+	double sinTheta = sin(car.theta);
+	double vxWorld = vi.x();
+	double vyWorld = vi.y();
+	double vxLocal = vxWorld * cosTheta + vyWorld * sinTheta;
+	double vyLocal = -vxWorld * sinTheta + vyWorld * cosTheta;
 	int iv0, iphi, ix, iy;
-	float error;
+	double error;
 
 	Car::getCarIndex(car, iv0, iphi);
 	Car::getVelocityIndex(vxLocal, vyLocal, ix, iy);

@@ -5,24 +5,24 @@ class Car
 {
 	friend class RVOSimulator;
 public:
-	static float phiMax, vDrivingMax, steeringMax, aDrivingMax,
+	static double phiMax, vDrivingMax, steeringMax, aDrivingMax,
 		length, radius,
 		deltaPhi, deltav1, dtc, errorDesired,
 		decelerateTime;
-	static float lengthHalf;
+	static double lengthHalf;
 	static int vNum, phiNum;
-	static float ka, kv, kp;
-	static std::vector<std::vector<std::vector<std::vector<float>>>> errorLookupTable;
+	static double ka, kv, kp;
+	static std::vector<std::vector<std::vector<std::vector<double>>>> errorLookupTable;
 public:
-	static void initCars(float length, float radius, float  vDrivingMax, float steeringMax, float aDrivingMax, float phiMax, float dtc, float errorDesired, float ka, float kv, float kp);
+	static void initCars(double length, double radius, double  vDrivingMax, double steeringMax, double aDrivingMax, double phiMax, double dtc, double errorDesired, double ka, double kv, double kp);
 
-	static void computeLookupTable(float timeConsumed, float errorClamped);
+	static void computeLookupTable(double timeConsumed, double errorClamped);
 
 	static void saveToFile();
 
 	static bool readFromFile();
 
-	inline static void getVelocityIndex(float vx, float vy, int& ix, int& iy) {
+	inline static void getVelocityIndex(double vx, double vy, int& ix, int& iy) {
 		ix = (int)((vx + vDrivingMax) / deltav1);
 		iy = (int)((vy + vDrivingMax) / deltav1);
 	}
@@ -33,9 +33,9 @@ public:
 	}
 
 	inline static RVO::Vector2 preferredVelocity(const RVO::Vector2& dir) {
-		float t = RVO::abs(dir) / Car::vDrivingMax;
+		double t = RVO::abs(dir) / Car::vDrivingMax;
 
-		float v = Car::aDrivingMax * t;/* / ( abs(v1) / aDrivingMax)*/;
+		double v = Car::aDrivingMax * t;/* / ( abs(v1) / aDrivingMax)*/;
 		return fmin(vDrivingMax, v) * RVO::normalize(dir);
 	}
 
@@ -49,7 +49,7 @@ public:
 	}
 
 public:
-	Car(float x, float y, float theta, float phi);
+	Car(double x, double y, double theta, double phi);
 
 	void control();
 
@@ -61,7 +61,7 @@ public:
 
 	void initDecelerating();
 
-	inline float getError() const {
+	inline double getError() const {
 		return sqrt(pow(zDesired1 - center1, 2) + pow(zDesired2 - center2, 2));
 	}
 
@@ -74,17 +74,17 @@ public:
 	}
 
 public:
-	float backX, backY, theta, phi;
-	float center1, center2;
-	float zDesired1, zDesired2;
-	float vDesired1, vDesired2;
+	double backX, backY, theta, phi;
+	double center1, center2;
+	double zDesired1, zDesired2;
+	double vDesired1, vDesired2;
 private:
-	float thetaDesired;
-	float v1, v2;
-	float xi1;
-	float xi2;
+	double thetaDesired;
+	double v1, v2;
+	double xi1;
+	double xi2;
 	bool decelerating;
-	//float s1;
+	//double s1;
 };
 
 

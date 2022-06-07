@@ -484,10 +484,10 @@ class __Pyx_FakeReference {
 #endif
 #include <math.h>
 #ifdef NAN
-#define __PYX_NAN() ((float) NAN)
+#define __PYX_NAN() ((double) NAN)
 #else
-static CYTHON_INLINE float __PYX_NAN() {
-  float value;
+static CYTHON_INLINE double __PYX_NAN() {
+  double value;
   memset(&value, 0xFF, sizeof(value));
   return value;
 }
@@ -618,17 +618,17 @@ static CYTHON_INLINE PyObject* __Pyx_PyNumber_IntOrLong(PyObject* x);
 static CYTHON_INLINE Py_ssize_t __Pyx_PyIndex_AsSsize_t(PyObject*);
 static CYTHON_INLINE PyObject * __Pyx_PyInt_FromSize_t(size_t);
 #if CYTHON_ASSUME_SAFE_MACROS
-#define __pyx_PyFloat_AsDouble(x) (PyFloat_CheckExact(x) ? PyFloat_AS_DOUBLE(x) : PyFloat_AsDouble(x))
+#define __pyx_Pydouble_AsDouble(x) (Pydouble_CheckExact(x) ? Pydouble_AS_DOUBLE(x) : Pydouble_AsDouble(x))
 #else
-#define __pyx_PyFloat_AsDouble(x) PyFloat_AsDouble(x)
+#define __pyx_Pydouble_AsDouble(x) Pydouble_AsDouble(x)
 #endif
-#define __pyx_PyFloat_AsFloat(x) ((float) __pyx_PyFloat_AsDouble(x))
+#define __pyx_Pydouble_Asdouble(x) ((double) __pyx_Pydouble_AsDouble(x))
 #if PY_MAJOR_VERSION >= 3
 #define __Pyx_PyNumber_Int(x) (PyLong_CheckExact(x) ? __Pyx_NewRef(x) : PyNumber_Long(x))
 #else
 #define __Pyx_PyNumber_Int(x) (PyInt_CheckExact(x) ? __Pyx_NewRef(x) : PyNumber_Int(x))
 #endif
-#define __Pyx_PyNumber_Float(x) (PyFloat_CheckExact(x) ? __Pyx_NewRef(x) : PyNumber_Float(x))
+#define __Pyx_PyNumber_double(x) (Pydouble_CheckExact(x) ? __Pyx_NewRef(x) : PyNumber_double(x))
 #if PY_MAJOR_VERSION < 3 && __PYX_DEFAULT_STRING_ENCODING_IS_ASCII
 static int __Pyx_sys_getdefaultencoding_not_ascii;
 static int __Pyx_init_sys_getdefaultencoding_params(void) {
@@ -737,7 +737,7 @@ static const char *__pyx_f[] = {
 struct __pyx_obj_4rvo2_PyRVOSimulator;
 
 /* "rvo2.pyx":92
- *         float getAgentCarPhi(size_t agentNo)
+ *         double getAgentCarPhi(size_t agentNo)
  * 
  * cdef class PyRVOSimulator:             # <<<<<<<<<<<<<<
  *     cdef RVOSimulator *thisptr
@@ -1129,7 +1129,7 @@ static PyObject *__pyx_n_s_time_horizon_obst;
 static PyObject *__pyx_n_s_vDrivingMax;
 static PyObject *__pyx_n_s_vSteeringMax;
 static PyObject *__pyx_n_s_velocity;
-static int __pyx_pf_4rvo2_14PyRVOSimulator___cinit__(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_timeStep, float __pyx_v_neighborDist, size_t __pyx_v_maxNeighbors, float __pyx_v_timeHorizon, float __pyx_v_timeHorizonObst, float __pyx_v_radius, float __pyx_v_maxSpeed, PyObject *__pyx_v_velocity); /* proto */
+static int __pyx_pf_4rvo2_14PyRVOSimulator___cinit__(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_timeStep, double __pyx_v_neighborDist, size_t __pyx_v_maxNeighbors, double __pyx_v_timeHorizon, double __pyx_v_timeHorizonObst, double __pyx_v_radius, double __pyx_v_maxSpeed, PyObject *__pyx_v_velocity); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, PyObject *__pyx_v_pos, PyObject *__pyx_v_neighborDist, PyObject *__pyx_v_maxNeighbors, PyObject *__pyx_v_timeHorizon, PyObject *__pyx_v_timeHorizonObst, PyObject *__pyx_v_radius, PyObject *__pyx_v_maxSpeed, PyObject *__pyx_v_velocity); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, PyObject *__pyx_v_pos, PyObject *__pyx_v_neighborDist, PyObject *__pyx_v_maxNeighbors, PyObject *__pyx_v_timeHorizon, PyObject *__pyx_v_timeHorizonObst, PyObject *__pyx_v_radius, PyObject *__pyx_v_maxSpeed, PyObject *__pyx_v_velocity); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_6setCarLookupTable(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self); /* proto */
@@ -1162,20 +1162,20 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_58getNextObstacleVertexNo(struc
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_60getPrevObstacleVertexNo(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_vertex_no); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_62getTimeStep(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_64processObstacles(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, PyObject *__pyx_v_point1, PyObject *__pyx_v_point2, float __pyx_v_radius); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_neighbor_dist, size_t __pyx_v_max_neighbors, float __pyx_v_time_horizon, float __pyx_v_time_horizon_obst, float __pyx_v_radius, float __pyx_v_max_speed, PyObject *__pyx_v_velocity); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, PyObject *__pyx_v_point1, PyObject *__pyx_v_point2, double __pyx_v_radius); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_neighbor_dist, size_t __pyx_v_max_neighbors, double __pyx_v_time_horizon, double __pyx_v_time_horizon_obst, double __pyx_v_radius, double __pyx_v_max_speed, PyObject *__pyx_v_velocity); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_70setAgentMaxNeighbors(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, size_t __pyx_v_max_neighbors); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_72setAgentMaxSpeed(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_max_speed); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_74setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_neighbor_dist); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_76setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_neighbor_dist); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_72setAgentMaxSpeed(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_max_speed); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_74setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_neighbor_dist); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_76setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_neighbor_dist); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_78setAgentPosition(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, PyObject *__pyx_v_position); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_80setAgentPrefVelocity(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, PyObject *__pyx_v_velocity); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_82setAgentRadius(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_radius); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_84setAgentTimeHorizon(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_time_horizon); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_86setAgentTimeHorizonObst(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_timeHorizonObst); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_82setAgentRadius(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_radius); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_84setAgentTimeHorizon(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_time_horizon); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_86setAgentTimeHorizonObst(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_timeHorizonObst); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_88setAgentVelocity(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, PyObject *__pyx_v_velocity); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_90setCarProperties(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_length, float __pyx_v_radius, float __pyx_v_vDrivingMax, float __pyx_v_vSteeringMax, float __pyx_v_aDrivingMax, float __pyx_v_phiMax, float __pyx_v_dtc, float __pyx_v_errorPreferred, float __pyx_v_ka, float __pyx_v_kv, float __pyx_v_kp, float __pyx_v_deltaV, float __pyx_v_deltaPhi); /* proto */
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_time_step); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_90setCarProperties(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_length, double __pyx_v_radius, double __pyx_v_vDrivingMax, double __pyx_v_vSteeringMax, double __pyx_v_aDrivingMax, double __pyx_v_phiMax, double __pyx_v_dtc, double __pyx_v_errorPreferred, double __pyx_v_ka, double __pyx_v_kv, double __pyx_v_kp, double __pyx_v_deltaV, double __pyx_v_deltaPhi); /* proto */
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_time_step); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_94shouldUpdate(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_96setAgentCar(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agentCarNo, PyObject *__pyx_v_position); /* proto */
 static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_98getAgentCarTheta(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agentNo); /* proto */
@@ -1197,21 +1197,21 @@ static PyObject *__pyx_tuple__9;
 /* "rvo2.pyx":95
  *     cdef RVOSimulator *thisptr
  * 
- *     def __cinit__(self, float timeStep, float neighborDist, size_t maxNeighbors,             # <<<<<<<<<<<<<<
- *                   float timeHorizon, float timeHorizonObst, float radius,
- *                   float maxSpeed, tuple velocity=(0, 0)):
+ *     def __cinit__(self, double timeStep, double neighborDist, size_t maxNeighbors,             # <<<<<<<<<<<<<<
+ *                   double timeHorizon, double timeHorizonObst, double radius,
+ *                   double maxSpeed, tuple velocity=(0, 0)):
  */
 
 /* Python wrapper */
 static int __pyx_pw_4rvo2_14PyRVOSimulator_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static int __pyx_pw_4rvo2_14PyRVOSimulator_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  float __pyx_v_timeStep;
-  float __pyx_v_neighborDist;
+  double __pyx_v_timeStep;
+  double __pyx_v_neighborDist;
   size_t __pyx_v_maxNeighbors;
-  float __pyx_v_timeHorizon;
-  float __pyx_v_timeHorizonObst;
-  float __pyx_v_radius;
-  float __pyx_v_maxSpeed;
+  double __pyx_v_timeHorizon;
+  double __pyx_v_timeHorizonObst;
+  double __pyx_v_radius;
+  double __pyx_v_maxSpeed;
   PyObject *__pyx_v_velocity = 0;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
@@ -1221,9 +1221,9 @@ static int __pyx_pw_4rvo2_14PyRVOSimulator_1__cinit__(PyObject *__pyx_v_self, Py
     PyObject* values[8] = {0,0,0,0,0,0,0,0};
 
     /* "rvo2.pyx":97
- *     def __cinit__(self, float timeStep, float neighborDist, size_t maxNeighbors,
- *                   float timeHorizon, float timeHorizonObst, float radius,
- *                   float maxSpeed, tuple velocity=(0, 0)):             # <<<<<<<<<<<<<<
+ *     def __cinit__(self, double timeStep, double neighborDist, size_t maxNeighbors,
+ *                   double timeHorizon, double timeHorizonObst, double radius,
+ *                   double maxSpeed, tuple velocity=(0, 0)):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  * 
  */
@@ -1317,13 +1317,13 @@ static int __pyx_pw_4rvo2_14PyRVOSimulator_1__cinit__(PyObject *__pyx_v_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_timeStep = __pyx_PyFloat_AsFloat(values[0]); if (unlikely((__pyx_v_timeStep == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
-    __pyx_v_neighborDist = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_neighborDist == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
+    __pyx_v_timeStep = __pyx_Pydouble_Asdouble(values[0]); if (unlikely((__pyx_v_timeStep == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
+    __pyx_v_neighborDist = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_neighborDist == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
     __pyx_v_maxNeighbors = __Pyx_PyInt_As_size_t(values[2]); if (unlikely((__pyx_v_maxNeighbors == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
-    __pyx_v_timeHorizon = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_timeHorizon == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L3_error)
-    __pyx_v_timeHorizonObst = __pyx_PyFloat_AsFloat(values[4]); if (unlikely((__pyx_v_timeHorizonObst == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L3_error)
-    __pyx_v_radius = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_radius == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L3_error)
-    __pyx_v_maxSpeed = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_maxSpeed == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 97, __pyx_L3_error)
+    __pyx_v_timeHorizon = __pyx_Pydouble_Asdouble(values[3]); if (unlikely((__pyx_v_timeHorizon == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L3_error)
+    __pyx_v_timeHorizonObst = __pyx_Pydouble_Asdouble(values[4]); if (unlikely((__pyx_v_timeHorizonObst == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L3_error)
+    __pyx_v_radius = __pyx_Pydouble_Asdouble(values[5]); if (unlikely((__pyx_v_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L3_error)
+    __pyx_v_maxSpeed = __pyx_Pydouble_Asdouble(values[6]); if (unlikely((__pyx_v_maxSpeed == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 97, __pyx_L3_error)
     __pyx_v_velocity = ((PyObject*)values[7]);
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -1340,9 +1340,9 @@ static int __pyx_pw_4rvo2_14PyRVOSimulator_1__cinit__(PyObject *__pyx_v_self, Py
   /* "rvo2.pyx":95
  *     cdef RVOSimulator *thisptr
  * 
- *     def __cinit__(self, float timeStep, float neighborDist, size_t maxNeighbors,             # <<<<<<<<<<<<<<
- *                   float timeHorizon, float timeHorizonObst, float radius,
- *                   float maxSpeed, tuple velocity=(0, 0)):
+ *     def __cinit__(self, double timeStep, double neighborDist, size_t maxNeighbors,             # <<<<<<<<<<<<<<
+ *                   double timeHorizon, double timeHorizonObst, double radius,
+ *                   double maxSpeed, tuple velocity=(0, 0)):
  */
 
   /* function exit code */
@@ -1354,19 +1354,19 @@ static int __pyx_pw_4rvo2_14PyRVOSimulator_1__cinit__(PyObject *__pyx_v_self, Py
   return __pyx_r;
 }
 
-static int __pyx_pf_4rvo2_14PyRVOSimulator___cinit__(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_timeStep, float __pyx_v_neighborDist, size_t __pyx_v_maxNeighbors, float __pyx_v_timeHorizon, float __pyx_v_timeHorizonObst, float __pyx_v_radius, float __pyx_v_maxSpeed, PyObject *__pyx_v_velocity) {
+static int __pyx_pf_4rvo2_14PyRVOSimulator___cinit__(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_timeStep, double __pyx_v_neighborDist, size_t __pyx_v_maxNeighbors, double __pyx_v_timeHorizon, double __pyx_v_timeHorizonObst, double __pyx_v_radius, double __pyx_v_maxSpeed, PyObject *__pyx_v_velocity) {
   RVO::Vector2 __pyx_v_c_velocity;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
   /* "rvo2.pyx":98
- *                   float timeHorizon, float timeHorizonObst, float radius,
- *                   float maxSpeed, tuple velocity=(0, 0)):
+ *                   double timeHorizon, double timeHorizonObst, double radius,
+ *                   double maxSpeed, tuple velocity=(0, 0)):
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])             # <<<<<<<<<<<<<<
  * 
  *         self.thisptr = new RVOSimulator(timeStep, neighborDist, maxNeighbors,
@@ -1377,7 +1377,7 @@ static int __pyx_pf_4rvo2_14PyRVOSimulator___cinit__(struct __pyx_obj_4rvo2_PyRV
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_velocity == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -1385,7 +1385,7 @@ static int __pyx_pf_4rvo2_14PyRVOSimulator___cinit__(struct __pyx_obj_4rvo2_PyRV
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -1407,9 +1407,9 @@ static int __pyx_pf_4rvo2_14PyRVOSimulator___cinit__(struct __pyx_obj_4rvo2_PyRV
   /* "rvo2.pyx":95
  *     cdef RVOSimulator *thisptr
  * 
- *     def __cinit__(self, float timeStep, float neighborDist, size_t maxNeighbors,             # <<<<<<<<<<<<<<
- *                   float timeHorizon, float timeHorizonObst, float radius,
- *                   float maxSpeed, tuple velocity=(0, 0)):
+ *     def __cinit__(self, double timeStep, double neighborDist, size_t maxNeighbors,             # <<<<<<<<<<<<<<
+ *                   double timeHorizon, double timeHorizonObst, double radius,
+ *                   double maxSpeed, tuple velocity=(0, 0)):
  */
 
   /* function exit code */
@@ -1619,16 +1619,16 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   int __pyx_t_5;
   int __pyx_t_6;
   int __pyx_t_7;
   size_t __pyx_t_8;
-  float __pyx_t_9;
-  float __pyx_t_10;
-  float __pyx_t_11;
+  double __pyx_t_9;
+  double __pyx_t_10;
+  double __pyx_t_11;
   __Pyx_RefNannySetupContext("addAgent", 0);
 
   /* "rvo2.pyx":108
@@ -1644,7 +1644,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_pos, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 108, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_pos == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -1652,7 +1652,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_pos, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 108, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -1744,11 +1744,11 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo
   /*else*/ {
     __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_velocity, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L1_error)
+    __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_velocity, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L1_error)
+    __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     try {
       __pyx_t_4 = RVO::Vector2(__pyx_t_3, __pyx_t_2);
@@ -1765,7 +1765,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo
  *                                              maxNeighbors, timeHorizon,
  *                                              timeHorizonObst, radius, maxSpeed,
  */
-    __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_v_neighborDist); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 118, __pyx_L1_error)
+    __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_v_neighborDist); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 118, __pyx_L1_error)
 
     /* "rvo2.pyx":119
  *             c_velocity = Vector2(velocity[0], velocity[1])
@@ -1775,7 +1775,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo
  *                                              c_velocity)
  */
     __pyx_t_8 = __Pyx_PyInt_As_size_t(__pyx_v_maxNeighbors); if (unlikely((__pyx_t_8 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 119, __pyx_L1_error)
-    __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_v_timeHorizon); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 119, __pyx_L1_error)
+    __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_v_timeHorizon); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 119, __pyx_L1_error)
 
     /* "rvo2.pyx":120
  *             agent_nr = self.thisptr.addAgent(c_pos, neighborDist,
@@ -1784,9 +1784,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_2addAgent(struct __pyx_obj_4rvo
  *                                              c_velocity)
  * 
  */
-    __pyx_t_9 = __pyx_PyFloat_AsFloat(__pyx_v_timeHorizonObst); if (unlikely((__pyx_t_9 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L1_error)
-    __pyx_t_10 = __pyx_PyFloat_AsFloat(__pyx_v_radius); if (unlikely((__pyx_t_10 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L1_error)
-    __pyx_t_11 = __pyx_PyFloat_AsFloat(__pyx_v_maxSpeed); if (unlikely((__pyx_t_11 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L1_error)
+    __pyx_t_9 = __pyx_Pydouble_Asdouble(__pyx_v_timeHorizonObst); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L1_error)
+    __pyx_t_10 = __pyx_Pydouble_Asdouble(__pyx_v_radius); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L1_error)
+    __pyx_t_11 = __pyx_Pydouble_Asdouble(__pyx_v_maxSpeed); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L1_error)
 
     /* "rvo2.pyx":118
  *         else:
@@ -2059,16 +2059,16 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   int __pyx_t_5;
   int __pyx_t_6;
   int __pyx_t_7;
   size_t __pyx_t_8;
-  float __pyx_t_9;
-  float __pyx_t_10;
-  float __pyx_t_11;
+  double __pyx_t_9;
+  double __pyx_t_10;
+  double __pyx_t_11;
   __Pyx_RefNannySetupContext("addAgentCar", 0);
 
   /* "rvo2.pyx":132
@@ -2084,7 +2084,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_pos, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_pos == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -2092,7 +2092,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_pos, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -2184,11 +2184,11 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4
   /*else*/ {
     __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_velocity, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L1_error)
+    __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_velocity, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L1_error)
+    __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     try {
       __pyx_t_4 = RVO::Vector2(__pyx_t_3, __pyx_t_2);
@@ -2205,7 +2205,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4
  *                                                 maxNeighbors, timeHorizon,
  *                                                 timeHorizonObst, radius, maxSpeed,
  */
-    __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_v_neighborDist); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_v_neighborDist); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 142, __pyx_L1_error)
 
     /* "rvo2.pyx":143
  *             c_velocity = Vector2(velocity[0], velocity[1])
@@ -2215,7 +2215,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4
  *                                                 c_velocity)
  */
     __pyx_t_8 = __Pyx_PyInt_As_size_t(__pyx_v_maxNeighbors); if (unlikely((__pyx_t_8 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 143, __pyx_L1_error)
-    __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_v_timeHorizon); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 143, __pyx_L1_error)
+    __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_v_timeHorizon); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 143, __pyx_L1_error)
 
     /* "rvo2.pyx":144
  *             agent_nr = self.thisptr.addAgentCar(c_pos, neighborDist,
@@ -2224,9 +2224,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_4addAgentCar(struct __pyx_obj_4
  *                                                 c_velocity)
  * 
  */
-    __pyx_t_9 = __pyx_PyFloat_AsFloat(__pyx_v_timeHorizonObst); if (unlikely((__pyx_t_9 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 144, __pyx_L1_error)
-    __pyx_t_10 = __pyx_PyFloat_AsFloat(__pyx_v_radius); if (unlikely((__pyx_t_10 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 144, __pyx_L1_error)
-    __pyx_t_11 = __pyx_PyFloat_AsFloat(__pyx_v_maxSpeed); if (unlikely((__pyx_t_11 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 144, __pyx_L1_error)
+    __pyx_t_9 = __pyx_Pydouble_Asdouble(__pyx_v_timeHorizonObst); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 144, __pyx_L1_error)
+    __pyx_t_10 = __pyx_Pydouble_Asdouble(__pyx_v_radius); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 144, __pyx_L1_error)
+    __pyx_t_11 = __pyx_Pydouble_Asdouble(__pyx_v_maxSpeed); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 144, __pyx_L1_error)
 
     /* "rvo2.pyx":142
  *         else:
@@ -2394,8 +2394,8 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_8addObstacle(struct __pyx_obj_4
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   PyObject *(*__pyx_t_7)(PyObject *);
-  float __pyx_t_8;
-  float __pyx_t_9;
+  double __pyx_t_8;
+  double __pyx_t_9;
   RVO::Vector2 __pyx_t_10;
   int __pyx_t_11;
   __Pyx_RefNannySetupContext("addObstacle", 0);
@@ -2482,8 +2482,8 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_8addObstacle(struct __pyx_obj_4
  * 
  *         obstacle_nr = self.thisptr.addObstacle(c_vertices)
  */
-    __pyx_t_8 = __pyx_PyFloat_AsFloat(__pyx_v_x); if (unlikely((__pyx_t_8 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 159, __pyx_L1_error)
-    __pyx_t_9 = __pyx_PyFloat_AsFloat(__pyx_v_y); if (unlikely((__pyx_t_9 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_8 = __pyx_Pydouble_Asdouble(__pyx_v_x); if (unlikely((__pyx_t_8 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_9 = __pyx_Pydouble_Asdouble(__pyx_v_y); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 159, __pyx_L1_error)
     try {
       __pyx_t_10 = RVO::Vector2(__pyx_t_8, __pyx_t_9);
     } catch(...) {
@@ -3130,7 +3130,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_24getAgentMaxSpeed(struct __pyx
  *         return self.thisptr.getAgentNeighborDist(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getAgentMaxSpeed(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getAgentMaxSpeed(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 187, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3200,7 +3200,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_26getAgentNeighborDist(struct _
  *         return self.thisptr.getAgentNumAgentNeighbors(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getAgentNeighborDist(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getAgentNeighborDist(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3640,13 +3640,13 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_36getAgentORCALine(struct __pyx
  *         cdef Vector2 pos = self.thisptr.getAgentPosition(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_line.point.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 200, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_line.point.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_line.point.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 200, __pyx_L1_error)
+  __pyx_t_2 = Pydouble_FromDouble(__pyx_v_line.point.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_line.direction.x()); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 200, __pyx_L1_error)
+  __pyx_t_3 = Pydouble_FromDouble(__pyx_v_line.direction.x()); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_line.direction.y()); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
+  __pyx_t_4 = Pydouble_FromDouble(__pyx_v_line.direction.y()); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = PyTuple_New(4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
@@ -3746,9 +3746,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_38getAgentPosition(struct __pyx
  *         cdef Vector2 velocity = self.thisptr.getAgentPrefVelocity(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_pos.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_pos.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_pos.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 203, __pyx_L1_error)
+  __pyx_t_2 = Pydouble_FromDouble(__pyx_v_pos.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -3840,9 +3840,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_40getAgentPrefVelocity(struct _
  *         return self.thisptr.getAgentRadius(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_velocity.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 206, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_velocity.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 206, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_velocity.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 206, __pyx_L1_error)
+  __pyx_t_2 = Pydouble_FromDouble(__pyx_v_velocity.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 206, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 206, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -3922,7 +3922,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_42getAgentRadius(struct __pyx_o
  *         return self.thisptr.getAgentTimeHorizon(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getAgentRadius(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 208, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getAgentRadius(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3992,7 +3992,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_44getAgentTimeHorizon(struct __
  *         return self.thisptr.getAgentTimeHorizonObst(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getAgentTimeHorizon(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 210, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getAgentTimeHorizon(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 210, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4062,7 +4062,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_46getAgentTimeHorizonObst(struc
  *         cdef Vector2 velocity = self.thisptr.getAgentVelocity(agent_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getAgentTimeHorizonObst(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getAgentTimeHorizonObst(__pyx_v_agent_no)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4144,9 +4144,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_48getAgentVelocity(struct __pyx
  *         return self.thisptr.getGlobalTime()
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_velocity.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_velocity.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_velocity.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_2 = Pydouble_FromDouble(__pyx_v_velocity.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -4216,7 +4216,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_50getGlobalTime(struct __pyx_ob
  *         return self.thisptr.getNumAgents()
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getGlobalTime()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getGlobalTime()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4418,9 +4418,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_56getObstacleVertex(struct __py
  *         return self.thisptr.getNextObstacleVertexNo(vertex_no)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_pos.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_pos.x()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_pos.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __pyx_t_2 = Pydouble_FromDouble(__pyx_v_pos.y()); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -4630,7 +4630,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_62getTimeStep(struct __pyx_obj_
  *     def processObstacles(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getTimeStep()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getTimeStep()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4701,7 +4701,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_64processObstacles(struct __pyx
  *         with nogil:
  *             self.thisptr.processObstacles()             # <<<<<<<<<<<<<<
  * 
- *     def queryVisibility(self, tuple point1, tuple point2, float radius=0.0):
+ *     def queryVisibility(self, tuple point1, tuple point2, double radius=0.0):
  */
         __pyx_v_self->thisptr->processObstacles();
       }
@@ -4743,7 +4743,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_64processObstacles(struct __pyx
 /* "rvo2.pyx":236
  *             self.thisptr.processObstacles()
  * 
- *     def queryVisibility(self, tuple point1, tuple point2, float radius=0.0):             # <<<<<<<<<<<<<<
+ *     def queryVisibility(self, tuple point1, tuple point2, double radius=0.0):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_point1 = Vector2(point1[0], point1[1])
  *         cdef Vector2 c_point2 = Vector2(point2[0], point2[1])
  */
@@ -4753,7 +4753,7 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_67queryVisibility(PyObject *__p
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_67queryVisibility(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_point1 = 0;
   PyObject *__pyx_v_point2 = 0;
-  float __pyx_v_radius;
+  double __pyx_v_radius;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("queryVisibility (wrapper)", 0);
@@ -4807,9 +4807,9 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_67queryVisibility(PyObject *__p
     __pyx_v_point1 = ((PyObject*)values[0]);
     __pyx_v_point2 = ((PyObject*)values[1]);
     if (values[2]) {
-      __pyx_v_radius = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_radius == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 236, __pyx_L3_error)
+      __pyx_v_radius = __pyx_Pydouble_Asdouble(values[2]); if (unlikely((__pyx_v_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 236, __pyx_L3_error)
     } else {
-      __pyx_v_radius = ((float)0.0);
+      __pyx_v_radius = ((double)0.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -4833,21 +4833,21 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_67queryVisibility(PyObject *__p
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, PyObject *__pyx_v_point1, PyObject *__pyx_v_point2, float __pyx_v_radius) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, PyObject *__pyx_v_point1, PyObject *__pyx_v_point2, double __pyx_v_radius) {
   RVO::Vector2 __pyx_v_c_point1;
   RVO::Vector2 __pyx_v_c_point2;
   bool __pyx_v_visible;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   __Pyx_RefNannySetupContext("queryVisibility", 0);
 
   /* "rvo2.pyx":237
  * 
- *     def queryVisibility(self, tuple point1, tuple point2, float radius=0.0):
+ *     def queryVisibility(self, tuple point1, tuple point2, double radius=0.0):
  *         cdef Vector2 c_point1 = Vector2(point1[0], point1[1])             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_point2 = Vector2(point2[0], point2[1])
  *         cdef bool visible
@@ -4858,7 +4858,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_point1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 237, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 237, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 237, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_point1 == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -4866,7 +4866,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_point1, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 237, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 237, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 237, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -4877,7 +4877,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
   __pyx_v_c_point1 = __pyx_t_4;
 
   /* "rvo2.pyx":238
- *     def queryVisibility(self, tuple point1, tuple point2, float radius=0.0):
+ *     def queryVisibility(self, tuple point1, tuple point2, double radius=0.0):
  *         cdef Vector2 c_point1 = Vector2(point1[0], point1[1])
  *         cdef Vector2 c_point2 = Vector2(point2[0], point2[1])             # <<<<<<<<<<<<<<
  *         cdef bool visible
@@ -4889,7 +4889,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_point2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 238, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_point2 == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -4897,7 +4897,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_point2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 238, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_3, __pyx_t_2);
@@ -4956,7 +4956,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
  * 
  *         return visible             # <<<<<<<<<<<<<<
  * 
- *     def setAgentDefaults(self, float neighbor_dist, size_t max_neighbors, float time_horizon,
+ *     def setAgentDefaults(self, double neighbor_dist, size_t max_neighbors, double time_horizon,
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_visible); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
@@ -4968,7 +4968,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
   /* "rvo2.pyx":236
  *             self.thisptr.processObstacles()
  * 
- *     def queryVisibility(self, tuple point1, tuple point2, float radius=0.0):             # <<<<<<<<<<<<<<
+ *     def queryVisibility(self, tuple point1, tuple point2, double radius=0.0):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_point1 = Vector2(point1[0], point1[1])
  *         cdef Vector2 c_point2 = Vector2(point2[0], point2[1])
  */
@@ -4987,20 +4987,20 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_66queryVisibility(struct __pyx_
 /* "rvo2.pyx":246
  *         return visible
  * 
- *     def setAgentDefaults(self, float neighbor_dist, size_t max_neighbors, float time_horizon,             # <<<<<<<<<<<<<<
- *                          float time_horizon_obst, float radius, float max_speed,
+ *     def setAgentDefaults(self, double neighbor_dist, size_t max_neighbors, double time_horizon,             # <<<<<<<<<<<<<<
+ *                          double time_horizon_obst, double radius, double max_speed,
  *                          tuple velocity=(0, 0)):
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_69setAgentDefaults(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_69setAgentDefaults(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  float __pyx_v_neighbor_dist;
+  double __pyx_v_neighbor_dist;
   size_t __pyx_v_max_neighbors;
-  float __pyx_v_time_horizon;
-  float __pyx_v_time_horizon_obst;
-  float __pyx_v_radius;
-  float __pyx_v_max_speed;
+  double __pyx_v_time_horizon;
+  double __pyx_v_time_horizon_obst;
+  double __pyx_v_radius;
+  double __pyx_v_max_speed;
   PyObject *__pyx_v_velocity = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -5010,8 +5010,8 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_69setAgentDefaults(PyObject *__
     PyObject* values[7] = {0,0,0,0,0,0,0};
 
     /* "rvo2.pyx":248
- *     def setAgentDefaults(self, float neighbor_dist, size_t max_neighbors, float time_horizon,
- *                          float time_horizon_obst, float radius, float max_speed,
+ *     def setAgentDefaults(self, double neighbor_dist, size_t max_neighbors, double time_horizon,
+ *                          double time_horizon_obst, double radius, double max_speed,
  *                          tuple velocity=(0, 0)):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentDefaults(neighbor_dist, max_neighbors, time_horizon,
@@ -5097,12 +5097,12 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_69setAgentDefaults(PyObject *__
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_neighbor_dist = __pyx_PyFloat_AsFloat(values[0]); if (unlikely((__pyx_v_neighbor_dist == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 246, __pyx_L3_error)
+    __pyx_v_neighbor_dist = __pyx_Pydouble_Asdouble(values[0]); if (unlikely((__pyx_v_neighbor_dist == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 246, __pyx_L3_error)
     __pyx_v_max_neighbors = __Pyx_PyInt_As_size_t(values[1]); if (unlikely((__pyx_v_max_neighbors == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 246, __pyx_L3_error)
-    __pyx_v_time_horizon = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_time_horizon == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 246, __pyx_L3_error)
-    __pyx_v_time_horizon_obst = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_time_horizon_obst == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
-    __pyx_v_radius = __pyx_PyFloat_AsFloat(values[4]); if (unlikely((__pyx_v_radius == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
-    __pyx_v_max_speed = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_max_speed == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
+    __pyx_v_time_horizon = __pyx_Pydouble_Asdouble(values[2]); if (unlikely((__pyx_v_time_horizon == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 246, __pyx_L3_error)
+    __pyx_v_time_horizon_obst = __pyx_Pydouble_Asdouble(values[3]); if (unlikely((__pyx_v_time_horizon_obst == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
+    __pyx_v_radius = __pyx_Pydouble_Asdouble(values[4]); if (unlikely((__pyx_v_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
+    __pyx_v_max_speed = __pyx_Pydouble_Asdouble(values[5]); if (unlikely((__pyx_v_max_speed == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
     __pyx_v_velocity = ((PyObject*)values[6]);
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -5119,8 +5119,8 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_69setAgentDefaults(PyObject *__
   /* "rvo2.pyx":246
  *         return visible
  * 
- *     def setAgentDefaults(self, float neighbor_dist, size_t max_neighbors, float time_horizon,             # <<<<<<<<<<<<<<
- *                          float time_horizon_obst, float radius, float max_speed,
+ *     def setAgentDefaults(self, double neighbor_dist, size_t max_neighbors, double time_horizon,             # <<<<<<<<<<<<<<
+ *                          double time_horizon_obst, double radius, double max_speed,
  *                          tuple velocity=(0, 0)):
  */
 
@@ -5133,18 +5133,18 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_69setAgentDefaults(PyObject *__
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_neighbor_dist, size_t __pyx_v_max_neighbors, float __pyx_v_time_horizon, float __pyx_v_time_horizon_obst, float __pyx_v_radius, float __pyx_v_max_speed, PyObject *__pyx_v_velocity) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_neighbor_dist, size_t __pyx_v_max_neighbors, double __pyx_v_time_horizon, double __pyx_v_time_horizon_obst, double __pyx_v_radius, double __pyx_v_max_speed, PyObject *__pyx_v_velocity) {
   RVO::Vector2 __pyx_v_c_velocity;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   __Pyx_RefNannySetupContext("setAgentDefaults", 0);
 
   /* "rvo2.pyx":249
- *                          float time_horizon_obst, float radius, float max_speed,
+ *                          double time_horizon_obst, double radius, double max_speed,
  *                          tuple velocity=(0, 0)):
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentDefaults(neighbor_dist, max_neighbors, time_horizon,
@@ -5156,7 +5156,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 249, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 249, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_velocity == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -5164,7 +5164,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 249, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 249, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -5186,8 +5186,8 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx
   /* "rvo2.pyx":246
  *         return visible
  * 
- *     def setAgentDefaults(self, float neighbor_dist, size_t max_neighbors, float time_horizon,             # <<<<<<<<<<<<<<
- *                          float time_horizon_obst, float radius, float max_speed,
+ *     def setAgentDefaults(self, double neighbor_dist, size_t max_neighbors, double time_horizon,             # <<<<<<<<<<<<<<
+ *                          double time_horizon_obst, double radius, double max_speed,
  *                          tuple velocity=(0, 0)):
  */
 
@@ -5209,7 +5209,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_68setAgentDefaults(struct __pyx
  * 
  *     def setAgentMaxNeighbors(self, size_t agent_no, size_t max_neighbors):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentMaxNeighbors(agent_no, max_neighbors)
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):
  */
 
 /* Python wrapper */
@@ -5282,7 +5282,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_70setAgentMaxNeighbors(struct _
  * 
  *     def setAgentMaxNeighbors(self, size_t agent_no, size_t max_neighbors):
  *         self.thisptr.setAgentMaxNeighbors(agent_no, max_neighbors)             # <<<<<<<<<<<<<<
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):
  *         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)
  */
   __pyx_v_self->thisptr->setAgentMaxNeighbors(__pyx_v_agent_no, __pyx_v_max_neighbors);
@@ -5292,7 +5292,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_70setAgentMaxNeighbors(struct _
  * 
  *     def setAgentMaxNeighbors(self, size_t agent_no, size_t max_neighbors):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentMaxNeighbors(agent_no, max_neighbors)
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):
  */
 
   /* function exit code */
@@ -5305,16 +5305,16 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_70setAgentMaxNeighbors(struct _
 /* "rvo2.pyx":255
  *     def setAgentMaxNeighbors(self, size_t agent_no, size_t max_neighbors):
  *         self.thisptr.setAgentMaxNeighbors(agent_no, max_neighbors)
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):             # <<<<<<<<<<<<<<
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_73setAgentMaxSpeed(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_73setAgentMaxSpeed(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   size_t __pyx_v_agent_no;
-  float __pyx_v_max_speed;
+  double __pyx_v_max_speed;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentMaxSpeed (wrapper)", 0);
@@ -5354,7 +5354,7 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_73setAgentMaxSpeed(PyObject *__
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_agent_no = __Pyx_PyInt_As_size_t(values[0]); if (unlikely((__pyx_v_agent_no == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 255, __pyx_L3_error)
-    __pyx_v_max_speed = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_max_speed == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 255, __pyx_L3_error)
+    __pyx_v_max_speed = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_max_speed == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 255, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -5371,16 +5371,16 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_73setAgentMaxSpeed(PyObject *__
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_72setAgentMaxSpeed(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_max_speed) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_72setAgentMaxSpeed(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_max_speed) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentMaxSpeed", 0);
 
   /* "rvo2.pyx":256
  *         self.thisptr.setAgentMaxNeighbors(agent_no, max_neighbors)
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):
  *         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)             # <<<<<<<<<<<<<<
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
  */
   __pyx_v_self->thisptr->setAgentMaxSpeed(__pyx_v_agent_no, __pyx_v_max_speed);
@@ -5388,9 +5388,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_72setAgentMaxSpeed(struct __pyx
   /* "rvo2.pyx":255
  *     def setAgentMaxNeighbors(self, size_t agent_no, size_t max_neighbors):
  *         self.thisptr.setAgentMaxNeighbors(agent_no, max_neighbors)
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):             # <<<<<<<<<<<<<<
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  */
 
   /* function exit code */
@@ -5401,18 +5401,18 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_72setAgentMaxSpeed(struct __pyx
 }
 
 /* "rvo2.pyx":257
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):
  *         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):             # <<<<<<<<<<<<<<
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_75setAgentNeighborDist(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_75setAgentNeighborDist(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   size_t __pyx_v_agent_no;
-  float __pyx_v_neighbor_dist;
+  double __pyx_v_neighbor_dist;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentNeighborDist (wrapper)", 0);
@@ -5452,7 +5452,7 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_75setAgentNeighborDist(PyObject
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_agent_no = __Pyx_PyInt_As_size_t(values[0]); if (unlikely((__pyx_v_agent_no == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 257, __pyx_L3_error)
-    __pyx_v_neighbor_dist = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_neighbor_dist == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 257, __pyx_L3_error)
+    __pyx_v_neighbor_dist = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_neighbor_dist == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 257, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -5469,26 +5469,26 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_75setAgentNeighborDist(PyObject
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_74setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_neighbor_dist) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_74setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_neighbor_dist) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentNeighborDist", 0);
 
   /* "rvo2.pyx":258
  *         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)             # <<<<<<<<<<<<<<
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
  */
   __pyx_v_self->thisptr->setAgentNeighborDist(__pyx_v_agent_no, __pyx_v_neighbor_dist);
 
   /* "rvo2.pyx":257
- *     def setAgentMaxSpeed(self, size_t agent_no, float max_speed):
+ *     def setAgentMaxSpeed(self, size_t agent_no, double max_speed):
  *         self.thisptr.setAgentMaxSpeed(agent_no, max_speed)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):             # <<<<<<<<<<<<<<
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  */
 
   /* function exit code */
@@ -5499,9 +5499,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_74setAgentNeighborDist(struct _
 }
 
 /* "rvo2.pyx":259
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):             # <<<<<<<<<<<<<<
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
  *     def setAgentPosition(self, size_t agent_no, tuple position):
  */
@@ -5510,7 +5510,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_74setAgentNeighborDist(struct _
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_77setAgentNeighborDist(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_77setAgentNeighborDist(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   size_t __pyx_v_agent_no;
-  float __pyx_v_neighbor_dist;
+  double __pyx_v_neighbor_dist;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentNeighborDist (wrapper)", 0);
@@ -5550,7 +5550,7 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_77setAgentNeighborDist(PyObject
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_agent_no = __Pyx_PyInt_As_size_t(values[0]); if (unlikely((__pyx_v_agent_no == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 259, __pyx_L3_error)
-    __pyx_v_neighbor_dist = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_neighbor_dist == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 259, __pyx_L3_error)
+    __pyx_v_neighbor_dist = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_neighbor_dist == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 259, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -5567,14 +5567,14 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_77setAgentNeighborDist(PyObject
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_76setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_neighbor_dist) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_76setAgentNeighborDist(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_neighbor_dist) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentNeighborDist", 0);
 
   /* "rvo2.pyx":260
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)             # <<<<<<<<<<<<<<
  *     def setAgentPosition(self, size_t agent_no, tuple position):
  *         cdef Vector2 c_pos = Vector2(position[0], position[1])
@@ -5582,9 +5582,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_76setAgentNeighborDist(struct _
   __pyx_v_self->thisptr->setAgentNeighborDist(__pyx_v_agent_no, __pyx_v_neighbor_dist);
 
   /* "rvo2.pyx":259
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):             # <<<<<<<<<<<<<<
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
  *     def setAgentPosition(self, size_t agent_no, tuple position):
  */
@@ -5597,7 +5597,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_76setAgentNeighborDist(struct _
 }
 
 /* "rvo2.pyx":261
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
  *     def setAgentPosition(self, size_t agent_no, tuple position):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_pos = Vector2(position[0], position[1])
@@ -5675,8 +5675,8 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_78setAgentPosition(struct __pyx
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   __Pyx_RefNannySetupContext("setAgentPosition", 0);
 
@@ -5693,7 +5693,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_78setAgentPosition(struct __pyx
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_position, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_position == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -5701,7 +5701,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_78setAgentPosition(struct __pyx
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_position, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 262, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -5721,7 +5721,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_78setAgentPosition(struct __pyx
   __pyx_v_self->thisptr->setAgentPosition(__pyx_v_agent_no, __pyx_v_c_pos);
 
   /* "rvo2.pyx":261
- *     def setAgentNeighborDist(self, size_t agent_no, float neighbor_dist):
+ *     def setAgentNeighborDist(self, size_t agent_no, double neighbor_dist):
  *         self.thisptr.setAgentNeighborDist(agent_no, neighbor_dist)
  *     def setAgentPosition(self, size_t agent_no, tuple position):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_pos = Vector2(position[0], position[1])
@@ -5820,8 +5820,8 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_80setAgentPrefVelocity(struct _
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   __Pyx_RefNannySetupContext("setAgentPrefVelocity", 0);
 
@@ -5830,7 +5830,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_80setAgentPrefVelocity(struct _
  *     def setAgentPrefVelocity(self, size_t agent_no, tuple velocity):
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentPrefVelocity(agent_no, c_velocity)
- *     def setAgentRadius(self, size_t agent_no, float radius):
+ *     def setAgentRadius(self, size_t agent_no, double radius):
  */
   if (unlikely(__pyx_v_velocity == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -5838,7 +5838,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_80setAgentPrefVelocity(struct _
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 265, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 265, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 265, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_velocity == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -5846,7 +5846,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_80setAgentPrefVelocity(struct _
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 265, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 265, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 265, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -5860,7 +5860,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_80setAgentPrefVelocity(struct _
  *     def setAgentPrefVelocity(self, size_t agent_no, tuple velocity):
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentPrefVelocity(agent_no, c_velocity)             # <<<<<<<<<<<<<<
- *     def setAgentRadius(self, size_t agent_no, float radius):
+ *     def setAgentRadius(self, size_t agent_no, double radius):
  *         self.thisptr.setAgentRadius(agent_no, radius)
  */
   __pyx_v_self->thisptr->setAgentPrefVelocity(__pyx_v_agent_no, __pyx_v_c_velocity);
@@ -5889,16 +5889,16 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_80setAgentPrefVelocity(struct _
 /* "rvo2.pyx":267
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentPrefVelocity(agent_no, c_velocity)
- *     def setAgentRadius(self, size_t agent_no, float radius):             # <<<<<<<<<<<<<<
+ *     def setAgentRadius(self, size_t agent_no, double radius):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentRadius(agent_no, radius)
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_83setAgentRadius(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_83setAgentRadius(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   size_t __pyx_v_agent_no;
-  float __pyx_v_radius;
+  double __pyx_v_radius;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentRadius (wrapper)", 0);
@@ -5938,7 +5938,7 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_83setAgentRadius(PyObject *__py
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_agent_no = __Pyx_PyInt_As_size_t(values[0]); if (unlikely((__pyx_v_agent_no == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 267, __pyx_L3_error)
-    __pyx_v_radius = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_radius == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 267, __pyx_L3_error)
+    __pyx_v_radius = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 267, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -5955,16 +5955,16 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_83setAgentRadius(PyObject *__py
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_82setAgentRadius(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_radius) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_82setAgentRadius(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_radius) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentRadius", 0);
 
   /* "rvo2.pyx":268
  *         self.thisptr.setAgentPrefVelocity(agent_no, c_velocity)
- *     def setAgentRadius(self, size_t agent_no, float radius):
+ *     def setAgentRadius(self, size_t agent_no, double radius):
  *         self.thisptr.setAgentRadius(agent_no, radius)             # <<<<<<<<<<<<<<
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):
  *         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)
  */
   __pyx_v_self->thisptr->setAgentRadius(__pyx_v_agent_no, __pyx_v_radius);
@@ -5972,9 +5972,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_82setAgentRadius(struct __pyx_o
   /* "rvo2.pyx":267
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentPrefVelocity(agent_no, c_velocity)
- *     def setAgentRadius(self, size_t agent_no, float radius):             # <<<<<<<<<<<<<<
+ *     def setAgentRadius(self, size_t agent_no, double radius):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentRadius(agent_no, radius)
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):
  */
 
   /* function exit code */
@@ -5985,18 +5985,18 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_82setAgentRadius(struct __pyx_o
 }
 
 /* "rvo2.pyx":269
- *     def setAgentRadius(self, size_t agent_no, float radius):
+ *     def setAgentRadius(self, size_t agent_no, double radius):
  *         self.thisptr.setAgentRadius(agent_no, radius)
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):             # <<<<<<<<<<<<<<
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_85setAgentTimeHorizon(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_85setAgentTimeHorizon(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   size_t __pyx_v_agent_no;
-  float __pyx_v_time_horizon;
+  double __pyx_v_time_horizon;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentTimeHorizon (wrapper)", 0);
@@ -6036,7 +6036,7 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_85setAgentTimeHorizon(PyObject 
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_agent_no = __Pyx_PyInt_As_size_t(values[0]); if (unlikely((__pyx_v_agent_no == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 269, __pyx_L3_error)
-    __pyx_v_time_horizon = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_time_horizon == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 269, __pyx_L3_error)
+    __pyx_v_time_horizon = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_time_horizon == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 269, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -6053,26 +6053,26 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_85setAgentTimeHorizon(PyObject 
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_84setAgentTimeHorizon(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_time_horizon) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_84setAgentTimeHorizon(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_time_horizon) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentTimeHorizon", 0);
 
   /* "rvo2.pyx":270
  *         self.thisptr.setAgentRadius(agent_no, radius)
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):
  *         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)             # <<<<<<<<<<<<<<
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):
  *         self.thisptr.setAgentTimeHorizonObst(agent_no, timeHorizonObst)
  */
   __pyx_v_self->thisptr->setAgentTimeHorizon(__pyx_v_agent_no, __pyx_v_time_horizon);
 
   /* "rvo2.pyx":269
- *     def setAgentRadius(self, size_t agent_no, float radius):
+ *     def setAgentRadius(self, size_t agent_no, double radius):
  *         self.thisptr.setAgentRadius(agent_no, radius)
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):             # <<<<<<<<<<<<<<
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):
  */
 
   /* function exit code */
@@ -6083,9 +6083,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_84setAgentTimeHorizon(struct __
 }
 
 /* "rvo2.pyx":271
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):
  *         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):             # <<<<<<<<<<<<<<
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentTimeHorizonObst(agent_no, timeHorizonObst)
  *     def setAgentVelocity(self, size_t agent_no, tuple velocity):
  */
@@ -6094,7 +6094,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_84setAgentTimeHorizon(struct __
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_87setAgentTimeHorizonObst(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_87setAgentTimeHorizonObst(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   size_t __pyx_v_agent_no;
-  float __pyx_v_timeHorizonObst;
+  double __pyx_v_timeHorizonObst;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentTimeHorizonObst (wrapper)", 0);
@@ -6134,7 +6134,7 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_87setAgentTimeHorizonObst(PyObj
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_agent_no = __Pyx_PyInt_As_size_t(values[0]); if (unlikely((__pyx_v_agent_no == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L3_error)
-    __pyx_v_timeHorizonObst = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_timeHorizonObst == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L3_error)
+    __pyx_v_timeHorizonObst = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_timeHorizonObst == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -6151,14 +6151,14 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_87setAgentTimeHorizonObst(PyObj
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_86setAgentTimeHorizonObst(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, float __pyx_v_timeHorizonObst) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_86setAgentTimeHorizonObst(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, size_t __pyx_v_agent_no, double __pyx_v_timeHorizonObst) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setAgentTimeHorizonObst", 0);
 
   /* "rvo2.pyx":272
  *         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):
  *         self.thisptr.setAgentTimeHorizonObst(agent_no, timeHorizonObst)             # <<<<<<<<<<<<<<
  *     def setAgentVelocity(self, size_t agent_no, tuple velocity):
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
@@ -6166,9 +6166,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_86setAgentTimeHorizonObst(struc
   __pyx_v_self->thisptr->setAgentTimeHorizonObst(__pyx_v_agent_no, __pyx_v_timeHorizonObst);
 
   /* "rvo2.pyx":271
- *     def setAgentTimeHorizon(self, size_t agent_no, float time_horizon):
+ *     def setAgentTimeHorizon(self, size_t agent_no, double time_horizon):
  *         self.thisptr.setAgentTimeHorizon(agent_no, time_horizon)
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):             # <<<<<<<<<<<<<<
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentTimeHorizonObst(agent_no, timeHorizonObst)
  *     def setAgentVelocity(self, size_t agent_no, tuple velocity):
  */
@@ -6181,7 +6181,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_86setAgentTimeHorizonObst(struc
 }
 
 /* "rvo2.pyx":273
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):
  *         self.thisptr.setAgentTimeHorizonObst(agent_no, timeHorizonObst)
  *     def setAgentVelocity(self, size_t agent_no, tuple velocity):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
@@ -6259,8 +6259,8 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_88setAgentVelocity(struct __pyx
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   __Pyx_RefNannySetupContext("setAgentVelocity", 0);
 
@@ -6269,7 +6269,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_88setAgentVelocity(struct __pyx
  *     def setAgentVelocity(self, size_t agent_no, tuple velocity):
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])             # <<<<<<<<<<<<<<
  *         self.thisptr.setAgentVelocity(agent_no, c_velocity)
- *     def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):
+ *     def setCarProperties(self, double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi):
  */
   if (unlikely(__pyx_v_velocity == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -6277,7 +6277,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_88setAgentVelocity(struct __pyx
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 274, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 274, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_velocity == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -6285,7 +6285,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_88setAgentVelocity(struct __pyx
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_velocity, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 274, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 274, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -6299,13 +6299,13 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_88setAgentVelocity(struct __pyx
  *     def setAgentVelocity(self, size_t agent_no, tuple velocity):
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentVelocity(agent_no, c_velocity)             # <<<<<<<<<<<<<<
- *     def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):
+ *     def setCarProperties(self, double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi):
  *         self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)
  */
   __pyx_v_self->thisptr->setAgentVelocity(__pyx_v_agent_no, __pyx_v_c_velocity);
 
   /* "rvo2.pyx":273
- *     def setAgentTimeHorizonObst(self, size_t agent_no, float timeHorizonObst):
+ *     def setAgentTimeHorizonObst(self, size_t agent_no, double timeHorizonObst):
  *         self.thisptr.setAgentTimeHorizonObst(agent_no, timeHorizonObst)
  *     def setAgentVelocity(self, size_t agent_no, tuple velocity):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
@@ -6328,27 +6328,27 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_88setAgentVelocity(struct __pyx
 /* "rvo2.pyx":276
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentVelocity(agent_no, c_velocity)
- *     def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):             # <<<<<<<<<<<<<<
+ *     def setCarProperties(self, double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi):             # <<<<<<<<<<<<<<
  *         self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)
- *     def setTimeStep(self, float time_step):
+ *     def setTimeStep(self, double time_step):
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_91setCarProperties(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_91setCarProperties(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  float __pyx_v_length;
-  float __pyx_v_radius;
-  float __pyx_v_vDrivingMax;
-  float __pyx_v_vSteeringMax;
-  float __pyx_v_aDrivingMax;
-  float __pyx_v_phiMax;
-  float __pyx_v_dtc;
-  float __pyx_v_errorPreferred;
-  float __pyx_v_ka;
-  float __pyx_v_kv;
-  float __pyx_v_kp;
-  float __pyx_v_deltaV;
-  float __pyx_v_deltaPhi;
+  double __pyx_v_length;
+  double __pyx_v_radius;
+  double __pyx_v_vDrivingMax;
+  double __pyx_v_vSteeringMax;
+  double __pyx_v_aDrivingMax;
+  double __pyx_v_phiMax;
+  double __pyx_v_dtc;
+  double __pyx_v_errorPreferred;
+  double __pyx_v_ka;
+  double __pyx_v_kv;
+  double __pyx_v_kp;
+  double __pyx_v_deltaV;
+  double __pyx_v_deltaPhi;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setCarProperties (wrapper)", 0);
@@ -6486,19 +6486,19 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_91setCarProperties(PyObject *__
       values[11] = PyTuple_GET_ITEM(__pyx_args, 11);
       values[12] = PyTuple_GET_ITEM(__pyx_args, 12);
     }
-    __pyx_v_length = __pyx_PyFloat_AsFloat(values[0]); if (unlikely((__pyx_v_length == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_radius = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_radius == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_vDrivingMax = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_vDrivingMax == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_vSteeringMax = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_vSteeringMax == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_aDrivingMax = __pyx_PyFloat_AsFloat(values[4]); if (unlikely((__pyx_v_aDrivingMax == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_phiMax = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_phiMax == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_dtc = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_dtc == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_errorPreferred = __pyx_PyFloat_AsFloat(values[7]); if (unlikely((__pyx_v_errorPreferred == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_ka = __pyx_PyFloat_AsFloat(values[8]); if (unlikely((__pyx_v_ka == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_kv = __pyx_PyFloat_AsFloat(values[9]); if (unlikely((__pyx_v_kv == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_kp = __pyx_PyFloat_AsFloat(values[10]); if (unlikely((__pyx_v_kp == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_deltaV = __pyx_PyFloat_AsFloat(values[11]); if (unlikely((__pyx_v_deltaV == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
-    __pyx_v_deltaPhi = __pyx_PyFloat_AsFloat(values[12]); if (unlikely((__pyx_v_deltaPhi == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_length = __pyx_Pydouble_Asdouble(values[0]); if (unlikely((__pyx_v_length == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_radius = __pyx_Pydouble_Asdouble(values[1]); if (unlikely((__pyx_v_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_vDrivingMax = __pyx_Pydouble_Asdouble(values[2]); if (unlikely((__pyx_v_vDrivingMax == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_vSteeringMax = __pyx_Pydouble_Asdouble(values[3]); if (unlikely((__pyx_v_vSteeringMax == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_aDrivingMax = __pyx_Pydouble_Asdouble(values[4]); if (unlikely((__pyx_v_aDrivingMax == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_phiMax = __pyx_Pydouble_Asdouble(values[5]); if (unlikely((__pyx_v_phiMax == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_dtc = __pyx_Pydouble_Asdouble(values[6]); if (unlikely((__pyx_v_dtc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_errorPreferred = __pyx_Pydouble_Asdouble(values[7]); if (unlikely((__pyx_v_errorPreferred == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_ka = __pyx_Pydouble_Asdouble(values[8]); if (unlikely((__pyx_v_ka == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_kv = __pyx_Pydouble_Asdouble(values[9]); if (unlikely((__pyx_v_kv == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_kp = __pyx_Pydouble_Asdouble(values[10]); if (unlikely((__pyx_v_kp == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_deltaV = __pyx_Pydouble_Asdouble(values[11]); if (unlikely((__pyx_v_deltaV == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
+    __pyx_v_deltaPhi = __pyx_Pydouble_Asdouble(values[12]); if (unlikely((__pyx_v_deltaPhi == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -6515,16 +6515,16 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_91setCarProperties(PyObject *__
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_90setCarProperties(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_length, float __pyx_v_radius, float __pyx_v_vDrivingMax, float __pyx_v_vSteeringMax, float __pyx_v_aDrivingMax, float __pyx_v_phiMax, float __pyx_v_dtc, float __pyx_v_errorPreferred, float __pyx_v_ka, float __pyx_v_kv, float __pyx_v_kp, float __pyx_v_deltaV, float __pyx_v_deltaPhi) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_90setCarProperties(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_length, double __pyx_v_radius, double __pyx_v_vDrivingMax, double __pyx_v_vSteeringMax, double __pyx_v_aDrivingMax, double __pyx_v_phiMax, double __pyx_v_dtc, double __pyx_v_errorPreferred, double __pyx_v_ka, double __pyx_v_kv, double __pyx_v_kp, double __pyx_v_deltaV, double __pyx_v_deltaPhi) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setCarProperties", 0);
 
   /* "rvo2.pyx":277
  *         self.thisptr.setAgentVelocity(agent_no, c_velocity)
- *     def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):
+ *     def setCarProperties(self, double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi):
  *         self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)             # <<<<<<<<<<<<<<
- *     def setTimeStep(self, float time_step):
+ *     def setTimeStep(self, double time_step):
  *         self.thisptr.setTimeStep(time_step)
  */
   __pyx_v_self->thisptr->setCarProperties(__pyx_v_length, __pyx_v_radius, __pyx_v_vDrivingMax, __pyx_v_vSteeringMax, __pyx_v_aDrivingMax, __pyx_v_phiMax, __pyx_v_dtc, __pyx_v_errorPreferred, __pyx_v_ka, __pyx_v_kv, __pyx_v_kp, __pyx_v_deltaV, __pyx_v_deltaPhi);
@@ -6532,9 +6532,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_90setCarProperties(struct __pyx
   /* "rvo2.pyx":276
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentVelocity(agent_no, c_velocity)
- *     def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):             # <<<<<<<<<<<<<<
+ *     def setCarProperties(self, double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi):             # <<<<<<<<<<<<<<
  *         self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)
- *     def setTimeStep(self, float time_step):
+ *     def setTimeStep(self, double time_step):
  */
 
   /* function exit code */
@@ -6545,9 +6545,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_90setCarProperties(struct __pyx
 }
 
 /* "rvo2.pyx":278
- *     def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):
+ *     def setCarProperties(self, double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi):
  *         self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)
- *     def setTimeStep(self, float time_step):             # <<<<<<<<<<<<<<
+ *     def setTimeStep(self, double time_step):             # <<<<<<<<<<<<<<
  *         self.thisptr.setTimeStep(time_step)
  *     def shouldUpdate(self):
  */
@@ -6555,12 +6555,12 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_90setCarProperties(struct __pyx
 /* Python wrapper */
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_93setTimeStep(PyObject *__pyx_v_self, PyObject *__pyx_arg_time_step); /*proto*/
 static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_93setTimeStep(PyObject *__pyx_v_self, PyObject *__pyx_arg_time_step) {
-  float __pyx_v_time_step;
+  double __pyx_v_time_step;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setTimeStep (wrapper)", 0);
   assert(__pyx_arg_time_step); {
-    __pyx_v_time_step = __pyx_PyFloat_AsFloat(__pyx_arg_time_step); if (unlikely((__pyx_v_time_step == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 278, __pyx_L3_error)
+    __pyx_v_time_step = __pyx_Pydouble_Asdouble(__pyx_arg_time_step); if (unlikely((__pyx_v_time_step == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 278, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -6568,21 +6568,21 @@ static PyObject *__pyx_pw_4rvo2_14PyRVOSimulator_93setTimeStep(PyObject *__pyx_v
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(((struct __pyx_obj_4rvo2_PyRVOSimulator *)__pyx_v_self), ((float)__pyx_v_time_step));
+  __pyx_r = __pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(((struct __pyx_obj_4rvo2_PyRVOSimulator *)__pyx_v_self), ((double)__pyx_v_time_step));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, float __pyx_v_time_step) {
+static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(struct __pyx_obj_4rvo2_PyRVOSimulator *__pyx_v_self, double __pyx_v_time_step) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("setTimeStep", 0);
 
   /* "rvo2.pyx":279
  *         self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)
- *     def setTimeStep(self, float time_step):
+ *     def setTimeStep(self, double time_step):
  *         self.thisptr.setTimeStep(time_step)             # <<<<<<<<<<<<<<
  *     def shouldUpdate(self):
  *         return self.thisptr.shouldUpdate()
@@ -6590,9 +6590,9 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(struct __pyx_obj_
   __pyx_v_self->thisptr->setTimeStep(__pyx_v_time_step);
 
   /* "rvo2.pyx":278
- *     def setCarProperties(self, float length, float radius, float vDrivingMax, float vSteeringMax, float aDrivingMax, float phiMax, float dtc, float errorPreferred, float ka, float kv, float kp, float deltaV, float deltaPhi):
+ *     def setCarProperties(self, double length, double radius, double vDrivingMax, double vSteeringMax, double aDrivingMax, double phiMax, double dtc, double errorPreferred, double ka, double kv, double kp, double deltaV, double deltaPhi):
  *         self.thisptr.setCarProperties(length, radius, vDrivingMax, vSteeringMax, aDrivingMax, phiMax, dtc, errorPreferred, ka, kv, kp, deltaV, deltaPhi)
- *     def setTimeStep(self, float time_step):             # <<<<<<<<<<<<<<
+ *     def setTimeStep(self, double time_step):             # <<<<<<<<<<<<<<
  *         self.thisptr.setTimeStep(time_step)
  *     def shouldUpdate(self):
  */
@@ -6605,7 +6605,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_92setTimeStep(struct __pyx_obj_
 }
 
 /* "rvo2.pyx":280
- *     def setTimeStep(self, float time_step):
+ *     def setTimeStep(self, double time_step):
  *         self.thisptr.setTimeStep(time_step)
  *     def shouldUpdate(self):             # <<<<<<<<<<<<<<
  *         return self.thisptr.shouldUpdate()
@@ -6646,7 +6646,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_94shouldUpdate(struct __pyx_obj
   goto __pyx_L0;
 
   /* "rvo2.pyx":280
- *     def setTimeStep(self, float time_step):
+ *     def setTimeStep(self, double time_step):
  *         self.thisptr.setTimeStep(time_step)
  *     def shouldUpdate(self):             # <<<<<<<<<<<<<<
  *         return self.thisptr.shouldUpdate()
@@ -6743,8 +6743,8 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_96setAgentCar(struct __pyx_obj_
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  float __pyx_t_2;
-  float __pyx_t_3;
+  double __pyx_t_2;
+  double __pyx_t_3;
   RVO::Vector2 __pyx_t_4;
   __Pyx_RefNannySetupContext("setAgentCar", 0);
 
@@ -6761,7 +6761,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_96setAgentCar(struct __pyx_obj_
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_position, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 283, __pyx_L1_error)
+  __pyx_t_2 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 283, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_v_position == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -6769,7 +6769,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_96setAgentCar(struct __pyx_obj_
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v_position, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 283, __pyx_L1_error)
+  __pyx_t_3 = __pyx_Pydouble_Asdouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 283, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   try {
     __pyx_t_4 = RVO::Vector2(__pyx_t_2, __pyx_t_3);
@@ -6854,7 +6854,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_98getAgentCarTheta(struct __pyx
  *         return self.thisptr.getAgentCarPhi(agentNo)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getAgentCarTheta(__pyx_v_agentNo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 286, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getAgentCarTheta(__pyx_v_agentNo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 286, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -6921,7 +6921,7 @@ static PyObject *__pyx_pf_4rvo2_14PyRVOSimulator_100getAgentCarPhi(struct __pyx_
  *         return self.thisptr.getAgentCarPhi(agentNo)             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->thisptr->getAgentCarPhi(__pyx_v_agentNo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_1 = Pydouble_FromDouble(__pyx_v_self->thisptr->getAgentCarPhi(__pyx_v_agentNo)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -7280,9 +7280,9 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
   /* "rvo2.pyx":97
- *     def __cinit__(self, float timeStep, float neighborDist, size_t maxNeighbors,
- *                   float timeHorizon, float timeHorizonObst, float radius,
- *                   float maxSpeed, tuple velocity=(0, 0)):             # <<<<<<<<<<<<<<
+ *     def __cinit__(self, double timeStep, double neighborDist, size_t maxNeighbors,
+ *                   double timeHorizon, double timeHorizonObst, double radius,
+ *                   double maxSpeed, tuple velocity=(0, 0)):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  * 
  */
@@ -7346,8 +7346,8 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__6);
 
   /* "rvo2.pyx":248
- *     def setAgentDefaults(self, float neighbor_dist, size_t max_neighbors, float time_horizon,
- *                          float time_horizon_obst, float radius, float max_speed,
+ *     def setAgentDefaults(self, double neighbor_dist, size_t max_neighbors, double time_horizon,
+ *                          double time_horizon_obst, double radius, double max_speed,
  *                          tuple velocity=(0, 0)):             # <<<<<<<<<<<<<<
  *         cdef Vector2 c_velocity = Vector2(velocity[0], velocity[1])
  *         self.thisptr.setAgentDefaults(neighbor_dist, max_neighbors, time_horizon,

@@ -36,6 +36,10 @@ set(RVO_HEADERS
 	Vector2.h)
 
 set(RVO_SOURCES
+	Car.cpp
+	Car.h
+	AgentCar.cpp
+	AgentCar.h
 	Agent.cpp
 	Agent.h
 	Definitions.h
@@ -43,7 +47,8 @@ set(RVO_SOURCES
 	KdTree.h
 	Obstacle.cpp
 	Obstacle.h
-	RVOSimulator.cpp)
+	RVOSimulator.cpp
+	RVOSimulatorOptimize.cpp)
 
 add_library(RVO ${RVO_HEADERS} ${RVO_SOURCES})
 

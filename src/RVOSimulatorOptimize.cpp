@@ -244,7 +244,7 @@ namespace RVO {
 		#endif
         return f;
     }
-	bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX)
+	bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX, bool require_grad)
     {
 		clock_t start,end;
 		start=clock();
@@ -328,8 +328,12 @@ namespace RVO {
                 std::cout<<"Increase perturbation to "<<perturbation<<std::endl;
             }
         }
-		//invB=(MatrixXd::Identity(x.size(), x.size())/(-timeStep_)+h).ldlt();
-		//partialxStar_v=invB.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_-1.0));
+        if(require_grad)
+        {
+            invB=(MatrixXd::Identity(x.size(), x.size())/(-timeStep_)+h).ldlt();
+		    partialxStar_v=invB.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_-1.0));
+        }
+		
         //std::cout <<  iter <<"  "<<alpha<<" " <<perturbation << std::endl;
         succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
         //std::cout<<"status="<<succ<<std::endl;
@@ -388,15 +392,15 @@ namespace RVO {
 		for(size_t i=0;i<N;i++)
 			agents_[i]->computeNeighbors();
 		#endif
-		optimize(v, x, newX);
+		optimize(v, x, newX,true);
 		MatrixXd q=partialxStar_v;
 		double delta=1e-4;
-		optimize(v+dx*delta,x,newX1);
+		optimize(v+dx*delta,x,newX1,true);
 		std::cout<<"Vstar error: "<<((newX1-newX)/delta-q*dx).squaredNorm()<<std::endl;
 		//fout<<"newX error: "<<newX.norm()<<std::endl;
 
 	}
-    void RVOSimulator::doStep()
+    void RVOSimulator::doNewtonStep(bool require_grad)
     {
         size_t agent_size=static_cast<int>(agents_.size());
         VectorXd v(2*agent_size),x(2*agent_size),xNew(2*agent_size);
@@ -416,7 +420,7 @@ namespace RVO {
 		for(size_t i=0;i<agent_size;i++)
 			agents_[i]->computeNeighbors();
 		#endif
-		optimize(v,x,xNew);
+		optimize(v,x,xNew,require_grad);
 		/*VectorXd dx;
 		dx.setRandom(x.size());
 		VectorXd xNew1=xNew;

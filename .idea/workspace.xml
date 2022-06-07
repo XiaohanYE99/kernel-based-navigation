@@ -5,54 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="16452672-662f-44ae-95b0-87d2b29ee3ab" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/RVO2_Python/src/Export.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/BUILD.bazel" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeCache.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CMakeCCompiler.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CMakeDetermineCompilerABI_C.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CMakeDetermineCompilerABI_CXX.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CMakeSystem.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CompilerIdC/CMakeCCompilerId.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CompilerIdC/a.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CompilerIdCXX/CMakeCXXCompilerId.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/3.10.2/CompilerIdCXX/a.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/CMakeDirectoryInformation.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/CMakeOutput.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/Export/lib/cmake/RVO/RVOTargets-release.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/Export/lib/cmake/RVO/RVOTargets.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/Agent.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/CXX.includecache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/DependInfo.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/KdTree.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/Obstacle.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/RVOSimulator.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/build.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/cmake_clean.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/depend.internal" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/depend.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/flags.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/link.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/RVO.dir/progress.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/cmake.check_cache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/feature_tests.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/feature_tests.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/feature_tests.cxx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CMakeFiles/progress.marks" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/robot_envs/robot_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_envs/robot_env.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AgentCar.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/AgentCar.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CTestTestfile.cmake" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Definitions.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Definitions.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/KdTree.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/KdTree.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/KdTree.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/KdTree.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/RVOSimulatorOptimize.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/cmake_install.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/libRVO.so" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/libRVO.so.2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/libRVO.so.2.0.3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/optimize.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/RVOSimulationOptimize.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/RVOSimulator.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/RVOSimulator.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/rvo2.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/src/rvo2.pyx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -121,7 +82,7 @@
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
-        <env name="DISPLAY" value="localhost:10.0" />
+        <env name="DISPLAY" value="127.0.0.1:10.0" />
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -162,7 +123,8 @@
       <workItem from="1654065743104" duration="26000" />
       <workItem from="1654065771868" duration="9406000" />
       <workItem from="1654136873182" duration="3278000" />
-      <workItem from="1654479207959" duration="5114000" />
+      <workItem from="1654479207959" duration="12228000" />
+      <workItem from="1654567684536" duration="20620000" />
     </task>
     <servers />
   </component>
@@ -181,7 +143,8 @@
     </option>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/kernel_based_navigation_master$launch_experiment.coverage" NAME="launch_experiment Coverage Results" MODIFIED="1654584234885" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/pipe3D5$launch_experiment.coverage" NAME="launch_experiment Coverage Results" MODIFIED="1627693272412" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/kernel_based_navigation_master$train.coverage" NAME="train Coverage Results" MODIFIED="1654076104146" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/kernel_based_navigation_master$train.coverage" NAME="train Coverage Results" MODIFIED="1654594541564" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

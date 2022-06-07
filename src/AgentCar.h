@@ -20,7 +20,7 @@ namespace RVO {
 			return Agent::orcaLines_;
 		}
 
-		AgentCar(RVO::RVOSimulator* sim, Vector2 position, float theta, float phi) :RVO::Agent(sim), car(position.x(), position.y(), theta, phi)
+		AgentCar(RVO::RVOSimulator* sim, Vector2 position, double theta, double phi) :RVO::Agent(sim), car(position.x(), position.y(), theta, phi)
 		{
 		}
 	private:

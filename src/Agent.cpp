@@ -8,7 +8,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  * Chapel Hill, N.C. 27599-3175
  * United States of America
  *
- * <https://gamma.cs.unc.edu/RVO2/>
+ * <http://gamma.cs.unc.edu/RVO2/>
  */
 
 #include "Agent.h"
@@ -36,7 +36,7 @@
 #include "Obstacle.h"
 
 namespace RVO {
-	Agent::Agent(RVOSimulator *sim) : maxNeighbors_(0), maxSpeed_(0.0), neighborDist_(0.0), radius_(0.0), sim_(sim), timeHorizon_(0.0), timeHorizonObst_(0.0), id_(0) { }
+	Agent::Agent(RVOSimulator* sim) : maxNeighbors_(0), maxSpeed_(0.0), neighborDist_(0.0), radius_(0.0), sim_(sim), timeHorizon_(0.0), timeHorizonObst_(0.0), id_(0), lambda(0.5f) { }
 
 	void Agent::computeNeighbors()
 	{
@@ -51,6 +51,7 @@ namespace RVO {
 			sim_->kdTree_->computeAgentNeighbors(this, rangeSq);
 		}
 	}
+
 	/* Search for the best new velocity. */
 	void Agent::computeNewVelocity()
 	{
@@ -61,8 +62,8 @@ namespace RVO {
 		/* Create obstacle ORCA lines. */
 		for (size_t i = 0; i < obstacleNeighbors_.size(); ++i) {
 
-			const Obstacle *obstacle1 = obstacleNeighbors_[i].second;
-			const Obstacle *obstacle2 = obstacle1->nextObstacle_;
+			const Obstacle* obstacle1 = obstacleNeighbors_[i].second;
+			const Obstacle* obstacle2 = obstacle1->nextObstacle_;
 
 			const Vector2 relativePosition1 = obstacle1->point_ - position_;
 			const Vector2 relativePosition2 = obstacle2->point_ - position_;
@@ -74,7 +75,7 @@ namespace RVO {
 			bool alreadyCovered = false;
 
 			for (size_t j = 0; j < orcaLines_.size(); ++j) {
-				if (det(invTimeHorizonObst * relativePosition1 - orcaLines_[j].point, orcaLines_[j].direction) - invTimeHorizonObst * radius_ >= -RVO_EPSILON && det(invTimeHorizonObst * relativePosition2 - orcaLines_[j].point, orcaLines_[j].direction) - invTimeHorizonObst * radius_ >=  -RVO_EPSILON) {
+				if (det(invTimeHorizonObst * relativePosition1 - orcaLines_[j].point, orcaLines_[j].direction) - invTimeHorizonObst * radius_ >= -RVO_EPSILON && det(invTimeHorizonObst * relativePosition2 - orcaLines_[j].point, orcaLines_[j].direction) - invTimeHorizonObst * radius_ >= -RVO_EPSILON) {
 					alreadyCovered = true;
 					break;
 				}
@@ -118,7 +119,7 @@ namespace RVO {
 
 				continue;
 			}
-			else if (s >= 0.0 && s <= 1.0f && distSqLine <= radiusSq) {
+			else if (s >= 0.0 && s < 1.0f && distSqLine <= radiusSq) {
 				/* Collision with obstacle segment. */
 				line.point = Vector2(0.0, 0.0);
 				line.direction = -obstacle1->unitDir_;
@@ -193,7 +194,7 @@ namespace RVO {
 			 * "foreign" leg, no constraint is added.
 			 */
 
-			const Obstacle *const leftNeighbor = obstacle1->prevObstacle_;
+			const Obstacle* const leftNeighbor = obstacle1->prevObstacle_;
 
 			bool isLeftLegForeign = false;
 			bool isRightLegForeign = false;
@@ -286,7 +287,7 @@ namespace RVO {
 
 		/* Create agent ORCA lines. */
 		for (size_t i = 0; i < agentNeighbors_.size(); ++i) {
-			const Agent *const other = agentNeighbors_[i].second;
+			const Agent* const other = agentNeighbors_[i].second;
 
 			const Vector2 relativePosition = other->position_ - position_;
 			const Vector2 relativeVelocity = velocity_ - other->velocity_;
@@ -345,7 +346,7 @@ namespace RVO {
 				u = (combinedRadius * invTimeStep - wLength) * unitW;
 			}
 
-			line.point = velocity_ + 0.5f * u;
+			line.point = velocity_ + (1 - other->lambda) * u;
 			orcaLines_.push_back(line);
 		}
 
@@ -356,7 +357,7 @@ namespace RVO {
 		}
 	}
 
-	void Agent::insertAgentNeighbor(const Agent *agent, double &rangeSq)
+	void Agent::insertAgentNeighbor(const Agent* agent, double& rangeSq)
 	{
 		if (this != agent) {
 			const double distSq = absSq(position_ - agent->position_);
@@ -382,9 +383,9 @@ namespace RVO {
 		}
 	}
 
-	void Agent::insertObstacleNeighbor(const Obstacle *obstacle, double rangeSq)
+	void Agent::insertObstacleNeighbor(const Obstacle* obstacle, double rangeSq)
 	{
-		const Obstacle *const nextObstacle = obstacle->nextObstacle_;
+		const Obstacle* const nextObstacle = obstacle->nextObstacle_;
 
 		const double distSq = distSqPointLineSegment(obstacle->point_, nextObstacle->point_, position_);
 
@@ -408,7 +409,7 @@ namespace RVO {
 		position_ += velocity_ * sim_->timeStep_;
 	}
 
-	bool linearProgram1(const std::vector<Line> &lines, size_t lineNo, double radius, const Vector2 &optVelocity, bool directionOpt, Vector2 &result)
+	bool linearProgram1(const std::vector<Line>& lines, size_t lineNo, double radius, const Vector2& optVelocity, bool directionOpt, Vector2& result)
 	{
 		const double dotProduct = lines[lineNo].point * lines[lineNo].direction;
 		const double discriminant = sqr(dotProduct) + sqr(radius) - absSq(lines[lineNo].point);
@@ -481,7 +482,7 @@ namespace RVO {
 		return true;
 	}
 
-	size_t linearProgram2(const std::vector<Line> &lines, double radius, const Vector2 &optVelocity, bool directionOpt, Vector2 &result)
+	size_t linearProgram2(const std::vector<Line>& lines, double radius, const Vector2& optVelocity, bool directionOpt, Vector2& result)
 	{
 		if (directionOpt) {
 			/*
@@ -514,7 +515,7 @@ namespace RVO {
 		return lines.size();
 	}
 
-	void linearProgram3(const std::vector<Line> &lines, size_t numObstLines, size_t beginLine, double radius, Vector2 &result)
+	void linearProgram3(const std::vector<Line>& lines, size_t numObstLines, size_t beginLine, double radius, Vector2& result)
 	{
 		double distance = 0.0;
 

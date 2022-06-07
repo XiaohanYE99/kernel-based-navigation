@@ -8,7 +8,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  * Chapel Hill, N.C. 27599-3175
  * United States of America
  *
- * <https://gamma.cs.unc.edu/RVO2/>
+ * <http://gamma.cs.unc.edu/RVO2/>
  */
 
 #ifndef RVO_VECTOR2_H_
@@ -41,13 +41,11 @@
 #include <cmath>
 #include <ostream>
 
-#include "Export.h"
-
 namespace RVO {
 	/**
 	 * \brief      Defines a two-dimensional vector.
 	 */
-	class RVO_EXPORT Vector2 {
+	class Vector2 {
 	public:
 		/**
 		 * \brief      Constructs and initializes a two-dimensional vector instance
@@ -255,7 +253,7 @@ namespace RVO {
 	 * \return     The scalar multiplication of the two-dimensional vector with the
 	 *             scalar value.
 	 */
-	RVO_EXPORT inline Vector2 operator*(double s, const Vector2 &vector)
+	inline Vector2 operator*(double s, const Vector2 &vector)
 	{
 		return Vector2(s * vector.x(), s * vector.y());
 	}
@@ -270,8 +268,7 @@ namespace RVO {
 	 *                             the output stream.
 	 * \return     A reference to the output stream.
 	 */
-	RVO_EXPORT inline std::ostream &operator<<(std::ostream &os,
-											   const Vector2 &vector)
+	inline std::ostream &operator<<(std::ostream &os, const Vector2 &vector)
 	{
 		os << "(" << vector.x() << "," << vector.y() << ")";
 
@@ -285,7 +282,7 @@ namespace RVO {
 	 *                             computed.
 	 * \return     The length of the two-dimensional vector.
 	 */
-	RVO_EXPORT inline double abs(const Vector2 &vector)
+	inline double abs(const Vector2 &vector)
 	{
 		return std::sqrt(vector * vector);
 	}
@@ -298,7 +295,7 @@ namespace RVO {
 	 *                             is to be computed.
 	 * \return     The squared length of the two-dimensional vector.
 	 */
-	RVO_EXPORT inline double absSq(const Vector2 &vector)
+	inline double absSq(const Vector2 &vector)
 	{
 		return vector * vector;
 	}
@@ -313,11 +310,10 @@ namespace RVO {
 	 *                             matrix.
 	 * \return     The determinant of the two-dimensional square matrix.
 	 */
-	RVO_EXPORT inline double det(const Vector2 &vector1, const Vector2 &vector2)
+	inline double det(const Vector2 &vector1, const Vector2 &vector2)
 	{
 		return vector1.x() * vector2.y() - vector1.y() * vector2.x();
 	}
-
 
 	/**
 	 * \relates    Vector2
@@ -327,7 +323,7 @@ namespace RVO {
 	 *                             is to be computed.
 	 * \return     The normalization of the two-dimensional vector.
 	 */
-	RVO_EXPORT inline Vector2 normalize(const Vector2 &vector)
+	inline Vector2 normalize(const Vector2 &vector)
 	{
 		return vector / abs(vector);
 	}

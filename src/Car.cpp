@@ -4,14 +4,14 @@
 #include <fstream>
 #include <iostream>
 
-float Car::phiMax, Car::vDrivingMax, Car::steeringMax, Car::aDrivingMax, Car::length, Car::radius, Car::deltaPhi, Car::deltav1, Car::dtc, Car::errorDesired;
-float Car::decelerateTime;
-float Car::ka, Car::kv, Car::kp;
-float Car::lengthHalf;
+double Car::phiMax, Car::vDrivingMax, Car::steeringMax, Car::aDrivingMax, Car::length, Car::radius, Car::deltaPhi, Car::deltav1, Car::dtc, Car::errorDesired;
+double Car::decelerateTime;
+double Car::ka, Car::kv, Car::kp;
+double Car::lengthHalf;
 int Car::vNum, Car::phiNum;
-std::vector<std::vector<std::vector<std::vector<float>>>> Car::errorLookupTable;
+std::vector<std::vector<std::vector<std::vector<double>>>> Car::errorLookupTable;
 
-void Car::initCars(float length, float radius, float vDrivingMax, float steeringMax, float aDrivingMax, float phiMax, float dtc, float errorDesired, float ka, float kv, float kp) {
+void Car::initCars(double length, double radius, double vDrivingMax, double steeringMax, double aDrivingMax, double phiMax, double dtc, double errorDesired, double ka, double kv, double kp) {
 	Car::length = length;
 	Car::radius = radius;
 
@@ -23,7 +23,7 @@ void Car::initCars(float length, float radius, float vDrivingMax, float steering
 	Car::dtc = dtc;
 	Car::errorDesired = errorDesired;
 
-	//feedback gains solved from ¦Ë3+ka¦Ë2+kv¦Ë+kp
+	//feedback gains solved from ï¿½ï¿½3+kaï¿½ï¿½2+kvï¿½ï¿½+kp
 	Car::ka = ka;
 	Car::kv = kv;
 	Car::kp = kp;
@@ -32,7 +32,7 @@ void Car::initCars(float length, float radius, float vDrivingMax, float steering
 	decelerateTime = vDrivingMax / aDrivingMax;
 }
 
-void Car::computeLookupTable(float timeConsumed, float errorClamped) {
+void Car::computeLookupTable(double timeConsumed, double errorClamped) {
 	errorLookupTable.resize(vNum);
 	for (auto& phivec : errorLookupTable)
 	{
@@ -50,24 +50,24 @@ void Car::computeLookupTable(float timeConsumed, float errorClamped) {
 #pragma omp parallel for
 	for (int iv0 = 0; iv0 < vNum; iv0++)
 	{
-		float v0 = -vDrivingMax + iv0 * deltav1;
+		double v0 = -vDrivingMax + iv0 * deltav1;
 		for (int iphi = 0; iphi < phiNum; iphi++)
 		{
-			float phi = -phiMax + iphi * deltaPhi;
+			double phi = -phiMax + iphi * deltaPhi;
 			//for each desired velocity
 			for (int ivx = 0; ivx < vNum; ivx++)
 			{
-				float vx = -vDrivingMax + ivx * deltav1;
+				double vx = -vDrivingMax + ivx * deltav1;
 				for (int ivy = 0; ivy < vNum; ivy++)
 				{
 					Car car(0, 0, 0, phi);
 					car.v1 = v0;
-					float vy = -vDrivingMax + ivy * deltav1;
+					double vy = -vDrivingMax + ivy * deltav1;
 					car.initTracking(RVO::Vector2(vx, vy));
 					car.track();
-					float t = 0;
-					float maxError = 0;
-					float error = 0;
+					double t = 0;
+					double maxError = 0;
+					double error = 0;
 					while (true)
 					{
 						car.update();
@@ -146,7 +146,7 @@ bool Car::readFromFile() {
 	return true;
 }
 
-Car::Car(float centerx, float centery, float theta, float phi) :
+Car::Car(double centerx, double centery, double theta, double phi) :
 	v1(1 / INTMAX_MAX),
 	v2(0.f),
 	center1(centerx), center2(centery), theta(theta), phi(phi),
@@ -161,7 +161,7 @@ void Car::control()
 {
 	if (decelerating)
 	{
-		float a = fmin(abs(v1 / dtc), aDrivingMax);
+		double a = fmin(abs(v1 / dtc), aDrivingMax);
 		v1 -= copysign(a, v1) * dtc;
 	}
 	else
@@ -172,44 +172,44 @@ void Car::control()
 
 void Car::track()
 {
-	const float cosTheta = cos(theta);
-	const float sinTheta = sin(theta);
-	const float tanPhi = tan(phi);
+	const double cosTheta = cos(theta);
+	const double sinTheta = sin(theta);
+	const double tanPhi = tan(phi);
 	//gai
-	const float cosPhiSq = cos(pow(phi, 2));
-	const float xi1Sq = pow(xi1, 2);//xi1 * xi1;
-	const float xi1Cub = xi1Sq * xi1;
+	const double cosPhiSq = cos(pow(phi, 2));
+	const double xi1Sq = pow(xi1, 2);//xi1 * xi1;
+	const double xi1Cub = xi1Sq * xi1;
 
-	const float zd1 = xi1 * cosTheta;
-	const float zd2 = xi1 * sinTheta;
-	const float zdd1 = -(xi1Sq)*tanPhi * sinTheta / length + xi2 * cosTheta;
-	const float	zdd2 = xi1Sq * tanPhi * cosTheta / length + xi2 * sinTheta;
+	const double zd1 = xi1 * cosTheta;
+	const double zd2 = xi1 * sinTheta;
+	const double zdd1 = -(xi1Sq)*tanPhi * sinTheta / length + xi2 * cosTheta;
+	const double	zdd2 = xi1Sq * tanPhi * cosTheta / length + xi2 * sinTheta;
 
-	//Ó¦ÊÊµ±Ôö´ó/¼õÐ¡vdesired
-	//cos¦Èdcos¦È(t) +sin¦Èdsin¦È(t)<1
-	//float factor = cos(thetaDesired) * cosTheta + sin(thetaDesired) * sinTheta;
+	//Ó¦ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½Ð¡vdesired
+	//cosï¿½ï¿½dcosï¿½ï¿½(t) +sinï¿½ï¿½dsinï¿½ï¿½(t)<1
+	//double factor = cos(thetaDesired) * cosTheta + sin(thetaDesired) * sinTheta;
 	//factor = 1 - abs(factor);
 
-	float r1 = -ka * zdd1 + kv * (vDesired1 - zd1) + kp * (zDesired1 - center1);
-	float r2 = -ka * zdd2 + kv * (vDesired2 - zd2) + kp * (zDesired2 - center2);
-	//float r1 = -ka * zdd1 + kv * (vDesired1 - zd1) + kp * (zDesired1 - backX);
-	//float r2 = -ka * zdd2 + kv * (vDesired2 - zd2) + kp * (zDesired2 - backY);
+	double r1 = -ka * zdd1 + kv * (vDesired1 - zd1) + kp * (zDesired1 - center1);
+	double r2 = -ka * zdd2 + kv * (vDesired2 - zd2) + kp * (zDesired2 - center2);
+	//double r1 = -ka * zdd1 + kv * (vDesired1 - zd1) + kp * (zDesired1 - backX);
+	//double r2 = -ka * zdd2 + kv * (vDesired2 - zd2) + kp * (zDesired2 - backY);
 
-	//¸üÐÂxi
-	float xi2d = xi1Cub * tan(pow(phi, 2)) / (pow(length, 2)) + r1 * cosTheta + r2 * sinTheta;
+	//ï¿½ï¿½ï¿½ï¿½xi
+	double xi2d = xi1Cub * tan(pow(phi, 2)) / (pow(length, 2)) + r1 * cosTheta + r2 * sinTheta;
 	xi2 += xi2d * dtc;
 	xi2 = fmax(fmin(xi2, aDrivingMax), -aDrivingMax);
 	xi1 += xi2 * dtc;
 	xi1 = fmax(fmin(xi1, vDrivingMax), -vDrivingMax);
 
-	//¸üÐÂËÙ¶È
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 	v1 = xi1;
 	v2 = -3 * xi2 * cosPhiSq * tanPhi / xi1 - length * r1 * cosPhiSq * sinTheta / xi1Sq + length * r2 * cosPhiSq * cosTheta / xi1Sq;
 	v2 = fmax(fmin(v2, steeringMax), -steeringMax);
 }
 
 void Car::update() {
-	//¸üÐÂÎ»ÖÃ
+	//ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	backX += v1 * dtc * cos(theta);
 	backY += v1 * dtc * sin(theta);
 	theta += v1 * tan(phi) * dtc / length;
@@ -229,9 +229,9 @@ void Car::initTracking(const RVO::Vector2& vd)
 	thetaDesired = atan2(vDesired2, vDesired1);
 	xi1 = v1;//xi1=v0=v1(0)
 	xi2 = 0.f;
-	//float thetaICR = copysign((PI / 2.f - abs(atan2(2.f, abs(tan(phi))))), phi) + theta;
-	//float s1 = copysign(1, cos(thetaDesired) * cos(thetaICR) + sin(thetaDesired) * sin(thetaICR));
-	//¸ú×ÙÖÐÐÄÎ»ÖÃ
+	//double thetaICR = copysign((PI / 2.f - abs(atan2(2.f, abs(tan(phi))))), phi) + theta;
+	//double s1 = copysign(1, cos(thetaDesired) * cos(thetaICR) + sin(thetaDesired) * sin(thetaICR));
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	zDesired1 = center1 /*- (s1 * lengthHalf) * cos(thetaDesired)*/;
 	zDesired2 = center2 /*- (s1 * lengthHalf) * sin(thetaDesired)*/;
 

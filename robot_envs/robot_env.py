@@ -576,9 +576,10 @@ class NavigationEnvs():
                 self.sim.setAgentPrefVelocity(self.agent[i], (dx, dy))
                 self.sim.setAgentPosition(self.agent[i], (pos[i][0], pos[i][1]))
                 self.deltap[i]=[dx,dy]
-
+            t0=time.time()
             self.sim.doNewtonStep(False)
-
+            #self.sim.doStep()
+            print(time.time()-t0)
             for i in range(self.n_robots):
                 self.state[i*2:i*2+2]=self.sim.getAgentPosition(self.agent[i])
         for i in range(self.n_robots):

@@ -32,8 +32,8 @@
 
 cmake_minimum_required(VERSION 2.8)
 project(RVO)
-
-SET(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+SET(CMAKE_BUILD_TYPE “Release”)
+SET(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -O3")
 
 include(CTest)
 

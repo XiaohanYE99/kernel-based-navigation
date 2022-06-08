@@ -81,7 +81,6 @@ bool RVOSimulator::linesearch(const VectorXd& v,const VectorXd& x, const double 
 double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd& newX,
                             int& nBarrier,VectorXd* g, MatrixXd* h)
 {
-
     nBarrier=0;
     double f=0.5/(timeStep_*timeStep_)*(newX-(x+v*timeStep_)).squaredNorm();
     if(g)
@@ -92,7 +91,6 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
         (*h)/=(timeStep_*timeStep_);
     }
     //for other agent
-
 #ifdef USE_SPATIAL_HASH
     //has a global variable SpatialHash hash;
     for(size_t i=0; i<x.size()/2; i++)
@@ -246,8 +244,6 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
 }
 bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX, bool require_grad)
 {
-    clock_t start,end;
-    start=clock();
     newX=x;
     VectorXd g;
     VectorXd g2;
@@ -288,10 +284,10 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
         if(iter==0) {
             maxPerturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());
             minPertubation*=std::max(1.0,h.cwiseAbs().maxCoeff());
-            perturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());
+            perturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());clock_t start,end;
         }
-        std::cout << "iter=" << iter << " alpha=" << alpha << " E=" << E << " gNormInf=" << g.cwiseAbs().maxCoeff()
-                  <<" perturbation=" <<perturbation<<" minPertubation=" << minPertubation <<std::endl;
+        /*std::cout << "iter=" << iter << " alpha=" << alpha << " E=" << E << " gNormInf=" << g.cwiseAbs().maxCoeff()
+                  <<" perturbation=" <<perturbation<<" minPertubation=" << minPertubation <<std::endl;*/
         //outer-loop of line search and newton direction computation
 
         while(true) {
@@ -313,15 +309,16 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
 
             //line search
             lastAlpha=alpha;
+
             succ=linesearch(v,x,E,g,-invH.solve(g),alpha,newX,[&](const VectorXd& evalPt)->double{
                 return energy(v,x,evalPt,nBarrier,NULL,NULL);
+
             });
             if(succ)
             {
                 perturbation=std::max(perturbation*perturbationDec,minPertubation);
                 break;
             }
-
             //probably we need more perturbation to h
             perturbation*=perturbationInc;
             alpha=lastAlpha;
@@ -337,15 +334,14 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     //std::cout <<  iter <<"  "<<alpha<<" " <<perturbation << std::endl;
     succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
     //std::cout<<"status="<<succ<<std::endl;
-    end=clock();
-    printf("time=%f\n",(double)(end-start)/CLOCKS_PER_SEC);
+
     return succ;
 }
 
 void RVOSimulator::checkEnergyFD()
 {
     std::ofstream fout;
-    std::string filename= "/home/yxhan/yxh/kernel-based-navigation-master/hash.txt" ;
+    std::string filename= "/homeprintf/yxhan/yxh/kernel-based-navigation-master/hash.txt" ;
     fout.open(filename.c_str(),std::ios::out|std::ios::app);
 #ifdef USE_SPATIAL_HASH
 #undef USE_SPATIAL_HASH
@@ -402,6 +398,8 @@ void RVOSimulator::checkEnergyFD()
 }
 void RVOSimulator::doNewtonStep(bool require_grad)
 {
+    clock_t start,end;
+    start=clock();
     size_t agent_size=static_cast<int>(agents_.size());
     VectorXd v(2*agent_size),x(2*agent_size),xNew(2*agent_size);
 #ifdef _OPENMP
@@ -435,6 +433,8 @@ void RVOSimulator::doNewtonStep(bool require_grad)
         agents_[i]->newVelocity_=Vector2((xNew[i]-x[i])/timeStep_,(xNew[i+agent_size]-x[i+agent_size])/timeStep_);
         agents_[i]->update();
     }
+    end=clock();
+    //printf("time=%f\n",(double)(end-start)/CLOCKS_PER_SEC);
 }
 
 void RVOSimulator::setNewtonParameters(size_t maxIter_, double tol_, double d0_, double coef_, double alphaMin_)

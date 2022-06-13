@@ -155,8 +155,8 @@ def dijkstra(dx,start,bdset):
                 path[node] = temp   
  
     t4 = time.time()
-
-    return dis
+    diss=list(dis.values())
+    return torch.tensor(diss,dtype=torch.float32)
 
 class NavigationEnvs():
     def __init__(self,gui,sim,use_kernel_loop,use_sparse_FEM):
@@ -249,7 +249,8 @@ class NavigationEnvs():
         self.sim.addObstacle([(0.2, 0.2), (0.54, 0.2), (0.54, 0.8),(0.2,0.8),(0.2,0.76),(0.5,0.76),(0.5,0.24),(0.2,0.24)])
         self.sim.addObstacle([(0.04, 0.04),(0.04,0.96),(0.96,0.96),(0.96,0.04) ])
         self.sim.processObstacles()
-        self.dis=dijkstra(self.dx,find_grid_index([0.7,0.5],self.dx),self.bdset)
+        self.dis=dijkstra(self.dx,find_grid_index([0.7,0.5],self.dx),self.bdset).to(self.device)
+        self.dis.requires_grad=True
         self.FEM_init()
         self.sparsesolve = SparseSolve.apply
         torch.cuda.empty_cache()
@@ -522,9 +523,17 @@ class NavigationEnvs():
             self.render()
         self.cnt+=1
         return self.state,reward,done,dict(reward=reward)
+    def MBStep(self,xNew):
+        X = xNew.detach().cpu().numpy()
+        self.state = X.reshape(-1)
+        if self.cnt % 1 == 0:
+            self.render()
+        self.cnt += 1
+    def MBLoss(self,xNew):
+        xNew=xNew.squeeze(0)
+        idx=(torch.floor(xNew[1::2] / self.dx) * self.size_y + torch.floor(xNew[::2] / self.dx)).long()
 
-
-
+        return torch.sum((torch.floor(xNew[1::2] / self.dx) * self.size_y + torch.floor(xNew[::2] / self.dx)).long())#torch.sum(self.dis[idx])
 
 class CollisionFreeLayer(Function):
 
@@ -535,7 +544,7 @@ class CollisionFreeLayer(Function):
         xNew=np.empty(x.size())
         for b in range(x.size(0)):
 
-            pos = x[b].reshape([-1, 2])
+            pos = x[b].reshape([-1, 2]).detach().cpu().numpy()
             vx = v[b,:env.n_robots]
             vy = v[b,env.n_robots:]
             vx = vx.detach().cpu().numpy()
@@ -547,10 +556,17 @@ class CollisionFreeLayer(Function):
                 # print(dx,dy)
                 lenn = math.sqrt(dx * dx + dy * dy)
                 if lenn > 2.0:
-                    print("#")
+
                     dx *= 2.0 / lenn
                     dy *= 2.0 / lenn
-
+                if env.state[i * 2] > 0.51 and env.state[i * 2] < 0.89 and env.state[i * 2 + 1] < 0.69 and \
+                        env.state[i * 2 + 1] > 0.31:
+                    r = np.sqrt((pow(pos[i][0] - 0.7, 2) + pow(pos[i][1] - 0.5, 2)))
+                    dx = 1.0 * (0.7 - pos[i][0]) / r
+                    dy = 1.0 * (0.5 - pos[i][1]) / r
+                    if r < 0.01 :
+                        dx = 0  # *=r/0.01
+                        dy = 0  # *=r/0.01
                 env.sim.setAgentPrefVelocity(env.agent[i], (dx, dy))
                 env.sim.setAgentPosition(env.agent[i], (pos[i][0], pos[i][1]))
                 env.deltap[i] = [dx, dy]
@@ -568,5 +584,4 @@ class CollisionFreeLayer(Function):
     @staticmethod
     def backward(ctx, grad_output):
         dx,dv=ctx.saved_tensors
-        print(grad_output.size(),dx.size())
         return None, torch.matmul(grad_output,dx) , torch.matmul(grad_output,dv)

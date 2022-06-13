@@ -6,16 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="16452672-662f-44ae-95b0-87d2b29ee3ab" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PPO.py" beforeDir="false" afterPath="$PROJECT_DIR$/PPO.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/robot_envs/cdc_rvo.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_envs/cdc_rvo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/robot_envs/robot_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_envs/robot_env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/RVOSimulator.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/RVOSimulator.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/RVOSimulatorOptimize.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/RVOSimulatorOptimize.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/build/CMakeFiles/RVO.dir/RVOSimulatorOptimize.o" beforeDir="false" afterPath="$PROJECT_DIR$/src/build/CMakeFiles/RVO.dir/RVOSimulatorOptimize.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/build/libRVO.a" beforeDir="false" afterPath="$PROJECT_DIR$/src/build/libRVO.a" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rvo2.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/src/rvo2.pyx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +46,7 @@
       <recent name="$PROJECT_DIR$/RVO2_Python/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.train">
+  <component name="RunManager" selected="Python.mb_train">
     <configuration name="launch_experiment" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pipe3D5" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -70,6 +62,29 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/launch_experiment.py" />
       <option name="PARAMETERS" value="./configs/music-pipe.json" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="mb_train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pipe3D5" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="DISPLAY" value="127.0.0.1:10.0" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mb_train.py" />
+      <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -126,9 +141,11 @@
       <item itemvalue="Python.launch_experiment" />
       <item itemvalue="Python.train" />
       <item itemvalue="Python.test" />
+      <item itemvalue="Python.mb_train" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.mb_train" />
         <item itemvalue="Python.train" />
         <item itemvalue="Python.test" />
         <item itemvalue="Python.launch_experiment" />
@@ -154,7 +171,7 @@
       <workItem from="1654678103399" duration="3541000" />
       <workItem from="1654739288289" duration="14976000" />
       <workItem from="1654828738423" duration="18479000" />
-      <workItem from="1655086128945" duration="13413000" />
+      <workItem from="1655086128945" duration="27672000" />
     </task>
     <servers />
   </component>
@@ -174,8 +191,9 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/kernel_based_navigation_master$launch_experiment.coverage" NAME="launch_experiment Coverage Results" MODIFIED="1654584234885" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/kernel_based_navigation_master$mb_train.coverage" NAME="mb_train Coverage Results" MODIFIED="1655121398634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/kernel_based_navigation_master$test.coverage" NAME="test Coverage Results" MODIFIED="1654757683380" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/pipe3D5$launch_experiment.coverage" NAME="launch_experiment Coverage Results" MODIFIED="1627693272412" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/kernel_based_navigation_master$train.coverage" NAME="train Coverage Results" MODIFIED="1655102047338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/kernel_based_navigation_master$train.coverage" NAME="train Coverage Results" MODIFIED="1655108262051" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

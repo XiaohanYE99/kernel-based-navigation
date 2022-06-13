@@ -279,7 +279,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
 
         if(g.cwiseAbs().maxCoeff()<tol)
         {
-            std::cout<<"Exit on gNormInf<"<<tol<<std::endl;
+            //std::cout<<"Exit on gNormInf<"<<tol<<std::endl;
             break;
         }
 
@@ -306,7 +306,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
             }
             if(perturbation>=maxPerturbation)
             {
-                std::cout<<"Exit on perturbation>=maxPerturbation"<<std::endl;
+                //std::cout<<"Exit on perturbation>=maxPerturbation"<<std::endl;
                 break;
             }
 
@@ -328,7 +328,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
             //probably we need more perturbation to h
             perturbation*=perturbationInc;
             alpha=lastAlpha;
-            std::cout<<"Increase perturbation to "<<perturbation<<std::endl;
+            //std::cout<<"Increase perturbation to "<<perturbation<<std::endl;
         }
     }
     if(require_grad)

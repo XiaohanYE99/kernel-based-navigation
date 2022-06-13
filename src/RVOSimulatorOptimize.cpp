@@ -255,7 +255,9 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     double perturbation=1;
     double perturbationDec=0.8;
     double perturbationInc=2.0;
-    Eigen::LDLT<MatrixXd> invH,invB;
+    //Eigen::SimplicialLDLT<Eigen::SparseMatrix<double,0,int>> invH,invB;
+    //Eigen::SimplicialCholesky<SMat> sol;
+    Eigen::SimplicialLDLT<SMat> sol;
     double lastAlpha;
     bool succ;
     //IF TEST
@@ -284,17 +286,18 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
         if(iter==0) {
             maxPerturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());
             minPertubation*=std::max(1.0,h.cwiseAbs().maxCoeff());
-            perturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());clock_t start,end;
+            perturbation*=std::max(1.0,h.cwiseAbs().maxCoeff());
         }
         /*std::cout << "iter=" << iter << " alpha=" << alpha << " E=" << E << " gNormInf=" << g.cwiseAbs().maxCoeff()
-                  <<" perturbation=" <<perturbation<<" minPertubation=" << minPertubation <<std::endl;*/
+        <<" perturbation=" <<perturbation<<" minPertubation=" << minPertubation <<std::endl;*/
         //outer-loop of line search and newton direction computation
 
         while(true) {
             //ensure hessian factorization is successful
             while(perturbation<maxPerturbation) {
-                invH=(MatrixXd::Identity(x.size(), x.size())*perturbation+h).ldlt();
-                if(invH.info()==Eigen::Success) {
+
+                sol.compute((MatrixXd::Identity(x.size(), x.size())*perturbation+h).sparseView());
+                if(sol.info()==Eigen::Success) {
                     //perturbation=std::max(perturbation*perturbationDec,minPertubation);
                     break;
                 } else {
@@ -310,15 +313,18 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
             //line search
             lastAlpha=alpha;
 
-            succ=linesearch(v,x,E,g,-invH.solve(g),alpha,newX,[&](const VectorXd& evalPt)->double{
-                return energy(v,x,evalPt,nBarrier,NULL,NULL);
+            //VectorXd tmp=-invH.solve(g);
 
+            succ=linesearch(v,x,E,g,-sol.solve(g),alpha,newX,[&](const VectorXd& evalPt)->double{
+                return energy(v,x,evalPt,nBarrier,NULL,NULL);
             });
+
             if(succ)
             {
                 perturbation=std::max(perturbation*perturbationDec,minPertubation);
                 break;
             }
+
             //probably we need more perturbation to h
             perturbation*=perturbationInc;
             alpha=lastAlpha;
@@ -327,14 +333,12 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     }
     if(require_grad)
     {
-        invB=(MatrixXd::Identity(x.size(), x.size())/(-timeStep_)+h).ldlt();
-        partialxStar_v=invB.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_-1.0));
+        sol.compute(h.sparseView());
+        partialxStar_v=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_));
+        partialxStar_x=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/(timeStep_*timeStep_)));
     }
-
-    //std::cout <<  iter <<"  "<<alpha<<" " <<perturbation << std::endl;
     succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
     //std::cout<<"status="<<succ<<std::endl;
-
     return succ;
 }
 
@@ -374,7 +378,6 @@ void RVOSimulator::checkEnergyFD()
         break;
 
     }
-    printf("######");
 #ifndef USE_SPATIAL_HASH
 #define USE_SPATIAL_HASH
     std::vector<RVO::Vector2> goals;
@@ -444,5 +447,13 @@ void RVOSimulator::setNewtonParameters(size_t maxIter_, double tol_, double d0_,
     d0=d0_;
     coef=coef_;
     alphaMin=alphaMin_;
+}
+const Eigen::MatrixXd& RVOSimulator::getGradV() const
+{
+    return partialxStar_v;
+}
+const Eigen::MatrixXd& RVOSimulator::getGradX() const
+{
+    return partialxStar_x;
 }
 }

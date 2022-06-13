@@ -1,7 +1,7 @@
 # distutils: language = c++
 from libcpp.vector cimport vector
 from libcpp cimport bool
-
+from eigency.core cimport *
 
 cdef extern from "Vector2.h" namespace "RVO":
     cdef cppclass Vector2:
@@ -10,17 +10,13 @@ cdef extern from "Vector2.h" namespace "RVO":
         double x() const
         double y() const
 
-
 cdef extern from "RVOSimulator.h" namespace "RVO":
     cdef const size_t RVO_ERROR
-
 
 cdef extern from "RVOSimulator.h" namespace "RVO":
     cdef cppclass Line:
         Vector2 point
         Vector2 direction
-
-
 cdef extern from "RVOSimulator.h" namespace "RVO":
     cdef cppclass RVOSimulator:
         RVOSimulator()
@@ -63,6 +59,7 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
         size_t getNextObstacleVertexNo(size_t vertexNo) const
         size_t getPrevObstacleVertexNo(size_t vertexNo) const
         double getTimeStep() const
+
         void processObstacles() nogil
         bool queryVisibility(const Vector2 & point1, const Vector2 & point2,
                              double radius) nogil const
@@ -84,6 +81,8 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
         void setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin)
         bool shouldUpdate()
 
+        const MatrixXd &getGradV() const
+        const MatrixXd &getGradX() const
 
 cdef class PyRVOSimulator:
     cdef RVOSimulator *thisptr
@@ -253,4 +252,10 @@ cdef class PyRVOSimulator:
         self.thisptr.setNewtonParameters(maxIter, tol, d0, coef, alphaMin)
     def shouldUpdate(self):
         return self.thisptr.shouldUpdate()
+
+    def getGradV(self):
+        return ndarray_view(self.thisptr.getGradV())
+    def getGradX(self):
+        return ndarray_view(self.thisptr.getGradX())
+
 

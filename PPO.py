@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.distributions import MultivariateNormal
 from torch.distributions import Categorical
+from robot_envs.robot_env import CollisionFreeLayer
 import time
 ################################## set device ##################################
 print("============================================================================================")
@@ -88,7 +89,7 @@ class ActorCritic(nn.Module):
                             nn.Linear(128, 1)
                             )
         '''
-    
+        self.CFLayer = CollisionFreeLayer.apply
     def implement(self,state):
 
         action=torch.squeeze(self.actor(state),1)
@@ -97,9 +98,10 @@ class ActorCritic(nn.Module):
         velocity=self.env.projection(action)
 
         v=self.env.get_velocity(state,velocity)
-        
 
-        return v
+        xNew=self.CFLayer(self.env,state,v)
+
+        return xNew
     '''
     def implement(self,img):
         output=torch.squeeze(self.actor(img),1)
@@ -240,7 +242,7 @@ class PPO:
     def update(self):
         # Monte Carlo estimate of returns
         t0=time.time()
-        batch=250
+        batch=100
         rewards_ = []
         discounted_reward = 0
         for reward, is_terminal in zip(reversed(self.buffer.rewards), reversed(self.buffer.is_terminals)):

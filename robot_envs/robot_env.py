@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.path
 from robot_envs.sparse_solver import *#SparseSolve
 import time
+from torch.autograd import Function
 plt.ion()
 
 import time
@@ -87,33 +88,9 @@ def get_reward(n_robots,aim,state,oldstate,angle,dis,dx):
                     reward1+=4.0*(dis1-dis2)
                 else:
                     reward1+=6.0*(dis1-dis2)
-                    
-            if angle[i]>45:
-                reward2-=(1.5e-4)*angle[i]
         #collision reward
         reward1+=pow(num,1)
         #reward1+=400.0*(dis1-dis2)
-        '''
-        for i in prange(n_robots):
-            for j in prange(i+1,n_robots):
-                dis=state[i*2:i*2+2]-state[j*2:j*2+2]
-                if np.sqrt(dis[0]*dis[0]+dis[1]*dis[1])<2*radius:
-                    reward-=0.3
-            
-            
-            for j in prange(bdset.shape[0]):
-                p1=np.array([bdset[j][0],bdset[j][1]])
-                p2=np.array([bdset[j][2],bdset[j][3]])
-                p=state[i*2:i*2+2]
-                dis1=p1-p
-                dis2=p2-p
-                a=p2[1]-p1[1]
-                b=p1[0]-p2[0]
-                c=p2[0]*p1[1]-p1[0]*p2[1]
-                d=math.fabs(a*p[0]+b*p[1]+c)/pow(a*a+b*b,0.5)
-                if np.sqrt(dis1[0]*dis1[0]+dis1[1]*dis1[1])<radius or np.sqrt(dis2[0]*dis2[0]+dis2[1]*dis2[1])<radius or d<radius:
-                    reward-=0.3
-               '''
         if abs(reward1)>10:
             reward1=0.0
         return reward1,reward2
@@ -188,7 +165,7 @@ class NavigationEnvs():
         self.use_kernel_loop=use_kernel_loop
         self.use_sparse_FEM=use_sparse_FEM
         
-        self.sim.setNewtonParameters(100,1e-0,5e-4,5e4,1e-6)
+        self.sim.setNewtonParameters(100,1e-0,1e-3,1e5,1e-6)
 
         self.N=20           #kernel number
         self.radius=0.01    #robot radius
@@ -213,7 +190,6 @@ class NavigationEnvs():
         self.aim=[0.7,0.5]
         self.goal=np.zeros([self.n_robots*2])
         self.begin=np.zeros([self.n_robots*2])
-        self.t=np.zeros([self.n_robots])
 
         self.tot_num=0
         self.cnt=0
@@ -268,7 +244,7 @@ class NavigationEnvs():
                 self.state[idx*2+1]=j*0.02+0.3
                 self.oldstate[idx*2]=i*0.02+0.35
                 self.oldstate[idx*2+1]=j*0.02+0.3
-                self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 100, 0.04, 0.04, 0.009, 1, (0, 0)))
+                self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 100, 0.04, 0.04, 0.008, 1, (0, 0)))
                 
         self.sim.addObstacle([(0.2, 0.2), (0.54, 0.2), (0.54, 0.8),(0.2,0.8),(0.2,0.76),(0.5,0.76),(0.5,0.24),(0.2,0.24)])
         self.sim.addObstacle([(0.04, 0.04),(0.04,0.96),(0.96,0.96),(0.96,0.04) ])
@@ -286,12 +262,11 @@ class NavigationEnvs():
         self.vis=np.zeros(self.n_robots)
         o=random.sample(range(0, 15), 4)
         o.sort()
-        
+        o=[8,9,10,11]
         idx=0
         for k in o:
             for i in range(5):
                 for j in range(5):
-                    self.t[idx]=40
                     self.state[idx*2:idx*2+2]=[0.02*i+self.init_state[k][0],0.02*j+self.init_state[k][1]]
                     self.oldstate[idx*2:idx*2+2]=[0.02*i+self.init_state[k][0],0.02*j+self.init_state[k][1]]
                     #self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 5, 0.04, 0.04, 0.01, 2, (0, 0)))
@@ -322,13 +297,13 @@ class NavigationEnvs():
         for i in range(self.N):
             q[i]=[self.x0[i],self.y0[i]]
         #self.gui.circles(q, radius=5, color=0x068587)
-        self.gui.circles(pos, radius=4.5, color=0xF7EED6)
+        self.gui.circles(pos, radius=4, color=0xF7EED6)
         #self.gui.circles(bd, radius=2, color=0xFF0000)
         self.gui.rect([0.5, 0.2], [0.54, 0.8], radius=1, color=0xF4A460)
         self.gui.rect([0.2, 0.2], [0.5, 0.24], radius=1, color=0xF4A460)
         self.gui.rect([0.2, 0.76], [0.5, 0.8], radius=1, color=0xF4A460)
         self.gui.lines(begin=pos, end=pos+0.04*self.deltap, radius=1, color=0x068587)
-        #self.gui.show('img/MAC.png')
+        #self.gui.show('img/06d.png')
         self.gui.show()
     def FEM_init(self):
         mask=torch.zeros([self.size_x,self.size_y])
@@ -522,71 +497,14 @@ class NavigationEnvs():
         #print(time.time()-t0)
         #print(vel_y.size())
         return torch.cat((vel_x/rr,vel_y/rr),1)#.squeeze(2)
-    def step(self,velocity):
-        #action=action*0.5+0.5
-        velocity=velocity.squeeze(0)
-
+    def step(self,xNew):
+        X=xNew.detach().cpu().numpy()
+        self.state=X.reshape(-1)
         '''
-        action=action.squeeze(0)
-        t0=time.time()
-        velocity=self.projection(action)
-        
-        for i in range(self.N):
-            self.x0[i]=action[4*i]#0~1
-            self.y0[i]=action[4*i+1]#0~1
-        #print(action)
-        '''
-        
-        for i in range(self.n_robots):
-            self.oldstate[i*2:i*2+2]=self.state[i*2:i*2+2]
-        state_p=np.zeros([1,self.size_x,self.size_y])
-        #self.BEM_solver()
-        vx=velocity[:self.n_robots]
-        vy=velocity[self.n_robots:]
-        vx=vx.cpu().detach().numpy()
-        vy=vy.cpu().detach().numpy()
-        for it in range(2):
-            pos=self.state.reshape([-1,2])
-
-            for i in range(self.n_robots):
-                if i<self.n_robots/2:
-                    self.deltap[i]=[vx[i]*0.1,vy[i]*0.0]
-                else:
-                    self.deltap[i]=[vx[i]*0.0,vy[i]*0.1]
-                
-            #print(time.time()-t0)
-            
-            for i in range(self.n_robots):
-                dx=vx[i]
-                dy=vy[i]
-                #print(dx,dy)
-                lenn=math.sqrt(dx*dx+dy*dy)
-                if lenn>2.0:
-                    dx*=2.0/lenn
-                    dy*=2.0/lenn
-                
-                if self.state[i*2]>0.51 and self.state[i*2]<0.89 and self.state[i*2+1]<0.69 and self.state[i*2+1]>0.31:
-                    self.t[i]-=1
-                    r=np.sqrt((pow(pos[i][0]-0.7,2)+pow(pos[i][1]-0.5,2)))
-                    dx=1.0*(0.7-pos[i][0])/r
-                    dy=1.0*(0.5-pos[i][1])/r
-                    if r<0.01 or self.t[i]<=0:
-                        dx=0#*=r/0.01
-                        dy=0#*=r/0.01
-                self.sim.setAgentPrefVelocity(self.agent[i], (dx, dy))
-                self.sim.setAgentPosition(self.agent[i], (pos[i][0], pos[i][1]))
-                self.deltap[i]=[dx,dy]
-            t0=time.time()
-            self.sim.doNewtonStep(False)
-            #self.sim.doStep()
-            print(time.time()-t0)
-            for i in range(self.n_robots):
-                self.state[i*2:i*2+2]=self.sim.getAgentPosition(self.agent[i])
         for i in range(self.n_robots):
             self.oldvel[i*2:i*2+2]=self.vel[i*2:i*2+2]
             self.vel[i*2:i*2+2]=self.state[i*2:i*2+2]-self.oldstate[i*2:i*2+2]
-            self.angle[i]=get_angle(self.vel[i*2:i*2+2],self.oldvel[i*2:i*2+2])
-            
+        '''
         reward1,reward2=get_reward(self.n_robots,self.aim,self.state,self.oldstate,self.angle,self.dis,self.dx)
         reward=reward1#+reward2
         self.pos_reward+=reward1
@@ -604,3 +522,51 @@ class NavigationEnvs():
             self.render()
         self.cnt+=1
         return self.state,reward,done,dict(reward=reward)
+
+
+
+
+class CollisionFreeLayer(Function):
+
+    @staticmethod
+    def forward(ctx, env, x, v, x_requires_grad=True):
+        #t0 = time.time()
+        x=x.reshape(-1,env.n_robots*2)
+        xNew=np.empty(x.size())
+        for b in range(x.size(0)):
+
+            pos = x[b].reshape([-1, 2])
+            vx = v[b,:env.n_robots]
+            vy = v[b,env.n_robots:]
+            vx = vx.detach().cpu().numpy()
+            vy = vy.detach().cpu().numpy()
+
+            for i in range(env.n_robots):
+                dx = vx[i]
+                dy = vy[i]
+                # print(dx,dy)
+                lenn = math.sqrt(dx * dx + dy * dy)
+                if lenn > 2.0:
+                    print("#")
+                    dx *= 2.0 / lenn
+                    dy *= 2.0 / lenn
+
+                env.sim.setAgentPrefVelocity(env.agent[i], (dx, dy))
+                env.sim.setAgentPosition(env.agent[i], (pos[i][0], pos[i][1]))
+                env.deltap[i] = [dx, dy]
+
+            env.sim.doNewtonStep(True)
+            #env.sim.doStep()
+            dv=torch.from_numpy(env.sim.getGradV()).float().to(env.device)
+            dx=torch.from_numpy(env.sim.getGradX()).float().to(env.device)
+            ctx.save_for_backward(dx,dv)
+            for i in range(env.n_robots):
+                xNew[b,i * 2:i * 2 + 2] = env.sim.getAgentPosition(env.agent[i])
+            #print(time.time() - t0)
+        return torch.from_numpy(xNew).float().to(env.device)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        dx,dv=ctx.saved_tensors
+        print(grad_output.size(),dx.size())
+        return None, torch.matmul(grad_output,dx) , torch.matmul(grad_output,dv)

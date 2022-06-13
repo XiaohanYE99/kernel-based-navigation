@@ -42,9 +42,12 @@
 #include <limits>
 #include <vector>
 #include <Eigen/Dense>
+#include<Eigen/SparseCholesky>
+
+
 #define number_of_threads 4
 #include "Vector2.h"
-
+typedef Eigen::SparseMatrix<double> SMat;
 class CarSim;
 
 namespace RVO {
@@ -245,6 +248,9 @@ public:
                     std::function<double(const Eigen::VectorXd&)> E);
     void checkEnergyFD();
     void doNewtonStep(bool require_grad);
+    const Eigen::MatrixXd& getGradV() const;
+    const Eigen::MatrixXd& getGradX() const;
+
     /**
      * \brief      Returns the specified agent neighbor of the specified
      *             agent.

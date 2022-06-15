@@ -23,7 +23,7 @@ import torch.nn.functional as F
 
 pi=np.pi
 def find_grid_index(pos,dx):
-    return int(pos[1]/dx)*100+int(pos[0]/dx)
+    return int((pos[1]+0.1*dx)/dx)*100+int((pos[0]+0.1*dx)/dx)
 #@njit(parallel=True)  
 def P2G(state,state_p,n_robots,dx):
     for i in prange(n_robots):
@@ -95,8 +95,8 @@ def get_reward(n_robots,aim,state,oldstate,angle,dis,dx):
             reward1=0.0
         return reward1,reward2
 def dijkstra(dx,start,bdset):
-    x=1.5*dx
-    y=1.5*dx
+    x=dx
+    y=dx
     G={}
     L=[]
     L.append([0,dx,0.1])
@@ -110,7 +110,7 @@ def dijkstra(dx,start,bdset):
     for i in range(40000):
         G[i]={}
     while x<0.99:
-        y=1.5*dx
+        y=dx
         while y<0.99:
             idx=find_grid_index([x,y],dx)
             for i in range(8):
@@ -118,7 +118,7 @@ def dijkstra(dx,start,bdset):
                 tx=x+L[i][0]
                 ty=y+L[i][1]
                 for j in range(len(bdset)):
-                    if tx>=bdset[j][0] and tx<=bdset[j][2] and ty>=bdset[j][1] and ty<=bdset[j][3]:
+                    if tx>bdset[j][0]+0.1*dx and tx<bdset[j][2]-0.1*dx and ty>bdset[j][1]+0.1*dx and ty<bdset[j][3]-0.1*dx:
                         #print(tx,ty)
                         flag=0
                 if flag==1:
@@ -222,7 +222,7 @@ class NavigationEnvs():
                     [0.0,0.0,1.0,0.04],[0.0,0.96,1.0,1.0],[0.0,0.0,0.04,1.0],[0.96,0.0,1.0,1.0]]#,[0.95,0.52,1.0,1.0]]
         
         self.observation_space=np.zeros(2*self.n_robots)
-        self.action_space=np.zeros(2*self.n_robots)#(4*self.N)
+        self.action_space=np.zeros(4*self.N)#(4*self.N)
         #print(self.boundary.N)
         
        
@@ -250,7 +250,7 @@ class NavigationEnvs():
         self.sim.addObstacle([(0.04, 0.04),(0.04,0.96),(0.96,0.96),(0.96,0.04) ])
         self.sim.processObstacles()
         self.dis=dijkstra(self.dx,find_grid_index([0.7,0.5],self.dx),self.bdset).to(self.device)
-        self.dis.requires_grad=True
+        #self.dis.requires_grad=True
         self.FEM_init()
         self.sparsesolve = SparseSolve.apply
         torch.cuda.empty_cache()
@@ -263,7 +263,6 @@ class NavigationEnvs():
         self.vis=np.zeros(self.n_robots)
         o=random.sample(range(0, 15), 4)
         o.sort()
-        o=[8,9,10,11]
         idx=0
         for k in o:
             for i in range(5):
@@ -405,12 +404,13 @@ class NavigationEnvs():
         #print(action.requires_grad)
         t0=time.time()
         k=action.size(0)
-        
+
         x0=action[:,::4].unsqueeze(2).unsqueeze(3)
         y0=action[:,1::4].unsqueeze(2).unsqueeze(3)
         alpha=(action[:,2::4].unsqueeze(2).unsqueeze(3))*19.0+1.0
         omega=action[:,3::4].unsqueeze(2).unsqueeze(3)
         #alpha[alpha<=1]=1
+
         if self.use_kernel_loop==False:
             ux=self.grid_ux.unsqueeze(0).unsqueeze(0)
             uy=self.grid_uy.unsqueeze(0).unsqueeze(0)
@@ -485,6 +485,7 @@ class NavigationEnvs():
         velocity_x=velocity[:,:(self.size_x+1)*self.size_y]
         velocity_y=velocity[:,(self.size_x+1)*self.size_y:]
         idx1=(idx_y*(self.size_x+1)+idx_x).long()
+
         vel_x=torch.gather(velocity_x,1,idx1)*(1.0-alpha_x)+torch.gather(velocity_x,1,idx1+1)*alpha_x
         idx2=(idx_y*self.size_x+idx_x).long()
         vel_y=torch.gather(velocity_y,1,idx2)*(1.0-alpha_y)+torch.gather(velocity_y,1,idx2+self.size_x)*alpha_y
@@ -498,43 +499,139 @@ class NavigationEnvs():
         #print(time.time()-t0)
         #print(vel_y.size())
         return torch.cat((vel_x/rr,vel_y/rr),1)#.squeeze(2)
-    def step(self,xNew):
-        X=xNew.detach().cpu().numpy()
-        self.state=X.reshape(-1)
+
+    def step(self, velocity):
+        # action=action*0.5+0.5
+        #velocity = velocity.squeeze(0)
+
         '''
+        action=action.squeeze(0)
+        t0=time.time()
+        velocity=self.projection(action)
+
+        for i in range(self.N):
+            self.x0[i]=action[4*i]#0~1
+            self.y0[i]=action[4*i+1]#0~1
+        #print(action)
+        '''
+
         for i in range(self.n_robots):
-            self.oldvel[i*2:i*2+2]=self.vel[i*2:i*2+2]
-            self.vel[i*2:i*2+2]=self.state[i*2:i*2+2]-self.oldstate[i*2:i*2+2]
-        '''
-        reward1,reward2=get_reward(self.n_robots,self.aim,self.state,self.oldstate,self.angle,self.dis,self.dx)
-        reward=reward1#+reward2
-        self.pos_reward+=reward1
-        self.vel_reward+=reward2
-        done=0
-        #state_p=P2G(self.state,state_p,self.n_robots,self.dx)
-        #self.render(0)
-        #print(time.time()-t0)
+            self.oldstate[i * 2:i * 2 + 2] = self.state[i * 2:i * 2 + 2]
+        state_p = np.zeros([1, self.size_x, self.size_y])
+        # self.BEM_solver()
+        vx = velocity[:self.n_robots]
+        vy = velocity[self.n_robots:]
+        #vx = vx.cpu().detach().numpy()
+        #vy = vy.cpu().detach().numpy()
+        for it in range(1):
+            pos = self.state.reshape([-1, 2])
+
+            for i in range(self.n_robots):
+                if i < self.n_robots / 2:
+                    self.deltap[i] = [vx[i] * 0.1, vy[i] * 0.0]
+                else:
+                    self.deltap[i] = [vx[i] * 0.0, vy[i] * 0.1]
+
+            # print(time.time()-t0)
+
+            for i in range(self.n_robots):
+                dx = vx[i]
+                dy = vy[i]
+                # print(dx,dy)
+                lenn = math.sqrt(dx * dx + dy * dy)
+                if lenn > 2.0:
+                    dx *= 2.0 / lenn
+                    dy *= 2.0 / lenn
+
+                if self.state[i * 2] > 0.51 and self.state[i * 2] < 0.89 and self.state[i * 2 + 1] < 0.69 and \
+                        self.state[i * 2 + 1] > 0.31:
+                    self.t[i] -= 1
+                    r = np.sqrt((pow(pos[i][0] - 0.7, 2) + pow(pos[i][1] - 0.5, 2)))
+                    dx = 1.0 * (0.7 - pos[i][0]) / r
+                    dy = 1.0 * (0.5 - pos[i][1]) / r
+                    if r < 0.01 or self.t[i] <= 0:
+                        dx = 0  # *=r/0.01
+                        dy = 0  # *=r/0.01
+                self.sim.setAgentPrefVelocity(self.agent[i], (dx, dy))
+                self.sim.setAgentPosition(self.agent[i], (pos[i][0], pos[i][1]))
+                self.deltap[i] = [dx, dy]
+
+            self.sim.doNewtonStep(True)
+
+            for i in range(self.n_robots):
+                self.state[i * 2:i * 2 + 2] = self.sim.getAgentPosition(self.agent[i])
+        for i in range(self.n_robots):
+            self.oldvel[i * 2:i * 2 + 2] = self.vel[i * 2:i * 2 + 2]
+            self.vel[i * 2:i * 2 + 2] = self.state[i * 2:i * 2 + 2] - self.oldstate[i * 2:i * 2 + 2]
+            self.angle[i] = get_angle(self.vel[i * 2:i * 2 + 2], self.oldvel[i * 2:i * 2 + 2])
+
+        reward1, reward2 = get_reward(self.n_robots, self.aim, self.state, self.oldstate, self.angle, self.dis, self.dx)
+        reward = reward1  # +reward2
+        self.pos_reward += reward1
+        self.vel_reward += reward2
+        done = 0
+        # state_p=P2G(self.state,state_p,self.n_robots,self.dx)
+        # self.render(0)
+        # print(time.time()-t0)
         '''
         a=np.append(self.x0,self.y0)
         b=np.append(self.omega,self.alpha)
         c=np.append(a,b)
         '''
-        if self.cnt%1==0:
+        if self.cnt % 1 == 0:
             self.render()
-        self.cnt+=1
-        return self.state,reward,done,dict(reward=reward)
+        self.cnt += 1
+        return self.state, reward, done, dict(reward=reward)
+    def MBStep(self,xNew,x):
+        X = xNew.detach().cpu().numpy()
+        self.state = X.reshape(-1)
+        if self.cnt % 1 == 0:
+            self.render()
+        self.cnt += 1
+        reward=self.MBLoss(xNew,x)
+        return reward
     def MBStep(self,xNew):
         X = xNew.detach().cpu().numpy()
         self.state = X.reshape(-1)
         if self.cnt % 1 == 0:
             self.render()
         self.cnt += 1
-    def MBLoss(self,xNew):
+    def MBLoss(self,xNew,x):
+        
         xNew=xNew.squeeze(0)
-        idx=(torch.floor(xNew[1::2] / self.dx) * self.size_y + torch.floor(xNew[::2] / self.dx)).long()
+        idx=torch.floor(xNew[::2]/self.dx)
+        idy=torch.floor(xNew[1::2]/self.dx)
+        alphax=xNew[::2]-idx
+        alphay=xNew[1::2]-idy
+        id=(idy * self.size_y + idx).long()
+        distnew=self.dis[id]*alphax*alphay+self.dis[id+1]*(1.0-alphax)*alphay\
+        +self.dis[id+self.size_y]*alphax*(1.0-alphay)+self.dis[id+self.size_y+1]*(1.0-alphax)*(1.0-alphay)
 
-        return torch.sum((torch.floor(xNew[1::2] / self.dx) * self.size_y + torch.floor(xNew[::2] / self.dx)).long())#torch.sum(self.dis[idx])
+        x = x.squeeze(0)
+        idx = torch.floor(x[::2] / self.dx)
+        idy = torch.floor(x[1::2] / self.dx)
+        alphax = x[::2] - idx
+        alphay = x[1::2] - idy
+        id = (idy * self.size_y + idx).long()
+        distold = self.dis[id] * alphax * alphay + self.dis[id + 1] * (1.0 - alphax) * alphay \
+               + self.dis[id + self.size_y] * alphax * (1.0 - alphay) + self.dis[id + self.size_y + 1] * (
+                           1.0 - alphax) * (1.0 - alphay)
+        return torch.sum(distold-distnew)
+    '''
+    def MBLoss(self, xNew):
 
+        xNew = xNew.squeeze(0)
+        idx = torch.floor(xNew[::2] / self.dx)
+        idy = torch.floor(xNew[1::2] / self.dx)
+        alphax = xNew[::2] - idx
+        alphay = xNew[1::2] - idy
+        id = (idy * self.size_y + idx).long()
+        distnew = self.dis[id] * alphax * alphay + self.dis[id + 1] * (1.0 - alphax) * alphay \
+                  + self.dis[id + self.size_y] * alphax * (1.0 - alphay) + self.dis[id + self.size_y + 1] * (
+                              1.0 - alphax) * (1.0 - alphay)
+
+        return torch.sum(distnew)
+        '''
 class CollisionFreeLayer(Function):
 
     @staticmethod
@@ -555,10 +652,12 @@ class CollisionFreeLayer(Function):
                 dy = vy[i]
                 # print(dx,dy)
                 lenn = math.sqrt(dx * dx + dy * dy)
+                '''
                 if lenn > 2.0:
 
                     dx *= 2.0 / lenn
                     dy *= 2.0 / lenn
+                    '''
                 if env.state[i * 2] > 0.51 and env.state[i * 2] < 0.89 and env.state[i * 2 + 1] < 0.69 and \
                         env.state[i * 2 + 1] > 0.31:
                     r = np.sqrt((pow(pos[i][0] - 0.7, 2) + pow(pos[i][1] - 0.5, 2)))

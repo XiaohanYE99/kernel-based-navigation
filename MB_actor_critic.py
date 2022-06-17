@@ -227,9 +227,10 @@ class PPO:
         idx=0
         for state,reward, is_terminal in zip(reversed(self.buffer.states),reversed(self.buffer.rewards), reversed(self.buffer.is_terminals)):
             if is_terminal:
-                discounted_reward = self.policy.evaluate(state)
+                discounted_reward = self.policy.evaluate(state).data
 
             discounted_reward = reward + (self.gamma * discounted_reward)
+            #print(reward.requires_grad)
             if idx==0:
                 rewards_=discounted_reward
             else:
@@ -239,7 +240,6 @@ class PPO:
         # Normalizing the rewards
         rewards_ = torch.flip(rewards_, [0])
         rewards_ = (rewards_ - rewards_.mean()) / (rewards_.std() + 1e-7)
-
 
         # convert list to tensor
         old_states_ = torch.squeeze(torch.stack(self.buffer.states, dim=0),1).detach().to(device)

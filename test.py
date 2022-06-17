@@ -156,7 +156,7 @@ def train():
     # initialize a PPO agent
     ppo_agent = PPO(env, state_dim, action_dim, lr_actor, lr_critic, gamma, K_epochs, eps_clip,
                     has_continuous_action_space, action_std)
-    ppo_agent.load(checkpoint_path)
+    #ppo_agent.load(checkpoint_path)
     # track total training time
     start_time = datetime.now().replace(microsecond=0)
     print("Started training at (GMT) : ", start_time)
@@ -181,18 +181,20 @@ def train():
     max_reward = -9999
     while time_step <= max_training_timesteps:
 
-        s = env.reset()
+        state = env.reset()
         current_ep_reward = 0
-
+        state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
+        state.requires_grad = True
+        s = state
         for t in range(1, max_ep_len + 1):
             t0 = time.time()
             # select action with policy
-            state = torch.unsqueeze(torch.FloatTensor(s), 0).to(device)
-            xNew = ppo_agent.select_action(state)
 
+            s = ppo_agent.select_action(s)
+            env.MBStep(s)
             # print(action)
-            reward = env.MBStep(xNew,state)
-            state=xNew
+            reward = env.MBStep(s)
+            print(state.grad)
             done=0
             if t==max_ep_len:
                 done=1

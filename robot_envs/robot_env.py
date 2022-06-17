@@ -156,6 +156,8 @@ def dijkstra(dx,start,bdset):
  
     t4 = time.time()
     diss=list(dis.values())
+    idx=find_grid_index([0.4,0.5],dx)
+    print(diss[idx],diss[idx+1],diss[idx+100],diss[idx+101])
     return torch.tensor(diss,dtype=torch.float32)
 
 class NavigationEnvs():
@@ -169,7 +171,7 @@ class NavigationEnvs():
 
         self.N=20           #kernel number
         self.radius=0.01    #robot radius
-        self.n_robots=100   #robot number
+        self.n_robots=50   #robot number
         self.eps=0.02
         self.agent=[]
         self.suc=0
@@ -222,7 +224,7 @@ class NavigationEnvs():
                     [0.0,0.0,1.0,0.04],[0.0,0.96,1.0,1.0],[0.0,0.0,0.04,1.0],[0.96,0.0,1.0,1.0]]#,[0.95,0.52,1.0,1.0]]
         
         self.observation_space=np.zeros(2*self.n_robots)
-        self.action_space=np.zeros(4*self.N)#(4*self.N)
+        self.action_space=np.zeros(2*self.n_robots)#(4*self.N)
         #print(self.boundary.N)
         
        
@@ -237,8 +239,8 @@ class NavigationEnvs():
                 self.init_state.append([0.2+0.1*i,0.3+0.1*j])
         
         for i in range(5):
-            for j in range(20):
-                idx=i*20+j
+            for j in range(10):
+                idx=i*10+j
 
                 self.state[idx*2]=i*0.02+0.35
                 self.state[idx*2+1]=j*0.02+0.3
@@ -261,8 +263,9 @@ class NavigationEnvs():
         self.div=np.ones(self.n_robots)
         self.noactive=np.zeros(self.n_robots)
         self.vis=np.zeros(self.n_robots)
-        o=random.sample(range(0, 15), 4)
-        o.sort()
+        o=random.sample(range(0, 8), 2)
+        #o.sort()
+        #o=[5,8,9,10]
         idx=0
         for k in o:
             for i in range(5):
@@ -296,7 +299,7 @@ class NavigationEnvs():
         q=np.zeros([self.N,2])
         for i in range(self.N):
             q[i]=[self.x0[i],self.y0[i]]
-        #self.gui.circles(q, radius=5, color=0x068587)
+        self.gui.circles(q, radius=3, color=0x068587)
         self.gui.circles(pos, radius=4, color=0xF7EED6)
         #self.gui.circles(bd, radius=2, color=0xFF0000)
         self.gui.rect([0.5, 0.2], [0.54, 0.8], radius=1, color=0xF4A460)
@@ -372,19 +375,18 @@ class NavigationEnvs():
         '''
         
     def P2G(self,pos):
-        k=pos.size(0)
         px=pos[:,::2]
         py=pos[:,1::2]
-        idx_x=px//self.dx
-        idx_y=py//self.dx
-        i = torch.empty([3,self.n_robots]).long().to(self.device)
-
-        i[0]=torch.arange(k).repeat_interleave(self.n_robots)
-        i[1]=torch.flatten(idx_x)
-        i[2]=torch.flatten(idx_x)
-        v=torch.ones([k,self.n_robots])
-        state=torch.sparse.FloatTensor(i, v, torch.Size([k,self.size_x,self.size_y]))#.to(self.device)
-        return state.to_dense()
+        idx=torch.floor(px/self.dx)
+        idy=torch.floor(py/self.dx)
+        alphax=px-idx*self.dx
+        alphay=py-idy*self.dx
+        I=torch.zeros((self.size_x,self.size_y)).to(self.device)
+        I[idx.long(),idy.long()]+=alphax*alphay
+        I[idx.long()+1,idy.long()]+=(1-alphax)*alphay
+        I[idx.long(),idy.long()+1] += alphax * (1-alphay)
+        I[idx.long()+1 , idy.long()+1] += (1 - alphax) * (1-alphay)
+        return I
     def projection(self,action):
 
         #action=torch.rand(action.size()).to(self.device)
@@ -404,11 +406,11 @@ class NavigationEnvs():
         #print(action.requires_grad)
         t0=time.time()
         k=action.size(0)
-
         x0=action[:,::4].unsqueeze(2).unsqueeze(3)
         y0=action[:,1::4].unsqueeze(2).unsqueeze(3)
-        alpha=(action[:,2::4].unsqueeze(2).unsqueeze(3))*19.0+1.0
+        alpha=-(action[:,2::4].unsqueeze(2).unsqueeze(3))*38.0+40.0
         omega=action[:,3::4].unsqueeze(2).unsqueeze(3)
+        #print(action.grad)
         #alpha[alpha<=1]=1
 
         if self.use_kernel_loop==False:
@@ -417,13 +419,13 @@ class NavigationEnvs():
 
             r=torch.sqrt(torch.pow(x0-ux,2)+torch.pow(y0-uy,2))
             
-            velocity_x=(torch.sum(-4.0*(2*omega-1)*torch.exp(-alpha*r)*(uy-y0)/r,dim=1))*self.mask_x
+            velocity_x=(torch.sum(-0.1*(0.4*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(uy-y0)/r,dim=1))*self.mask_x
             
             vx=self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy=self.grid_vy.unsqueeze(0).unsqueeze(0)
             
             r=torch.sqrt(torch.pow(vx-x0,2)+torch.pow(vy-y0,2))
-            velocity_y=(torch.sum(4.0*(2*omega-1)*torch.exp(-alpha*r)*(vx-x0)/r,dim=1))*self.mask_y
+            velocity_y=(torch.sum(0.1*(0.4*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(vx-x0)/r,dim=1))*self.mask_y
         else:
             ux=self.grid_ux.unsqueeze(0)
             uy=self.grid_uy.unsqueeze(0)
@@ -433,10 +435,10 @@ class NavigationEnvs():
             velocity_y=torch.zeros(k,self.N,self.size_x,self.size_y)
             for i in range(self.N):
                 r=torch.sqrt(torch.pow(ux-x0[:,i,:,:],2)+torch.pow(uy-y0[:,i,:,:],2))
-                velocity_x+=(torch.sum(-4.0*(2*omega[:,i,:,:]-1)*torch.exp(-alpha[:,i,:,:]*r)*(uy-y0[:,i,:,:])/r,dim=1))*self.mask_x
+                velocity_x+=(torch.sum(-1.0*(2*omega[:,i,:,:]-1)*torch.exp(-alpha[:,i,:,:]*r)*(uy-y0[:,i,:,:])/r,dim=1))*self.mask_x
             for i in range(self.N):
                 r=torch.sqrt(torch.pow(vx-x0[:,i,:,:],2)+torch.pow(vy-y0[:,i,:,:],2))
-                velocity_y+=(torch.sum(4.0*(2*omega[:,i,:,:]-1)*torch.exp(-alpha[:,i,:,:]*r)*(vx-x0[:,i,:,:])/r,dim=1))*self.mask_y
+                velocity_y+=(torch.sum(1.0*(2*omega[:,i,:,:]-1)*torch.exp(-alpha[:,i,:,:]*r)*(vx-x0[:,i,:,:])/r,dim=1))*self.mask_y
         
         
 
@@ -498,6 +500,7 @@ class NavigationEnvs():
         
         #print(time.time()-t0)
         #print(vel_y.size())
+
         return torch.cat((vel_x/rr,vel_y/rr),1)#.squeeze(2)
 
     def step(self, velocity):
@@ -582,6 +585,7 @@ class NavigationEnvs():
             self.render()
         self.cnt += 1
         return self.state, reward, done, dict(reward=reward)
+    '''
     def MBStep(self,xNew,x):
         X = xNew.detach().cpu().numpy()
         self.state = X.reshape(-1)
@@ -590,48 +594,33 @@ class NavigationEnvs():
         self.cnt += 1
         reward=self.MBLoss(xNew,x)
         return reward
-    def MBStep(self,xNew):
+    '''
+    def MBStep(self,xNew,render=True):
         X = xNew.detach().cpu().numpy()
         self.state = X.reshape(-1)
-        if self.cnt % 1 == 0:
+        if self.cnt % 1 == 0 and render:
             self.render()
         self.cnt += 1
-    def MBLoss(self,xNew,x):
-        
-        xNew=xNew.squeeze(0)
-        idx=torch.floor(xNew[::2]/self.dx)
-        idy=torch.floor(xNew[1::2]/self.dx)
-        alphax=xNew[::2]-idx
-        alphay=xNew[1::2]-idy
-        id=(idy * self.size_y + idx).long()
-        distnew=self.dis[id]*alphax*alphay+self.dis[id+1]*(1.0-alphax)*alphay\
-        +self.dis[id+self.size_y]*alphax*(1.0-alphay)+self.dis[id+self.size_y+1]*(1.0-alphax)*(1.0-alphay)
 
-        x = x.squeeze(0)
-        idx = torch.floor(x[::2] / self.dx)
-        idy = torch.floor(x[1::2] / self.dx)
-        alphax = x[::2] - idx
-        alphay = x[1::2] - idy
-        id = (idy * self.size_y + idx).long()
-        distold = self.dis[id] * alphax * alphay + self.dis[id + 1] * (1.0 - alphax) * alphay \
-               + self.dis[id + self.size_y] * alphax * (1.0 - alphay) + self.dis[id + self.size_y + 1] * (
-                           1.0 - alphax) * (1.0 - alphay)
-        return torch.sum(distold-distnew)
-    '''
     def MBLoss(self, xNew):
-
+        '''
         xNew = xNew.squeeze(0)
         idx = torch.floor(xNew[::2] / self.dx)
         idy = torch.floor(xNew[1::2] / self.dx)
-        alphax = xNew[::2] - idx
-        alphay = xNew[1::2] - idy
+        alphax = xNew[::2] - idx*self.dx
+        alphay = xNew[1::2] - idy*self.dx
         id = (idy * self.size_y + idx).long()
         distnew = self.dis[id] * alphax * alphay + self.dis[id + 1] * (1.0 - alphax) * alphay \
                   + self.dis[id + self.size_y] * alphax * (1.0 - alphay) + self.dis[id + self.size_y + 1] * (
                               1.0 - alphax) * (1.0 - alphay)
 
+
         return torch.sum(distnew)
         '''
+        xNew = xNew.squeeze(0)
+        return torch.sum(torch.square(xNew[::2]-0.7)+torch.square(xNew[1::2]-0.5))
+
+
 class CollisionFreeLayer(Function):
 
     @staticmethod

@@ -247,10 +247,11 @@ class NavigationEnvs():
                 self.oldstate[idx*2]=i*0.02+0.35
                 self.oldstate[idx*2+1]=j*0.02+0.3
                 self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 100, 0.04, 0.04, 0.008, 1, (0, 0)))
-                
+
         self.sim.addObstacle([(0.2, 0.2), (0.54, 0.2), (0.54, 0.8),(0.2,0.8),(0.2,0.76),(0.5,0.76),(0.5,0.24),(0.2,0.24)])
         self.sim.addObstacle([(0.04, 0.04),(0.04,0.96),(0.96,0.96),(0.96,0.04) ])
         self.sim.processObstacles()
+
         self.dis=dijkstra(self.dx,find_grid_index([0.7,0.5],self.dx),self.bdset).to(self.device)
         #self.dis.requires_grad=True
         self.FEM_init()
@@ -273,7 +274,7 @@ class NavigationEnvs():
                     self.state[idx*2:idx*2+2]=[0.02*i+self.init_state[k][0],0.02*j+self.init_state[k][1]]
                     self.oldstate[idx*2:idx*2+2]=[0.02*i+self.init_state[k][0],0.02*j+self.init_state[k][1]]
                     #self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 5, 0.04, 0.04, 0.01, 2, (0, 0)))
-                    self.sim.setAgentPosition(self.agent[i],(self.state[idx*2], self.state[idx*2+1]))
+                    self.sim.setAgentPosition(self.agent[idx],(self.state[idx*2], self.state[idx*2+1]))
                     idx+=1
         '''
         for i in range(50):
@@ -285,9 +286,6 @@ class NavigationEnvs():
                 idx=int(50*i+j+2500)
                 self.state[idx*2:idx*2+2]=np.array([0.02*i+0.01,0.02*j])
             '''
-        
-        state_p=np.zeros([1,self.size_x,self.size_y])
-        state_p=P2G(self.state,state_p,self.n_robots,self.dx)
         return self.state#np.append(self.state,np.zeros(2*self.n_robots))
     
     def find_grid_index(self):
@@ -295,16 +293,18 @@ class NavigationEnvs():
         self.in_grid=(pos[:,1]/self.dx).astype(np.int32)*self.size+(pos[:,0]/self.dx).astype(np.int32)
     def render(self):
         pos=self.state.reshape([-1,2])
-        #bd=self.aim.reshape([-1,2])
+        bd=np.array(self.aim).reshape([-1,2])
         q=np.zeros([self.N,2])
         for i in range(self.N):
             q[i]=[self.x0[i],self.y0[i]]
         self.gui.circles(q, radius=3, color=0x068587)
         self.gui.circles(pos, radius=4, color=0xF7EED6)
-        #self.gui.circles(bd, radius=2, color=0xFF0000)
+        self.gui.circles(bd, radius=10, color=0xF4A460)
+
         self.gui.rect([0.5, 0.2], [0.54, 0.8], radius=1, color=0xF4A460)
         self.gui.rect([0.2, 0.2], [0.5, 0.24], radius=1, color=0xF4A460)
         self.gui.rect([0.2, 0.76], [0.5, 0.8], radius=1, color=0xF4A460)
+
         self.gui.lines(begin=pos, end=pos+0.04*self.deltap, radius=1, color=0x068587)
         #self.gui.show('img/06d.png')
         self.gui.show()
@@ -375,40 +375,35 @@ class NavigationEnvs():
         '''
         
     def P2G(self,pos):
-        px=pos[:,::2]
-        py=pos[:,1::2]
-        idx=torch.floor(px/self.dx)
-        idy=torch.floor(py/self.dx)
-        alphax=px-idx*self.dx
-        alphay=py-idy*self.dx
-        I=torch.zeros((self.size_x,self.size_y)).to(self.device)
-        I[idx.long()+1,idy.long()+1]+=alphax*alphay
-        I[idx.long(),idy.long()+1]+=(1-alphax)*alphay
-        I[idx.long()+1,idy.long()] += alphax * (1-alphay)
-        I[idx.long() , idy.long()] += (1 - alphax) * (1-alphay)
+        I = torch.zeros((pos.size(0), self.size_x, self.size_y)).to(self.device)
+        for i in range(pos.size(0)):
+            px=pos[i,::2]
+            py=pos[i,1::2]
+
+            idx=torch.floor(px/self.dx)
+            idy=torch.floor(py/self.dx)
+            alphax=px-idx*self.dx
+            alphay=py-idy*self.dx
+
+
+
+            I[i,idx.long()+1,idy.long()+1]+=alphax*alphay
+            I[i,idx.long(),idy.long()+1]+=(1-alphax)*alphay
+            I[i,idx.long()+1,idy.long()] += alphax * (1-alphay)
+            I[i,idx.long() , idy.long()] += (1 - alphax) * (1-alphay)
+        '''
+        target=torch.zeros_like(I)
+        target[int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
+        I+=target
+        '''
         return I
     def projection(self,action):
-
-        #action=torch.rand(action.size()).to(self.device)
-        '''
-        for i in range(10):
-            action[:,i*4]=0.1+0.02*i
-            action[:,i*4+1]=0.2
-            action[:,i*4+2]=0.2
-            action[:,i*4+3]=1
-        for i in range(10,20):
-            action[:,i*4]=-0.1+0.02*i
-            action[:,i*4+1]=0.8
-            action[:,i*4+2]=0.2
-            action[:,i*4+3]=0
-            '''
-        
         #print(action.requires_grad)
         t0=time.time()
         k=action.size(0)
         x0=action[:,::4].unsqueeze(2).unsqueeze(3)
         y0=action[:,1::4].unsqueeze(2).unsqueeze(3)
-        alpha=-(action[:,2::4].unsqueeze(2).unsqueeze(3))*38.0+40.0
+        alpha=(action[:,2::4].unsqueeze(2).unsqueeze(3))*39.0+1.0
         omega=action[:,3::4].unsqueeze(2).unsqueeze(3)
         #print(action.grad)
         #alpha[alpha<=1]=1
@@ -419,13 +414,13 @@ class NavigationEnvs():
 
             r=torch.sqrt(torch.pow(x0-ux,2)+torch.pow(y0-uy,2))
             
-            velocity_x=(torch.sum(-0.1*(0.4*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(uy-y0)/r,dim=1))*self.mask_x
+            velocity_x=(torch.sum(-0.1*(1.6*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(uy-y0)/r,dim=1))*self.mask_x
             
             vx=self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy=self.grid_vy.unsqueeze(0).unsqueeze(0)
             
             r=torch.sqrt(torch.pow(vx-x0,2)+torch.pow(vy-y0,2))
-            velocity_y=(torch.sum(0.1*(0.4*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(vx-x0)/r,dim=1))*self.mask_y
+            velocity_y=(torch.sum(0.1*(1.6*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(vx-x0)/r,dim=1))*self.mask_y
         else:
             ux=self.grid_ux.unsqueeze(0)
             uy=self.grid_uy.unsqueeze(0)
@@ -603,21 +598,22 @@ class NavigationEnvs():
         self.cnt += 1
 
     def MBLoss(self, xNew):
-        
-        xNew = xNew.squeeze(0)
-        idx = torch.floor(xNew[::2] / self.dx)
-        idy = torch.floor(xNew[1::2] / self.dx)
-        alphax = xNew[::2] - idx*self.dx
-        alphay = xNew[1::2] - idy*self.dx
-        id = (idy * self.size_y + idx).long()
-        distnew = self.dis[id+self.size_y+1] * alphax * alphay + self.dis[id + self.size_y] * (1.0 - alphax) * alphay \
-                  + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
-                              1.0 - alphax) * (1.0 - alphay)
+        loss=0
+        for i in range(xNew.size(0)):
+            idx = torch.floor(xNew[i,::2] / self.dx)
+            idy = torch.floor(xNew[i,1::2] / self.dx)
+            alphax = xNew[i,::2] - idx*self.dx
+            alphay = xNew[i,1::2] - idy*self.dx
+            id = (idy * self.size_y + idx).long()
+            distnew = self.dis[id+self.size_y+1] * alphax * alphay + self.dis[id + self.size_y] * (1.0 - alphax) * alphay \
+                      + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
+                                  1.0 - alphax) * (1.0 - alphay)
+            loss+=torch.sum(distnew)
 
-
-        return torch.sum(distnew)
+        return loss
         '''
         xNew = xNew.squeeze(0)
-        return torch.sum(torch.square(xNew[::2]-0.7)+torch.square(xNew[1::2]-0.5))
+        return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))
         '''
+
 

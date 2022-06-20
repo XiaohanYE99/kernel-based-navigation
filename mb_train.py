@@ -12,13 +12,14 @@ from robot_envs.robot_env import *
 from robot_envs.RVO_Layer import CollisionFreeLayer
 
 class PolicyNet(nn.Module):
-    def __init__(self, env, state_dim, action_dim, has_continuous_action_space,action_std_init=0.3
+    def __init__(self, env, state_dim, action_dim, has_continuous_action_space,action_std_init=0.5
                  ,horizon=100
-                 ,num_sample_steps=5
-                 ,num_pre_steps=5
-                 ,num_train_steps=500
+                 ,num_sample_steps=6
+                 ,num_pre_steps=1
+                 ,num_train_steps=1024
                  ,num_init_step=1
-                 ,buffer_size=5000):
+                 ,buffer_size=1200
+                 ,batch_size=32):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
         self.action_var = torch.full((action_dim,), action_std_init * action_std_init).to(device)
@@ -32,12 +33,13 @@ class PolicyNet(nn.Module):
         self.num_pre_steps=num_pre_steps
         self.num_init_step=num_init_step
         self.num_train_steps=num_train_steps
+        self.batch_size=batch_size
 
         if has_continuous_action_space:
             self.action_dim = action_dim
         # actor
         if has_continuous_action_space:
-            
+            '''
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, 200),
                 nn.Tanh(),
@@ -48,28 +50,28 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                            nn.Conv2d(1, 8, 7, 2,3), nn.ReLU(),#[50,50,8]
-                            nn.Conv2d(8, 12, 5, 2,2), nn.ReLU(),#[25,25,16]
-                            nn.Conv2d(12, 20, 5, 2,2), nn.ReLU(), nn.Flatten(),#[13,13,32]
-                            nn.Linear(20 * 13 * 13, 128), nn.ReLU(),
-                            nn.Linear(128, action_dim),nn.Sigmoid()
-                            )
-            '''
+                nn.Conv2d(1, 8, 7, 2, 3),  nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 2, 2),  nn.ReLU(),  # [25,25,16]
+                nn.Conv2d(12, 20, 5, 2, 2),  nn.ReLU(), nn.Flatten(),  # [13,13,32]
+                nn.Linear(20 * 13 * 13, 128), nn.ReLU(),
+                nn.Linear(128, action_dim), nn.Sigmoid()
+            )
+
 
         self.CFLayer = CollisionFreeLayer.apply
         self.opt = torch.optim.Adam(self.actor.parameters(), lr=1e-4)
     def implement(self, state):
         I=self.env.P2G(state)
-        I=I.unsqueeze(0).unsqueeze(0).to(device)
-        action = torch.squeeze(self.actor(state), 1)
-        # print(action)
+        I=I.unsqueeze(1).to(device)
+        action = torch.squeeze(self.actor(I), 1)
         for i in range(self.env.N):
             self.env.x0[i]=action[0][4*i]
             self.env.y0[i]=action[0][4*i+1]
+
         velocity = self.env.projection(action)
 
-        v = self.env.get_velocity(state.detach(), velocity)
-        xNew = self.CFLayer(self.env, state.detach(), v)
+        v = self.env.get_velocity(state, velocity)
+        xNew = self.CFLayer(self.env, state, v)
 
         return xNew
     def act(self,state):
@@ -92,6 +94,7 @@ class PolicyNet(nn.Module):
         return xNew
     def forward(self):
         raise NotImplementedError
+    '''
     def train(self):
         loss_sum=0
         init_state=random.sample(self.buffer,self.num_train_steps)
@@ -102,8 +105,7 @@ class PolicyNet(nn.Module):
             #s=state
             for step in range(self.num_pre_steps):
                 state = policy.implement(state)
-                self.env.MBStep(state,render=False)
-                #state=xNew
+                #self.env.MBStep(state,render=False)
 
                 loss += self.env.MBLoss(state)
 
@@ -114,10 +116,38 @@ class PolicyNet(nn.Module):
             #print(loss.item())
             loss_sum+=loss.item()
         return loss_sum/self.num_train_steps
+        '''
+    def update(self):
+
+        loss_sum = 0
+        init_state = random.sample(self.buffer, self.num_train_steps)
+        t=int(self.num_train_steps/self.batch_size)
+        for i in range(t):
+            state_batch=np.array(init_state[i*self.batch_size:(i+1)*self.batch_size],dtype=np.float32).squeeze()
+
+            state=torch.from_numpy(state_batch).to(device)
+            state.requires_grad = True
+            s=state
+
+            loss=0
+            for step in range(self.num_pre_steps):
+
+                s = policy.implement(s)
+                # self.env.MBStep(state,render=False)
+
+                loss += self.env.MBLoss(s)
+
+            self.opt.zero_grad()
+            loss.backward()
+            #print(state.grad)
+            self.opt.step()
+            # print(loss.item())
+            loss_sum += loss.item()
     def init_sample(self):
         for i in range(self.num_init_step):
             self.sample()
     def sample(self):
+
         for i in range(self.num_sample_steps):
             state = self.env.reset()
             state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
@@ -127,9 +157,9 @@ class PolicyNet(nn.Module):
                     self.env.MBStep(state)
 
                 if not self.isfull:
-                    self.buffer.append(state.cpu())
+                    self.buffer.append(state.tolist())
                 else:
-                    self.buffer[self.buffer_top]=state.cpu()
+                    self.buffer[self.buffer_top]=state.tolist()
 
                 self.buffer_top+=1
                 if self.buffer_top==self.buffer_size:
@@ -169,13 +199,16 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space).to(device)
-    #policy.actor=torch.load('model/model_30.pth')
+    #policy.actor=torch.load('model/model_10.pth')
     #init sample
+    policy.eval()
     policy.init_sample()
     for i in range(iter):
+        policy.eval()
         policy.sample()
         #policy.test()
-        loss=policy.train()
+        policy.train()
+        loss=policy.update()
         print('iter= ',i,'loss= ',loss)
         if i%10==0:
             torch.save(policy.actor,'model/model_%d.pth'%i)

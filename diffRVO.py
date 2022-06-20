@@ -52,10 +52,10 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(1, 8, 7, 2, 3), nn.ReLU(),  # [50,50,8]
-                nn.Conv2d(8, 12, 5, 2, 2), nn.ReLU(),  # [25,25,16]
-                nn.Conv2d(12, 20, 5, 2, 2), nn.ReLU(), nn.Flatten(),  # [13,13,32]
-                nn.Linear(20 * 13 * 13, 128), nn.ReLU(),
+                nn.Conv2d(1, 8, 7, 2, 3), nn.BatchNorm2d(8), nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12), nn.ReLU(),  # [25,25,16]
+                nn.Conv2d(12, 20, 5, 2, 2), nn.BatchNorm2d(20), nn.ReLU(), nn.Flatten(),  # [13,13,32]
+                nn.Linear(20 * 13 * 13, 128),  nn.ReLU(),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
@@ -81,9 +81,6 @@ class PolicyNet(nn.Module):
         I = self.env.P2G(state)
         I = I.unsqueeze(1).to(device)
         action = torch.squeeze(self.actor(I), 1)
-        cov_mat = torch.diag(self.action_var).unsqueeze(dim=0)
-        dist = MultivariateNormal(torch.zeros_like(action).to(device), cov_mat)
-        action = action + dist.sample()
         #action=self.last_layer(fc)
         for i in range(self.env.N):
             self.env.x0[i] = action[0][4 * i]

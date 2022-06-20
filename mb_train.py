@@ -50,20 +50,33 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(1, 8, 7, 2, 3),  nn.ReLU(),  # [50,50,8]
-                nn.Conv2d(8, 12, 5, 2, 2),  nn.ReLU(),  # [25,25,16]
-                nn.Conv2d(12, 20, 5, 2, 2),  nn.ReLU(), nn.Flatten(),  # [13,13,32]
-                nn.Linear(20 * 13 * 13, 128), nn.ReLU(),
-                nn.Linear(128, action_dim), nn.Sigmoid()
+                nn.Conv2d(1, 8, 7, 2, 3), nn.BatchNorm2d(8), nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12), nn.ReLU(),  # [25,25,16]
+                nn.Conv2d(12, 20, 5, 2, 2), nn.BatchNorm2d(20), nn.ReLU(), nn.Flatten(),  # [13,13,32]
+                nn.Linear(20 * 13 * 13, 128),nn.ReLU(),
             )
-
+            self.last_layer = nn.Linear(128, action_dim)
+            self.last_layer.weight.data.fill_(0.1)
+            '''
+            self.last_layer.bias.data = torch.Tensor([0.3, 0.3, 1.0, 0.5, 0.3, 0.6, 1.0, 0.5, 0.3, 0.9, 1.0, 0.5,
+                                                      0.6, 0.3, 1.0, 0.5, 0.6, 0.6, 1.0, 0.5, 0.6, 0.9, 1.0, 0.5,
+                                                      0.9, 0.3, 1.0, 0.5, 0.9, 0.6, 1.0, 0.5, 0.9, 0.9, 1.0, 0.5])
+            '''
+            self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': 1e-4},
+                                         {'params': self.last_layer.parameters(), 'lr': 1e-3}])
 
         self.CFLayer = CollisionFreeLayer.apply
-        self.opt = torch.optim.Adam(self.actor.parameters(), lr=1e-4)
+    def controller(self,x):
+        x=self.actor(x)
+        print(x.size())
+        x=self.last_layer(x)
+        x=nn.Sigmoid(x)
+        return x
     def implement(self, state):
         I=self.env.P2G(state)
         I=I.unsqueeze(1).to(device)
-        action = torch.squeeze(self.actor(I), 1)
+        action = self.controller(I)
+        #action = torch.squeeze(self.actor(I), 1)
         for i in range(self.env.N):
             self.env.x0[i]=action[0][4*i]
             self.env.y0[i]=action[0][4*i+1]

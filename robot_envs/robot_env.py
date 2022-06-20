@@ -171,7 +171,7 @@ class NavigationEnvs():
 
         self.N=20           #kernel number
         self.radius=0.01    #robot radius
-        self.n_robots=50   #robot number
+        self.n_robots=25   #robot number
         self.eps=0.02
         self.agent=[]
         self.suc=0
@@ -224,7 +224,7 @@ class NavigationEnvs():
                     [0.0,0.0,1.0,0.04],[0.0,0.96,1.0,1.0],[0.0,0.0,0.04,1.0],[0.96,0.0,1.0,1.0]]#,[0.95,0.52,1.0,1.0]]
         
         self.observation_space=np.zeros(2*self.n_robots)
-        self.action_space=np.zeros(2*self.n_robots)#(4*self.N)
+        self.action_space=np.zeros(4*self.N)#(4*self.N)
         #print(self.boundary.N)
         
        
@@ -239,8 +239,8 @@ class NavigationEnvs():
                 self.init_state.append([0.2+0.1*i,0.3+0.1*j])
         
         for i in range(5):
-            for j in range(10):
-                idx=i*10+j
+            for j in range(5):
+                idx=i*5+j
 
                 self.state[idx*2]=i*0.02+0.35
                 self.state[idx*2+1]=j*0.02+0.3
@@ -263,7 +263,7 @@ class NavigationEnvs():
         self.div=np.ones(self.n_robots)
         self.noactive=np.zeros(self.n_robots)
         self.vis=np.zeros(self.n_robots)
-        o=random.sample(range(0, 8), 2)
+        o=random.sample(range(0, 15), 1)
         #o.sort()
         #o=[5,8,9,10]
         idx=0
@@ -382,10 +382,10 @@ class NavigationEnvs():
         alphax=px-idx*self.dx
         alphay=py-idy*self.dx
         I=torch.zeros((self.size_x,self.size_y)).to(self.device)
-        I[idx.long(),idy.long()]+=alphax*alphay
-        I[idx.long()+1,idy.long()]+=(1-alphax)*alphay
-        I[idx.long(),idy.long()+1] += alphax * (1-alphay)
-        I[idx.long()+1 , idy.long()+1] += (1 - alphax) * (1-alphay)
+        I[idx.long()+1,idy.long()+1]+=alphax*alphay
+        I[idx.long(),idy.long()+1]+=(1-alphax)*alphay
+        I[idx.long()+1,idy.long()] += alphax * (1-alphay)
+        I[idx.long() , idy.long()] += (1 - alphax) * (1-alphay)
         return I
     def projection(self,action):
 
@@ -603,15 +603,15 @@ class NavigationEnvs():
         self.cnt += 1
 
     def MBLoss(self, xNew):
-        '''
+        
         xNew = xNew.squeeze(0)
         idx = torch.floor(xNew[::2] / self.dx)
         idy = torch.floor(xNew[1::2] / self.dx)
         alphax = xNew[::2] - idx*self.dx
         alphay = xNew[1::2] - idy*self.dx
         id = (idy * self.size_y + idx).long()
-        distnew = self.dis[id] * alphax * alphay + self.dis[id + 1] * (1.0 - alphax) * alphay \
-                  + self.dis[id + self.size_y] * alphax * (1.0 - alphay) + self.dis[id + self.size_y + 1] * (
+        distnew = self.dis[id+self.size_y+1] * alphax * alphay + self.dis[id + self.size_y] * (1.0 - alphax) * alphay \
+                  + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
                               1.0 - alphax) * (1.0 - alphay)
 
 
@@ -619,57 +619,5 @@ class NavigationEnvs():
         '''
         xNew = xNew.squeeze(0)
         return torch.sum(torch.square(xNew[::2]-0.7)+torch.square(xNew[1::2]-0.5))
+        '''
 
-
-class CollisionFreeLayer(Function):
-
-    @staticmethod
-    def forward(ctx, env, x, v, x_requires_grad=True):
-        #t0 = time.time()
-        x=x.reshape(-1,env.n_robots*2)
-        xNew=np.empty(x.size())
-        for b in range(x.size(0)):
-
-            pos = x[b].reshape([-1, 2]).detach().cpu().numpy()
-            vx = v[b,:env.n_robots]
-            vy = v[b,env.n_robots:]
-            vx = vx.detach().cpu().numpy()
-            vy = vy.detach().cpu().numpy()
-
-            for i in range(env.n_robots):
-                dx = vx[i]
-                dy = vy[i]
-                # print(dx,dy)
-                lenn = math.sqrt(dx * dx + dy * dy)
-                '''
-                if lenn > 2.0:
-
-                    dx *= 2.0 / lenn
-                    dy *= 2.0 / lenn
-                    '''
-                if env.state[i * 2] > 0.51 and env.state[i * 2] < 0.89 and env.state[i * 2 + 1] < 0.69 and \
-                        env.state[i * 2 + 1] > 0.31:
-                    r = np.sqrt((pow(pos[i][0] - 0.7, 2) + pow(pos[i][1] - 0.5, 2)))
-                    dx = 1.0 * (0.7 - pos[i][0]) / r
-                    dy = 1.0 * (0.5 - pos[i][1]) / r
-                    if r < 0.01 :
-                        dx = 0  # *=r/0.01
-                        dy = 0  # *=r/0.01
-                env.sim.setAgentPrefVelocity(env.agent[i], (dx, dy))
-                env.sim.setAgentPosition(env.agent[i], (pos[i][0], pos[i][1]))
-                env.deltap[i] = [dx, dy]
-
-            env.sim.doNewtonStep(True)
-            #env.sim.doStep()
-            dv=torch.from_numpy(env.sim.getGradV()).float().to(env.device)
-            dx=torch.from_numpy(env.sim.getGradX()).float().to(env.device)
-            ctx.save_for_backward(dx,dv)
-            for i in range(env.n_robots):
-                xNew[b,i * 2:i * 2 + 2] = env.sim.getAgentPosition(env.agent[i])
-            #print(time.time() - t0)
-        return torch.from_numpy(xNew).float().to(env.device)
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        dx,dv=ctx.saved_tensors
-        return None, torch.matmul(grad_output,dx) , torch.matmul(grad_output,dv)

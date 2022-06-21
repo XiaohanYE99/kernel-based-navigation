@@ -13,10 +13,10 @@ from robot_envs.RVO_Layer import CollisionFreeLayer
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space,action_std_init=0.5
-                 ,horizon=100
-                 ,num_sample_steps=6
-                 ,num_pre_steps=1
-                 ,num_train_steps=1024
+                 ,horizon=150
+                 ,num_sample_steps=8
+                 ,num_pre_steps=10
+                 ,num_train_steps=32*35
                  ,num_init_step=1
                  ,buffer_size=1200
                  ,batch_size=32):
@@ -39,11 +39,13 @@ class PolicyNet(nn.Module):
             self.action_dim = action_dim
         # actor
         if has_continuous_action_space:
-            '''
+
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, 200),
+                nn.Dropout(0.5),
                 nn.Tanh(),
                 nn.Linear(200, 200),
+                nn.Dropout(0.5),
                 nn.Tanh(),
                 nn.Linear(200, 4 * self.env.N),
                 nn.Sigmoid(),
@@ -54,32 +56,28 @@ class PolicyNet(nn.Module):
                 nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12), nn.ReLU(),  # [25,25,16]
                 nn.Conv2d(12, 20, 5, 2, 2), nn.BatchNorm2d(20), nn.ReLU(), nn.Flatten(),  # [13,13,32]
                 nn.Linear(20 * 13 * 13, 128),nn.ReLU(),
+                nn.Linear(128, action_dim), nn.Sigmoid()
             )
-            self.last_layer = nn.Linear(128, action_dim)
-            self.last_layer.weight.data.fill_(0.1)
             '''
-            self.last_layer.bias.data = torch.Tensor([0.3, 0.3, 1.0, 0.5, 0.3, 0.6, 1.0, 0.5, 0.3, 0.9, 1.0, 0.5,
-                                                      0.6, 0.3, 1.0, 0.5, 0.6, 0.6, 1.0, 0.5, 0.6, 0.9, 1.0, 0.5,
-                                                      0.9, 0.3, 1.0, 0.5, 0.9, 0.6, 1.0, 0.5, 0.9, 0.9, 1.0, 0.5])
-            '''
-            self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': 1e-4},
-                                         {'params': self.last_layer.parameters(), 'lr': 1e-3}])
+            for name, param in self.actor.named_parameters():
+                if (len(param.size()) >= 2):
+                    nn.init.kaiming_uniform_(param, a=1e-2)
+            self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': 1e-3}])
 
         self.CFLayer = CollisionFreeLayer.apply
     def controller(self,x):
         x=self.actor(x)
-        print(x.size())
         x=self.last_layer(x)
-        x=nn.Sigmoid(x)
+        x=nn.Sigmoid()(x)
         return x
     def implement(self, state):
         I=self.env.P2G(state)
         I=I.unsqueeze(1).to(device)
-        action = self.controller(I)
-        #action = torch.squeeze(self.actor(I), 1)
+        #action = self.controller(I)
+        action = torch.squeeze(self.actor(state), 1)
         for i in range(self.env.N):
-            self.env.x0[i]=action[0][4*i]
-            self.env.y0[i]=action[0][4*i+1]
+            self.env.x0[i]=action[0][4*i]*3-1
+            self.env.y0[i]=action[0][4*i+1]*3-1
 
         velocity = self.env.projection(action)
 
@@ -146,16 +144,15 @@ class PolicyNet(nn.Module):
             for step in range(self.num_pre_steps):
 
                 s = policy.implement(s)
-                # self.env.MBStep(state,render=False)
 
-                loss += self.env.MBLoss(s)
-
+            loss = self.env.MBLoss(s,state)
             self.opt.zero_grad()
             loss.backward()
             #print(state.grad)
             self.opt.step()
             # print(loss.item())
-            loss_sum += loss.item()
+            loss_sum += loss
+        return loss_sum / self.num_train_steps
     def init_sample(self):
         for i in range(self.num_init_step):
             self.sample()
@@ -205,7 +202,7 @@ if __name__ == '__main__':
     use_sparse_FEM = False  # use sparse FEM solver
 
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
-    sim = rvo2.PyRVOSimulator(1 / 200., 0.03, 5, 0.04, 0.04, 0.01, 2)
+    sim = rvo2.PyRVOSimulator(1 / 100., 0.03, 5, 0.04, 0.04, 0.01, 2)
     env = NavigationEnvs(gui, sim, use_kernel_loop, use_sparse_FEM)
 
     state_dim = env.observation_space.shape[0]
@@ -214,10 +211,10 @@ if __name__ == '__main__':
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space).to(device)
     #policy.actor=torch.load('model/model_10.pth')
     #init sample
-    policy.eval()
-    policy.init_sample()
+    #policy.eval()
+    #policy.init_sample()
     for i in range(iter):
-        policy.eval()
+        #policy.eval()
         policy.sample()
         #policy.test()
         policy.train()

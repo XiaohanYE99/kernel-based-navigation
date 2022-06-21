@@ -169,7 +169,7 @@ class NavigationEnvs():
         
         self.sim.setNewtonParameters(100,1e-0,1e-3,1e5,1e-6)
 
-        self.N=20           #kernel number
+        self.N=10           #kernel number
         self.radius=0.01    #robot radius
         self.n_robots=25   #robot number
         self.eps=0.02
@@ -189,7 +189,7 @@ class NavigationEnvs():
         self.size_x=100
         self.size_y=100
         self.dx=1.0/self.size_x
-        self.aim=[0.7,0.5]
+        self.aim=[0.5,0.9]
         self.goal=np.zeros([self.n_robots*2])
         self.begin=np.zeros([self.n_robots*2])
 
@@ -203,6 +203,7 @@ class NavigationEnvs():
         self.noactive=np.zeros(self.n_robots)
         self.vis=np.zeros(self.n_robots)
         self.deltap=np.zeros([self.n_robots,2])
+        self.eps=1e-4
         
         #FEM
         self.grid_ux=(torch.arange(0.0,self.size_x+1)*self.dx).unsqueeze(1).expand(self.size_x+1,self.size_y).to(self.device)
@@ -220,7 +221,7 @@ class NavigationEnvs():
         self.pos_reward=0
         self.vel_reward=0
         
-        self.bdset=[[0.5,0.2,0.54,0.8],[0.2,0.2,0.54,0.24],[0.2,0.76,0.54,0.8],
+        self.bdset=[#[0.5,0.2,0.54,0.8],[0.2,0.2,0.54,0.24],[0.2,0.76,0.54,0.8],
                     [0.0,0.0,1.0,0.04],[0.0,0.96,1.0,1.0],[0.0,0.0,0.04,1.0],[0.96,0.0,1.0,1.0]]#,[0.95,0.52,1.0,1.0]]
         
         self.observation_space=np.zeros(2*self.n_robots)
@@ -248,7 +249,7 @@ class NavigationEnvs():
                 self.oldstate[idx*2+1]=j*0.02+0.3
                 self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 100, 0.04, 0.04, 0.008, 1, (0, 0)))
 
-        self.sim.addObstacle([(0.2, 0.2), (0.54, 0.2), (0.54, 0.8),(0.2,0.8),(0.2,0.76),(0.5,0.76),(0.5,0.24),(0.2,0.24)])
+        #self.sim.addObstacle([(0.2, 0.2), (0.54, 0.2), (0.54, 0.8),(0.2,0.8),(0.2,0.76),(0.5,0.76),(0.5,0.24),(0.2,0.24)])
         self.sim.addObstacle([(0.04, 0.04),(0.04,0.96),(0.96,0.96),(0.96,0.04) ])
         self.sim.processObstacles()
 
@@ -264,7 +265,7 @@ class NavigationEnvs():
         self.div=np.ones(self.n_robots)
         self.noactive=np.zeros(self.n_robots)
         self.vis=np.zeros(self.n_robots)
-        o=random.sample(range(0, 15), 1)
+        o=random.sample(range(0, 15), 4)
         #o.sort()
         #o=[5,8,9,10]
         idx=0
@@ -376,6 +377,7 @@ class NavigationEnvs():
         
     def P2G(self,pos):
         I = torch.zeros((pos.size(0), self.size_x, self.size_y)).to(self.device)
+        target = torch.zeros_like(I)
         for i in range(pos.size(0)):
             px=pos[i,::2]
             py=pos[i,1::2]
@@ -391,11 +393,11 @@ class NavigationEnvs():
             I[i,idx.long(),idy.long()+1]+=(1-alphax)*alphay
             I[i,idx.long()+1,idy.long()] += alphax * (1-alphay)
             I[i,idx.long() , idy.long()] += (1 - alphax) * (1-alphay)
-        '''
-        target=torch.zeros_like(I)
-        target[int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
+
+
+            target[i,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
         I+=target
-        '''
+
         return I
     def projection(self,action):
         #print(action.requires_grad)
@@ -405,6 +407,7 @@ class NavigationEnvs():
         y0=action[:,1::4].unsqueeze(2).unsqueeze(3)
         alpha=(action[:,2::4].unsqueeze(2).unsqueeze(3))*39.0+1.0
         omega=action[:,3::4].unsqueeze(2).unsqueeze(3)
+
         #print(action.grad)
         #alpha[alpha<=1]=1
 
@@ -412,15 +415,15 @@ class NavigationEnvs():
             ux=self.grid_ux.unsqueeze(0).unsqueeze(0)
             uy=self.grid_uy.unsqueeze(0).unsqueeze(0)
 
-            r=torch.sqrt(torch.pow(x0-ux,2)+torch.pow(y0-uy,2))
+            r=torch.sqrt(torch.pow(x0-ux,2)+torch.pow(y0-uy,2))+self.eps
             
-            velocity_x=(torch.sum(-0.1*(1.6*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(uy-y0)/r,dim=1))*self.mask_x
+            velocity_x=(torch.sum(-0.1*5*(alpha)*(2*omega-1)*torch.exp(-alpha*r)*(uy-y0)/r,dim=1))*self.mask_x
             
             vx=self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy=self.grid_vy.unsqueeze(0).unsqueeze(0)
             
-            r=torch.sqrt(torch.pow(vx-x0,2)+torch.pow(vy-y0,2))
-            velocity_y=(torch.sum(0.1*(1.6*alpha+0.6)*(2*omega-1)*torch.exp(-alpha*r)*(vx-x0)/r,dim=1))*self.mask_y
+            r=torch.sqrt(torch.pow(vx-x0,2)+torch.pow(vy-y0,2))+self.eps
+            velocity_y=(torch.sum(0.1*5*(alpha)*(2*omega-1)*torch.exp(-alpha*r)*(vx-x0)/r,dim=1))*self.mask_y
         else:
             ux=self.grid_ux.unsqueeze(0)
             uy=self.grid_uy.unsqueeze(0)
@@ -429,10 +432,10 @@ class NavigationEnvs():
             velocity_x=torch.zeros(k,self.N,self.size_x,self.size_y)
             velocity_y=torch.zeros(k,self.N,self.size_x,self.size_y)
             for i in range(self.N):
-                r=torch.sqrt(torch.pow(ux-x0[:,i,:,:],2)+torch.pow(uy-y0[:,i,:,:],2))
+                r=torch.sqrt(torch.pow(ux-x0[:,i,:,:],2)+torch.pow(uy-y0[:,i,:,:],2))+self.eps
                 velocity_x+=(torch.sum(-1.0*(2*omega[:,i,:,:]-1)*torch.exp(-alpha[:,i,:,:]*r)*(uy-y0[:,i,:,:])/r,dim=1))*self.mask_x
             for i in range(self.N):
-                r=torch.sqrt(torch.pow(vx-x0[:,i,:,:],2)+torch.pow(vy-y0[:,i,:,:],2))
+                r=torch.sqrt(torch.pow(vx-x0[:,i,:,:],2)+torch.pow(vy-y0[:,i,:,:],2))+self.eps
                 velocity_y+=(torch.sum(1.0*(2*omega[:,i,:,:]-1)*torch.exp(-alpha[:,i,:,:]*r)*(vx-x0[:,i,:,:])/r,dim=1))*self.mask_y
         
         
@@ -598,6 +601,7 @@ class NavigationEnvs():
         self.cnt += 1
 
     def MBLoss(self, xNew):
+        '''
         loss=0
         for i in range(xNew.size(0)):
             idx = torch.floor(xNew[i,::2] / self.dx)
@@ -610,10 +614,21 @@ class NavigationEnvs():
                                   1.0 - alphax) * (1.0 - alphay)
             loss+=torch.sum(distnew)
 
+            idx = torch.floor(x[i, ::2] / self.dx)
+            idy = torch.floor(x[i, 1::2] / self.dx)
+            alphax = x[i, ::2] - idx * self.dx
+            alphay = x[i, 1::2] - idy * self.dx
+            id = (idy * self.size_y + idx).long()
+            distold = self.dis[id + self.size_y + 1] * alphax * alphay + self.dis[id + self.size_y] * (
+                        1.0 - alphax) * alphay \
+                      + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
+                              1.0 - alphax) * (1.0 - alphay)
+            loss += torch.sum(torch.square(distold)-torch.square(distnew))
+
         return loss
         '''
         xNew = xNew.squeeze(0)
         return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))
-        '''
+
 
 

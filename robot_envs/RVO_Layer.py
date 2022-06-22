@@ -30,17 +30,17 @@ class CollisionFreeLayer(Function):
 
                     dx *= 2.0 / lenn
                     dy *= 2.0 / lenn
-                    '''
+
                 '''
-                if env.state[i * 2] > 0.6 and env.state[i * 2] < 0.8 and env.state[i * 2 + 1] < 0.6 and \
-                        env.state[i * 2 + 1] > 0.4:
+                if env.state[i * 2] > 0.51 and env.state[i * 2] < 0.89 and env.state[i * 2 + 1] < 0.69 and \
+                        env.state[i * 2 + 1] > 0.31:
                     r = np.sqrt((pow(pos[i][0] - 0.7, 2) + pow(pos[i][1] - 0.5, 2)))
                     dx = 1.0 * (0.7 - pos[i][0]) / r
                     dy = 1.0 * (0.5 - pos[i][1]) / r
                     if r < 0.01 :
                         dx = 0  # *=r/0.01
                         dy = 0  # *=r/0.01
-                '''
+
                 env.sim.setAgentPrefVelocity(env.agent[i], (dx, dy))
                 env.sim.setAgentPosition(env.agent[i], (pos[i][0], pos[i][1]))
                 env.deltap[i] = [dx, dy]

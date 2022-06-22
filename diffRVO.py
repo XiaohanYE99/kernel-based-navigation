@@ -13,8 +13,8 @@ from robot_envs.RVO_Layer import CollisionFreeLayer
 
 
 class PolicyNet(nn.Module):
-    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.5
-                 , horizon=50
+    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.3
+                 , horizon=120
                  , num_sample_steps=5
                  , num_pre_steps=5
                  , num_train_steps=32 * 16
@@ -42,7 +42,7 @@ class PolicyNet(nn.Module):
             self.action_dim = action_dim
         # actor
         if has_continuous_action_space:
-            '''
+
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, 200),
                 #nn.Dropout(0.3),
@@ -55,13 +55,13 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(1, 8, 7, 2, 3),  nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(2, 8, 7, 2, 3),  nn.ReLU(),  # [50,50,8]
                 nn.Conv2d(8, 12, 5, 2, 2),  nn.ReLU(),  # [25,25,16]
                 nn.Conv2d(12, 20, 5, 2, 2),  nn.ReLU(), nn.Flatten(),  # [13,13,32]
                 nn.Linear(20 * 13 * 13, 128),  nn.Tanh(),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
-
+            '''
         for name,param in self.actor.named_parameters():
             if(len(param.size())>=2):
                 nn.init.kaiming_uniform_(param, a=1e-2)
@@ -74,18 +74,18 @@ class PolicyNet(nn.Module):
         self.last_layer.bias.data=torch.Tensor([0.3,0.3,1.0,0.5,0.3,0.6,1.0,0.5,0.3,0.9,1.0,0.5,
                                                 0.6,0.3,1.0,0.5,0.6,0.6,1.0,0.5,0.6,0.9,1.0,0.5,
                                                 0.9,0.3,1.0,0.5,0.9,0.6,1.0,0.5,0.9,0.9,1.0,0.5])
-
-        self.opt = torch.optim.Adam([{'params':self.actor.parameters(), 'lr':1e-4},
+        self.lr=1e-3
+        self.opt = torch.optim.Adam([{'params':self.actor.parameters(), 'lr':self.lr},
                                      {'params':self.last_layer.parameters(),  'lr':1e-3}])
     def delay(self):
-        self.action_std = self.action_std - 0.07
+        self.action_std = self.action_std - 0.03
         self.action_std = round(self.action_std, 4)
         if (self.action_std <= 0.01):
             self.action_std = 0.01
         self.action_var = torch.full((self.action_dim,), self.action_std * self.action_std).to(device)
     def implement(self, state):
-        I = self.env.P2G(state)
-        I = I.unsqueeze(1).to(device)
+        I = self.env.P2G(state,[0])
+        I = I.unsqueeze(0).to(device)
         action = torch.squeeze(self.actor(I), 1)
 
         #action=self.last_layer(fc)
@@ -99,9 +99,10 @@ class PolicyNet(nn.Module):
         return xNew
 
     def act(self, state):
-        I = self.env.P2G(state)
-        I = I.unsqueeze(1).to(device)
-        action = torch.squeeze(self.actor(I), 1)
+        I = self.env.P2G(state,[0])
+        I = I.unsqueeze(0).to(device)
+
+        action = torch.squeeze(self.actor(state), 1)
         if (self.action_std > 0.01):
             cov_mat = torch.diag(self.action_var).unsqueeze(dim=0)
             dist = MultivariateNormal(torch.zeros_like(action).to(device), cov_mat)
@@ -113,19 +114,20 @@ class PolicyNet(nn.Module):
             self.env.y0[i] = action[0][4 * i + 1]
         velocity = self.env.projection(action)
         v = self.env.get_velocity(state, velocity)
+
         xNew = self.CFLayer(self.env, state, v)
 
         return xNew
     def reset_env(self):
         self.env.cnt = 0
-        target=random.randint(1,4)
-        if target==1:
+        self.env.target=random.randint(1,4)
+        if self.env.target==1:
             self.env.aim=[0.1,0.5]
-        elif target==2:
+        elif self.env.target==2:
             self.env.aim = [0.9, 0.5]
-        elif target==3:
+        elif self.env.target==3:
             self.env.aim = [0.5, 0.1]
-        elif target==4:
+        elif self.env.target==4:
             self.env.aim = [0.5, 0.9]
         #self.env.aim = [0.5, 0.9]
         for i in range(5):
@@ -136,8 +138,8 @@ class PolicyNet(nn.Module):
 
         return self.env.state
     def simulate(self):
-        state=self.reset_env()
-        #state=self.env.reset()
+        #state=self.reset_env()
+        state=self.env.reset()
         state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
         state.requires_grad=True
         s=state
@@ -146,12 +148,12 @@ class PolicyNet(nn.Module):
         for i in range(self.horizon):
             s = policy.act(s)
             self.env.MBStep(s)
-        loss=self.env.MBLoss(s)
+            loss+=self.env.MBLoss(s)
         self.opt.zero_grad()
         loss.backward()
         #print(state.grad)
         self.opt.step()
-        #nn.utils.clip_grad_norm_(self.actor.parameters(), 20)
+        nn.utils.clip_grad_norm_(self.actor.parameters(), 20)
         return loss.item()
     def test(self):
 
@@ -193,6 +195,8 @@ if __name__ == '__main__':
     # policy.actor=torch.load('model/model_30.pth')
     #policy.eval()
     for i in range(iter):
+        if i in [50,150]:
+            policy.lr*=0.1
         policy.train()
         loss = policy.simulate()
         print('iter= ', i, 'loss= ', loss)
@@ -200,6 +204,6 @@ if __name__ == '__main__':
             torch.save(policy.actor, 'model/model_%d.pth' % i)
         if i%10==0:
             policy.eval()
-            policy.test()
+            #policy.test()
         if i%40==0:
             policy.delay()

@@ -12,14 +12,14 @@ from robot_envs.robot_env import *
 from robot_envs.RVO_Layer import CollisionFreeLayer
 
 class PolicyNet(nn.Module):
-    def __init__(self, env, state_dim, action_dim, has_continuous_action_space,action_std_init=0.8
-                 ,horizon=150
-                 ,num_sample_steps=16
+    def __init__(self, env, state_dim, action_dim, has_continuous_action_space,action_std_init=0.1
+                 ,horizon=120
+                 ,num_sample_steps=15
                  ,num_pre_steps=5
-                 ,num_train_steps=64*35
+                 ,num_train_steps=64*25
                  ,num_init_step=3
-                 ,buffer_size=2400*100
-                 ,batch_size=32):
+                 ,buffer_size=1800*100
+                 ,batch_size=64):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
         self.action_var = torch.full((action_dim,), action_std_init * action_std_init).to(device)
@@ -44,12 +44,10 @@ class PolicyNet(nn.Module):
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, 200),
                 nn.Tanh(),
+                nn.Dropout(0.2),
                 nn.Linear(200, 200),
                 nn.Tanh(),
-                nn.Linear(200, 200),
-                nn.Tanh(),
-                nn.Linear(200, 200),
-                nn.Tanh(),
+                nn.Dropout(0.2),
                 nn.Linear(200, 4 * self.env.N),
                 nn.Sigmoid(),
             )
@@ -65,7 +63,7 @@ class PolicyNet(nn.Module):
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
                     nn.init.kaiming_uniform_(param, a=1e-2)
-            self.lr=1e-3
+            self.lr=3e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
         self.CFLayer = CollisionFreeLayer.apply
@@ -79,9 +77,10 @@ class PolicyNet(nn.Module):
         I=I.to(device)
         #action = self.controller(I)
         action = torch.squeeze(self.actor(state), 1)
+
         for i in range(self.env.N):
-            self.env.x0[i]=action[0][4*i]
-            self.env.y0[i]=action[0][4*i+1]
+            self.env.x0[i]=action[0][4*i]*3-1
+            self.env.y0[i]=action[0][4*i+1]*3-1
 
         velocity = self.env.projection(action)
 
@@ -100,9 +99,7 @@ class PolicyNet(nn.Module):
         velocity = self.env.projection(action)
 
         v = self.env.get_velocity(state.detach(), velocity)
-        cov_mat = torch.diag(self.action_var).unsqueeze(dim=0)
-        dist = MultivariateNormal(torch.zeros_like(v).to(device), cov_mat)
-        v = v + dist.sample()
+
 
         xNew = self.CFLayer(self.env, state.detach(), v)
 
@@ -121,9 +118,7 @@ class PolicyNet(nn.Module):
             for step in range(self.num_pre_steps):
                 state = policy.implement(state)
                 #self.env.MBStep(state,render=False)
-
                 loss += self.env.MBLoss(state)
-
             self.opt.zero_grad()
             loss.backward()
             print(state.grad)
@@ -189,7 +184,7 @@ class PolicyNet(nn.Module):
             for step in range(self.horizon):
                 with torch.no_grad():
                     if use_random_policy:
-                        state = policy.act(state)
+                        state = policy.implement(state,[0])
                     else:
                         state = policy.implement(state,[self.env.target])
                     self.env.MBStep(state)
@@ -243,11 +238,11 @@ if __name__ == '__main__':
     #policy.actor=torch.load('model/model_10.pth')
     #init sample
     #policy.eval()
-    #policy.init_sample()
+    policy.init_sample()
     for i in range(iter):
-        if i in [10,25]:
-            policy.lr*=0.1
-        #policy.eval()
+        if i in [20,45]:
+            policy.lr*=0.3
+        policy.eval()
         policy.sample(False)
 
         #policy.test()

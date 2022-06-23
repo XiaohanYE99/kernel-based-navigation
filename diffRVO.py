@@ -13,8 +13,8 @@ from robot_envs.RVO_Layer import CollisionFreeLayer
 
 
 class PolicyNet(nn.Module):
-    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.3
-                 , horizon=120
+    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.5
+                 , horizon=30
                  , num_sample_steps=5
                  , num_pre_steps=5
                  , num_train_steps=32 * 16
@@ -44,13 +44,13 @@ class PolicyNet(nn.Module):
         if has_continuous_action_space:
 
             self.actor = nn.Sequential(
-                nn.Linear(state_dim, 200),
+                nn.Linear(state_dim+2, 32),
                 #nn.Dropout(0.3),
                 nn.Tanh(),
-                nn.Linear(200, 200),
+                nn.Linear(32, 32),
                 #nn.Dropout(0.3),
                 nn.Tanh(),
-                nn.Linear(200, 4 * self.env.N),
+                nn.Linear(32, 4 * self.env.N),
                 nn.Sigmoid(),
             )
             '''
@@ -78,45 +78,53 @@ class PolicyNet(nn.Module):
         self.opt = torch.optim.Adam([{'params':self.actor.parameters(), 'lr':self.lr},
                                      {'params':self.last_layer.parameters(),  'lr':1e-3}])
     def delay(self):
-        self.action_std = self.action_std - 0.03
+        self.action_std = self.action_std - 0.05
         self.action_std = round(self.action_std, 4)
         if (self.action_std <= 0.01):
             self.action_std = 0.01
         self.action_var = torch.full((self.action_dim,), self.action_std * self.action_std).to(device)
-    def implement(self, state):
+    def implement(self, state,t):
         I = self.env.P2G(state,[0])
         I = I.unsqueeze(0).to(device)
-        action = torch.squeeze(self.actor(I), 1)
+        S=torch.cat((state,t),1)
+        action = torch.squeeze(self.actor(S), 1)
 
         #action=self.last_layer(fc)
+
         for i in range(self.env.N):
             self.env.x0[i] = action[0][4 * i]
             self.env.y0[i] = action[0][4 * i + 1]
+
+        '''
         velocity = self.env.projection(action)
         v = self.env.get_velocity(state, velocity)
         xNew = self.CFLayer(self.env, state, v)
-
+        '''
+        v = self.env.apply(state, action)
+        xNew = self.CFLayer(self.env, state, v)
         return xNew
 
-    def act(self, state):
-        I = self.env.P2G(state,[0])
+    def act(self, state, t):
+        I = self.env.P2G(state, [0])
         I = I.unsqueeze(0).to(device)
-
-        action = torch.squeeze(self.actor(state), 1)
-        if (self.action_std > 0.01):
-            cov_mat = torch.diag(self.action_var).unsqueeze(dim=0)
-            dist = MultivariateNormal(torch.zeros_like(action).to(device), cov_mat)
-            action = action + dist.sample()
-            #print(dist.sample())
+        S = torch.cat((state, t), 1)
+        action = torch.squeeze(self.actor(S), 1)
+        #cov_mat = torch.diag(self.action_var).unsqueeze(dim=0)
+        #dist = MultivariateNormal(torch.zeros_like(action).to(device), cov_mat)
+        #action = action + dist.sample()
         # action=self.last_layer(fc)
+
         for i in range(self.env.N):
             self.env.x0[i] = action[0][4 * i]
             self.env.y0[i] = action[0][4 * i + 1]
-        velocity = self.env.projection(action)
-        v = self.env.get_velocity(state, velocity)
 
+        '''
+                velocity = self.env.projection(action)
+                v = self.env.get_velocity(state, velocity)
+                xNew = self.CFLayer(self.env, state, v)
+                '''
+        v= self.env.apply(state, action)
         xNew = self.CFLayer(self.env, state, v)
-
         return xNew
     def reset_env(self):
         self.env.cnt = 0
@@ -138,20 +146,21 @@ class PolicyNet(nn.Module):
 
         return self.env.state
     def simulate(self):
-        #state=self.reset_env()
-        state=self.env.reset()
+        state=self.reset_env()
+        #state=self.env.reset()
         state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
         state.requires_grad=True
         s=state
-
+        t = torch.Tensor(self.env.aim).view(1, -1).to(device)
+        t.requires_grad = True
         loss=0
         for i in range(self.horizon):
-            s = policy.act(s)
+            s = policy.act(s,t)
             self.env.MBStep(s)
             loss+=self.env.MBLoss(s)
         self.opt.zero_grad()
         loss.backward()
-        #print(state.grad)
+
         self.opt.step()
         nn.utils.clip_grad_norm_(self.actor.parameters(), 20)
         return loss.item()
@@ -160,16 +169,16 @@ class PolicyNet(nn.Module):
         state=self.reset_env()
         #state=self.env.reset()
         state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
-        state.requires_grad=True
+        t = torch.Tensor(self.env.aim).view(1, -1).to(device)
         s=state
         loss=0
         for i in range(self.horizon):
-            s = policy.implement(s)
+            s = policy.implement(s,t)
             self.env.MBStep(s)
         loss = self.env.MBLoss(s)
         print('test loss= ',loss)
 if __name__ == '__main__':
-    iter = 500
+    iter = 1000
     steps = 50
     has_continuous_action_space = True  # continuous action space; else discrete
     device = torch.device('cpu')
@@ -192,10 +201,10 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space).to(device)
-    # policy.actor=torch.load('model/model_30.pth')
+    #policy.actor=torch.load('model/model_900.pth')
     #policy.eval()
     for i in range(iter):
-        if i in [50,150]:
+        if i in [100,350]:
             policy.lr*=0.1
         policy.train()
         loss = policy.simulate()

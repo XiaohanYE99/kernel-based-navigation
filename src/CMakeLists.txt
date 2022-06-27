@@ -33,6 +33,7 @@
 set(RVO_HEADERS
 	RVO.h
 	RVOSimulator.h
+        RVOMultiSimulator.h
 	Vector2.h)
 
 set(RVO_SOURCES
@@ -48,6 +49,7 @@ set(RVO_SOURCES
 	Obstacle.cpp
 	Obstacle.h
 	RVOSimulator.cpp
+        RVOMultiSimulator.cpp
 	RVOSimulatorOptimize.cpp)
 
 add_library(RVO ${RVO_HEADERS} ${RVO_SOURCES})

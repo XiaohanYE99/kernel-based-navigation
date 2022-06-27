@@ -52,6 +52,8 @@ set(RVO_SOURCES
 
 add_library(RVO ${RVO_HEADERS} ${RVO_SOURCES})
 
+include_directories(eigen)
+
 if(WIN32)
     set_target_properties(RVO PROPERTIES COMPILE_DEFINITIONS NOMINMAX)
 endif()

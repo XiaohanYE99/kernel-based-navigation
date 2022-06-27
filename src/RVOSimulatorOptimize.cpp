@@ -178,7 +178,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 f+=clog(distSq1-radiusSq,
                         g?&D:NULL,
                         h?&DD:NULL,
-                        d0*0.5,
+                        d0,
                         coef);	//this can be infinite or nan
                 double px=obstacle1->point_.x();
                 double py=obstacle1->point_.y();
@@ -200,7 +200,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 f+=clog(distSq2-radiusSq,
                         g?&D:NULL,
                         h?&DD:NULL,
-                        d0*0.5,
+                        d0,
                         coef);	//this can be infinite or nan
                 double px=obstacle2->point_.x();
                 double py=obstacle2->point_.y();
@@ -222,7 +222,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 f+=clog(distSqLine-radiusSq,
                         g?&D:NULL,
                         h?&DD:NULL,
-                        d0*0.5,
+                        d0,
                         coef);	//this can be infinite or nan
                 double px=obstacle1->point_.x()+s*obstacleVector.x();
                 double py=obstacle1->point_.y()+s*obstacleVector.y();

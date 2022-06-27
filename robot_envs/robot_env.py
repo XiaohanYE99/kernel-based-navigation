@@ -185,10 +185,10 @@ class NavigationEnvs():
 
         self.sim.setNewtonParameters(100, 1e-0, 1e-3, 1e5, 1e-6)
 
-        self.N = 20  # kernel number
+        self.N = 10  # kernel number
         self.radius = 0.01  # robot radius
         self.n_robots = 100  # robot number
-        self.eps = 0.02
+
         self.agent = []
         self.suc = 0
         self.arrive = 0
@@ -207,6 +207,7 @@ class NavigationEnvs():
         self.aim = [0.7, 0.5]
         self.goal = np.zeros([self.n_robots * 2])
         self.begin = np.zeros([self.n_robots * 2])
+        self.bound=0.1
 
         self.tot_num = 0
         self.cnt = 0
@@ -247,7 +248,7 @@ class NavigationEnvs():
                       [0.96, 0.0, 1.0, 1.0]]  # ,[0.95,0.52,1.0,1.0]]
 
         self.observation_space = np.zeros(2 * self.n_robots)
-        self.action_space = np.zeros(4 * self.N)  # (4*self.N)
+        self.action_space = np.zeros(5 * self.N)  # (4*self.N)
         # print(self.boundary.N)
 
         self.init_state = []
@@ -282,13 +283,13 @@ class NavigationEnvs():
         self.FEM_init()
         self.sparsesolve = SparseSolve.apply
         torch.cuda.empty_cache()
-
+        '''
         for i in range(51, 89):
             for j in range(31, 69):
                 idx = find_grid_index([i * self.dx, j * self.dx], self.dx)
                 self.dis[idx] = 0
         self.o = 0
-
+        '''
     def reset(self):
         self.suc = 0
         self.cnt = 0
@@ -467,10 +468,12 @@ class NavigationEnvs():
         # print(action.requires_grad)
         t0 = time.time()
         k = action.size(0)
-        x0 = action[:, ::4].unsqueeze(2).unsqueeze(3) * 3 - 1
-        y0 = action[:, 1::4].unsqueeze(2).unsqueeze(3) * 3 - 1
-        alpha = (action[:, 2::4].unsqueeze(2).unsqueeze(3)) * 29.0 + 1.0
-        omega = action[:, 3::4].unsqueeze(2).unsqueeze(3)
+        x0 = action[:, ::5].unsqueeze(2).unsqueeze(3)
+        y0 = action[:, 1::5].unsqueeze(2).unsqueeze(3)
+        phix=(action[:, 2::5].unsqueeze(2).unsqueeze(3) -0.5)*0.2
+        phiy = (action[:, 3::5].unsqueeze(2).unsqueeze(3) - 0.5) * 0.2
+        alpha = (action[:, 4::5].unsqueeze(2).unsqueeze(3)) * 29.0 + 1.0
+
 
         # print(action.grad)
         # alpha[alpha<=1]=1
@@ -481,14 +484,14 @@ class NavigationEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)) + self.eps
 
-            velocity_x = (torch.sum(-0.1 * (0.3 * alpha + 1) * (2 * omega - 1) * torch.exp(-alpha * r) * (uy - y0) / r,
+            velocity_x = (torch.sum(phix  * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)) + self.eps
-            velocity_y = (torch.sum(0.1 * (0.3 * alpha + 1) * (2 * omega - 1) * torch.exp(-alpha * r) * (vx - x0) / r,
+            velocity_y = (torch.sum(phiy * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
@@ -500,12 +503,12 @@ class NavigationEnvs():
             for i in range(self.N):
                 r = torch.sqrt(torch.pow(ux - x0[:, i, :, :], 2) + torch.pow(uy - y0[:, i, :, :], 2)) + self.eps
                 velocity_x += (torch.sum(
-                    -1.0 * (2 * omega[:, i, :, :] - 1) * torch.exp(-alpha[:, i, :, :] * r) * (uy - y0[:, i, :, :]) / r,
+                    phix[:, i, :, :]  * torch.exp(-alpha[:, i, :, :] * r) * (uy - y0[:, i, :, :]) / r,
                     dim=1)) * self.mask_x
             for i in range(self.N):
                 r = torch.sqrt(torch.pow(vx - x0[:, i, :, :], 2) + torch.pow(vy - y0[:, i, :, :], 2)) + self.eps
                 velocity_y += (torch.sum(
-                    1.0 * (2 * omega[:, i, :, :] - 1) * torch.exp(-alpha[:, i, :, :] * r) * (vx - x0[:, i, :, :]) / r,
+                    phiy[:, i, :, :]  * torch.exp(-alpha[:, i, :, :] * r) * (vx - x0[:, i, :, :]) / r,
                     dim=1)) * self.mask_y
 
         velocity = torch.cat(

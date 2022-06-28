@@ -79,6 +79,7 @@ bool RVOSimulator::linesearch(const VectorXd& v,const VectorXd& x, const double 
 
 double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd& newX,
                             int& nBarrier,VectorXd* g, MatrixXd* h) {
+
   nBarrier=0;
   double f=0.5/(timeStep_*timeStep_)*(newX-(x+v*timeStep_)).squaredNorm();
   if(g)
@@ -110,6 +111,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 h?&DD:NULL,
                 d0,
                 coef);	//this can be infinite or nan
+
         if(g) {
           (*g)[i]+=D*2*(newX[i]-newX[j]);
           (*g)[j]-=D*2*(newX[i]-newX[j]);

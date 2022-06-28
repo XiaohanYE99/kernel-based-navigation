@@ -1,7 +1,7 @@
 import rvo2,random
 
-n_agent = 5
-batch_size = 3
+n_agent = 500
+batch_size = 1024
 print("Start testing multi-RVO")
 print("============================================================================================")
 sim = rvo2.PyRVOMultiSimulator(batch_size, 3 / 600., 0.03, 5, 0.04, 0.04, 0.01, 2)
@@ -18,6 +18,7 @@ sim.processObstacles()
 #agent
 for i in range(n_agent):
     sim.addAgent([(random.uniform(-1,1),random.uniform(-1,1)) for j in range(batch_size)])
+print([(random.uniform(-1,1),random.uniform(-1,1)) for j in range(batch_size)])
 print("#Agents=%d"%sim.getNumAgents())
 
 #step

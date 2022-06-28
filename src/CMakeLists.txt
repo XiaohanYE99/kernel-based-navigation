@@ -56,6 +56,13 @@ add_library(RVO ${RVO_HEADERS} ${RVO_SOURCES})
 
 include_directories(eigen)
 
+if(ENABLE_OPENMP AND OpenMP_FOUND)
+  set_target_properties(${RVO_LIBRARY} PROPERTIES
+    LINK_FLAGS "${OpenMP_CXX_FLAGS}")
+  target_compile_options(${RVO_LIBRARY} PRIVATE ${OpenMP_CXX_FLAGS})
+endif()
+
+
 if(WIN32)
     set_target_properties(RVO PROPERTIES COMPILE_DEFINITIONS NOMINMAX)
 endif()

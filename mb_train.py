@@ -10,15 +10,15 @@ import random
 
 import rvo2
 from robot_envs.robot_env import *
-from robot_envs.RVO_Layer import CollisionFreeLayer
+from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.1
                  , horizon=150
-                 , num_sample_steps=12
-                 , num_pre_steps=5
-                 , num_train_steps=64 * 25
+                 , num_sample_steps=1#2
+                 , num_pre_steps=10
+                 , num_train_steps=64#* 25
                  , num_init_step=0
                  , buffer_size=1800
                  , batch_size=64):
@@ -45,10 +45,10 @@ class PolicyNet(nn.Module):
 
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, 64),
-                nn.Tanh(),
+                nn.ReLU(),
                 nn.Dropout(0.2),
                 nn.Linear(64, 128),
-                nn.Tanh(),
+                nn.ReLU(),
                 nn.Dropout(0.2),
                 nn.Linear(128, 5 * self.env.N),
                 nn.Sigmoid(),
@@ -69,6 +69,7 @@ class PolicyNet(nn.Module):
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
         self.CFLayer = CollisionFreeLayer.apply
+        self.MultiCFLayer = MultiCollisionFreeLayer.apply
 
     def switch(self, v,state,target):
         x=state[:,::2]-target[0]
@@ -82,7 +83,7 @@ class PolicyNet(nn.Module):
         return (1.0-alpha)*v+alpha*(-torch.cat((x/r,y/r),1))
 
 
-    def implement(self, state, target):
+    def implement(self, state, target,training):
         I = self.env.P2G(state, target)
         I = I.to(device)
 
@@ -98,7 +99,10 @@ class PolicyNet(nn.Module):
 
         v = self.env.get_velocity(state, velocity)
         v = self.switch(v, state, target)
-        xNew = self.CFLayer(self.env, state, v)
+        if training:
+            xNew = self.MultiCFLayer(self.env, state, v)
+        else:
+            xNew = self.CFLayer(self.env, state, v)
 
         return xNew
 
@@ -181,7 +185,7 @@ class PolicyNet(nn.Module):
             loss = 0
 
             for step in range(self.num_pre_steps):
-                s = policy.implement(s, self.env.aim)
+                s = policy.implement(s, self.env.aim,training=True)
 
                 # s=xNew
             loss = self.env.MBLoss(s, state)
@@ -207,9 +211,9 @@ class PolicyNet(nn.Module):
             for step in range(self.horizon):
                 with torch.no_grad():
                     if use_random_policy:
-                        state = policy.implement(state, self.env.aim)
+                        state = policy.implement(state, self.env.aim,training=False)
                     else:
-                        state = policy.implement(state, self.env.aim)
+                        state = policy.implement(state, self.env.aim,training=False)
                     self.env.MBStep(state)
 
                 if not self.isfull:
@@ -253,15 +257,18 @@ if __name__ == '__main__':
     use_kernel_loop = False  # calculating grid velocity with kernel loop
     use_sparse_FEM = False  # use sparse FEM solver
 
+    batch_size = 64
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
     sim = rvo2.PyRVOSimulator(1 / 200., 0.03, 5, 0.04, 0.04, 0.01, 2)
-    env = NavigationEnvs(gui, sim, use_kernel_loop, use_sparse_FEM)
+    multisim = rvo2.PyRVOMultiSimulator(batch_size,1 / 200., 0.03, 5, 0.04, 0.04, 0.01, 2)
+
+    env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM)
 
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
-    policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space).to(device)
-    #policy.actor = torch.load('model/model_18.pth')
+    policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
+    #policy.actor = torch.load('model/model_20.pth')
     # init sample
     # policy.eval()
     policy.init_sample()
@@ -274,8 +281,8 @@ if __name__ == '__main__':
         # policy.test()
         policy.train()
         loss = 0
-        for k in range(2):
+        for k in range(1):
             loss += policy.update()
         print('iter= ', i, 'loss= ', loss)
-        if i % 10 == 0:
+        if i % 1 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)

@@ -32,6 +32,7 @@
 
 #include "RVOMultiSimulator.h"
 #include <iostream>
+#include <omp.h>
 
 namespace RVO {
 RVOMultiSimulator::RVOMultiSimulator(size_t batch) {
@@ -133,6 +134,8 @@ void RVOMultiSimulator::setNewtonParameters(size_t maxIter, double tol, double d
 }
 void RVOMultiSimulator::doNewtonStep(bool require_grad) {
   #pragma omp parallel for
+  for(int i=0;i<100;i++)
+    std::cout<<i <<std::endl;
   for(auto& sim:_sims)
     sim->doNewtonStep(require_grad);
 }

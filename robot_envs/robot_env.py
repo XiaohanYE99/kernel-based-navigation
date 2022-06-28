@@ -177,13 +177,16 @@ def dijkstra(dx, start, bdset):
 
 
 class NavigationEnvs():
-    def __init__(self, gui, sim, use_kernel_loop, use_sparse_FEM):
+    def __init__(self, batch_size,gui, sim, multisim,use_kernel_loop, use_sparse_FEM):
+        self.batch_size=batch_size
         self.sim = sim
+        self.multisim=multisim
         self.gui = gui
         self.use_kernel_loop = use_kernel_loop
         self.use_sparse_FEM = use_sparse_FEM
 
         self.sim.setNewtonParameters(100, 1e-0, 1e-3, 1e5, 1e-6)
+        self.multisim.setNewtonParameters(100, 1e-0, 1e-3, 1e5, 1e-6)
 
         self.N = 10  # kernel number
         self.radius = 0.01  # robot radius
@@ -261,22 +264,22 @@ class NavigationEnvs():
             for j in range(4):
                 self.init_state.append([0.2 + 0.1 * i, 0.3 + 0.1 * j])
 
-        for i in range(5):
-            for j in range(20):
-                idx = i * 20 + j
-
-                self.state[idx * 2] = i * 0.02 + 0.35
-                self.state[idx * 2 + 1] = j * 0.02 + 0.3
-                self.oldstate[idx * 2] = i * 0.02 + 0.35
-                self.oldstate[idx * 2 + 1] = j * 0.02 + 0.3
-                self.agent.append(
-                    self.sim.addAgent((self.state[idx * 2], self.state[idx * 2 + 1]), 0.04, 100, 0.04, 0.04, 0.008, 1,
-                                      (0, 0)))
-
+        for i in range(self.n_robots):
+            self.agent.append(
+                self.sim.addAgent((random.uniform(-1, 1), random.uniform(-1, 1)), 0.04, 100, 0.04, 0.04, 0.008, 1,
+                                 (0, 0)))
+        for i in range(self.n_robots):
+            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 0.04, 100, 0.04, 0.04, 0.008, 1,
+                                 (0, 0))
         self.sim.addObstacle(
             [(0.2, 0.2), (0.54, 0.2), (0.54, 0.8), (0.2, 0.8), (0.2, 0.76), (0.5, 0.76), (0.5, 0.24), (0.2, 0.24)])
         self.sim.addObstacle([(0.04, 0.04), (0.04, 0.96), (0.96, 0.96), (0.96, 0.04)])
         self.sim.processObstacles()
+
+        self.multisim.addObstacle(
+            [(0.2, 0.2), (0.54, 0.2), (0.54, 0.8), (0.2, 0.8), (0.2, 0.76), (0.5, 0.76), (0.5, 0.24), (0.2, 0.24)])
+        self.multisim.addObstacle([(0.04, 0.04), (0.04, 0.96), (0.96, 0.96), (0.96, 0.04)])
+        self.multisim.processObstacles()
 
         self.dis = dijkstra(self.dx, find_grid_index([0.7, 0.5], self.dx), self.bdset).to(self.device)
         # self.dis.requires_grad=True

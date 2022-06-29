@@ -26,10 +26,12 @@ class MultiCollisionFreeLayer(Function):
         #env.sim.doStep()
         pv=env.multisim.getGradV()
         px=env.multisim.getGradX()
+
         for i in range(env.batch_size):
+
             partial_v[i] = torch.from_numpy(pv[i]).float()
             partial_x[i] = torch.from_numpy(px[i]).float()
-
+            print(torch.sum(partial_v[i]))
         for i in range(env.n_robots):
             pi=env.multisim.getAgentPosition(i)
             for b in range(env.batch_size):
@@ -37,7 +39,7 @@ class MultiCollisionFreeLayer(Function):
 
         #print(time.time() - t0)
         ctx.save_for_backward(partial_x, partial_v)
-        return torch.from_numpy(xNew).float().to(env.device)
+        return torch.from_numpy(xNew).float().to(env.device),partial_v
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -77,7 +79,7 @@ class CollisionFreeLayer(Function):
                 xNew[b, i * 2:i * 2 + 2] = env.sim.getAgentPosition(env.agent[i])
         #print(time.time()-t0)
         ctx.save_for_backward(partial_x, partial_v)
-        return torch.from_numpy(xNew).float().to(env.device)
+        return torch.from_numpy(xNew).float().to(env.device),partial_v
 
     @staticmethod
     def backward(ctx, grad_output):

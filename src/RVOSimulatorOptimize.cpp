@@ -320,7 +320,8 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     }
   }
   if(require_grad) {
-    sol.compute(h.sparseView());
+    //sol.compute(h.sparseView());
+    sol.compute(MatrixXd::Identity(x.size(), x.size()).sparseView());
     partialxStar_v=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_));
     partialxStar_x=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/(timeStep_*timeStep_)));
   }
@@ -390,9 +391,7 @@ void RVOSimulator::doNewtonStep(bool require_grad) {
   start=clock();
   size_t agent_size=static_cast<int>(agents_.size());
   VectorXd v(2*agent_size),x(2*agent_size),xNew(2*agent_size);
-#ifdef _OPENMP
-  #pragma omp parallel num_threads(number_of_threads)
-#endif
+
   for(size_t i=0; i<agent_size; i++) {
     v[i]=agents_[i]->prefVelocity_.x();
     v[i+agent_size]=agents_[i]->prefVelocity_.y();

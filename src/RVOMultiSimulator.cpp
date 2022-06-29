@@ -104,44 +104,44 @@ size_t RVOMultiSimulator::addObstacle(const std::vector<Vector2>& vertices) {
 }
 void RVOMultiSimulator::clearObstacle() {
   #pragma omp parallel for
-  for(auto& sim:_sims)
-    sim->clearObstacle();
+  for(size_t i=0; i<_sims.size(); i++)
+    _sims[i]->clearObstacle();
 }
 void RVOMultiSimulator::doStep() {
   #pragma omp parallel for
-  for(auto& sim:_sims)
-    sim->doStep();
+  for(size_t i=0; i<_sims.size(); i++)
+    _sims[i]->doStep();
 }
 void RVOMultiSimulator::computeAgents() {
   #pragma omp parallel for
-  for(auto& sim:_sims)
-    sim->computeAgents();
+  for(size_t i=0; i<_sims.size(); i++)
+    _sims[i]->computeAgents();
 }
 void RVOMultiSimulator::updateAgents() {
   #pragma omp parallel for
-  for(auto& sim:_sims)
-    sim->updateAgents();
+  for(size_t i=0; i<_sims.size(); i++)
+    _sims[i]->updateAgents();
 }
 void RVOMultiSimulator::doStepCar() {
   #pragma omp parallel for
-  for(auto& sim:_sims)
-    sim->doStepCar();
+  for(size_t i=0; i<_sims.size(); i++)
+    _sims[i]->doStepCar();
 }
 void RVOMultiSimulator::setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin) {
   #pragma omp parallel for
-  for(auto& sim:_sims)
-    sim->setNewtonParameters(maxIter,tol,d0,coef,alphaMin);
+  for(size_t i=0; i<_sims.size(); i++)
+    _sims[i]->setNewtonParameters(maxIter,tol,d0,coef,alphaMin);
 }
 void RVOMultiSimulator::doNewtonStep(bool require_grad) {
   #pragma omp parallel for
-  for(int i=0;i<100;i++)
-    std::cout<<i <<std::endl;
-  for(auto& sim:_sims)
-    sim->doNewtonStep(require_grad);
+  for(size_t i=0; i<_sims.size(); i++)
+    _sims[i]->doNewtonStep(require_grad);
 }
 const std::vector<Eigen::MatrixXd>& RVOMultiSimulator::getGradV() {
   for(size_t i=0; i<_sims.size(); i++)
+  {
     _gradVs[i]=_sims[i]->getGradV();
+  }
   return _gradVs;
 }
 const std::vector<Eigen::MatrixXd>& RVOMultiSimulator::getGradX() {

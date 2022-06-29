@@ -65,7 +65,7 @@ class PolicyNet(nn.Module):
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
                     nn.init.kaiming_uniform_(param, a=1e-3)
-            self.lr = 3e-4
+            self.lr = 1e-3
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
         self.CFLayer = CollisionFreeLayer.apply
@@ -100,9 +100,12 @@ class PolicyNet(nn.Module):
         v = self.env.get_velocity(state, velocity)
         v = self.switch(v, state, target)
         if training:
-            xNew = self.MultiCFLayer(self.env, state, v)
+            xNew,v1 = self.MultiCFLayer(self.env, state, v)
+            test,v2=self.CFLayer(self.env, state, v)
+            #print(torch.sum(torch.abs(v1-v2)))
+            print(torch.sum(torch.abs(v1)),torch.sum(torch.abs(v2)))
         else:
-            xNew = self.CFLayer(self.env, state, v)
+            xNew,_ = self.CFLayer(self.env, state, v)
 
         return xNew
 
@@ -259,8 +262,8 @@ if __name__ == '__main__':
 
     batch_size = 64
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
-    sim = rvo2.PyRVOSimulator(1 / 200., 0.03, 5, 0.04, 0.04, 0.01, 2)
-    multisim = rvo2.PyRVOMultiSimulator(batch_size,1 / 200., 0.03, 5, 0.04, 0.04, 0.01, 2)
+    sim = rvo2.PyRVOSimulator(3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
+    multisim = rvo2.PyRVOMultiSimulator(batch_size,3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
 
     env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM)
 
@@ -268,7 +271,7 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
-    #policy.actor = torch.load('model/model_20.pth')
+    #policy.actor = torch.load('model/model_12.pth')
     # init sample
     # policy.eval()
     policy.init_sample()

@@ -34,7 +34,7 @@ cmake_minimum_required(VERSION 2.8)
 project(RVO)
 
 set(CMAKE_BUILD_TYPE “Release”)
-set(CMAKE_CXX_FLAGS "-std=c++14 ${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS " -fPIC -std=c++14  -O3")
 message(STATUS "Using compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
 include(CTest)

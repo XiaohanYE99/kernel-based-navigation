@@ -1,10 +1,10 @@
 import numpy as np
+
 import scipy as sp
 import scipy.sparse
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.path
-from robot_envs.sparse_solver import *  # SparseSolve
 import time
 from torch.autograd import Function
 
@@ -21,6 +21,9 @@ import heapq
 from torch.autograd import Variable
 import torch.nn.functional as F
 
+from robot_envs.sparse_solver import SparseSolve
+from robot_envs.viewer import Viewer
+
 # extract some functions for easy calling
 
 pi = np.pi
@@ -30,55 +33,29 @@ def find_grid_index(pos, dx):
     return int((pos[1] + 0.1 * dx) / dx) * 100 + int((pos[0] + 0.1 * dx) / dx)
 
 
-# @njit(parallel=True)
-def P2G(state, state_p, n_robots, dx):
-    for i in prange(n_robots):
-        x = int(state[i * 2] // dx)
-        y = int(state[i * 2 + 1] // dx)
-        state_p[0][x][y] = 1.0
-    return state_p
+def make_ccw(pts):
+    is_ccw = False
+    for i in range(len(pts)):
+        iLast = (i + len(pts) - 1) % len(pts)
+        dirLast = (pts[i][0] - pts[iLast][0], pts[i][1] - pts[iLast][1])
 
+        iNext = (i + 1) % len(pts)
+        dirNext = (pts[iNext][0] - pts[i][0], pts[iNext][1] - pts[i][1])
 
-def get_angle(v1, v2):
-    dx1 = v1[0]
-    dy1 = v1[1]
-    dx2 = v2[0]
-    dy2 = v2[1]
-    angle1 = math.atan2(dy1, dx1)
-    angle1 = int(angle1 * 180 / math.pi)
-    # print(angle1)
-    angle2 = math.atan2(dy2, dx2)
-    angle2 = int(angle2 * 180 / math.pi)
-    # print(angle2)
-    if angle1 * angle2 >= 0:
-        included_angle = abs(angle1 - angle2)
+        nLast = (-dirLast[1], dirLast[0])
+        dotLastNext = nLast[0] * dirNext[0] + nLast[1] * dirNext[1]
+        if dotLastNext > 0:
+            is_ccw = True
+        elif dotLastNext < 0:
+            is_ccw = False
+            break
+
+    if not is_ccw:
+        return [pts[len(pts) - 1 - i] for i in range(len(pts))]
     else:
-        included_angle = abs(angle1) + abs(angle2)
-        if included_angle > 180:
-            included_angle = 360 - included_angle
-    return included_angle
+        return pts
 
 
-def dist(pos, aim):
-    dis = pos - aim
-    return np.sqrt(dis[0] * dis[0] + dis[1] * dis[1])
-
-
-def getdis(p1, p2, p):
-    a = p2[1] - p1[1]
-    b = p1[0] - p2[0]
-    c = p2[0] * p1[1] - p1[0] * p2[1]
-    return math.fabs(a * p[0] + b * p[1] + c) / pow(a * a + b * b, 0.5)
-
-
-def isIn(p1, p2, p, radius):
-    if dist(p1, p) < radius:
-        return 1
-    if dist(p2, p) < radius:
-        return 1
-    if getdis(p1, p2, p) < radius:
-        return 1
-    return 0
 
 
 def get_reward(n_robots, aim, state, oldstate, angle, dis, dx):
@@ -177,13 +154,16 @@ def dijkstra(dx, start, bdset):
 
 
 class NavigationEnvs():
-    def __init__(self, batch_size,gui, sim, multisim,use_kernel_loop, use_sparse_FEM):
+    def __init__(self, batch_size,gui, sim, multisim,use_kernel_loop, use_sparse_FEM,fn=None):
+
         self.batch_size=batch_size
         self.sim = sim
         self.multisim=multisim
         self.gui = gui
         self.use_kernel_loop = use_kernel_loop
         self.use_sparse_FEM = use_sparse_FEM
+        self.current_obs=[]
+        self.viewer=None
 
         self.sim.setNewtonParameters(100, 1e-0, 1e-3, 1e5, 1e-6)
         self.multisim.setNewtonParameters(100, 1e-0, 1e-3, 1e5, 1e-6)
@@ -283,7 +263,7 @@ class NavigationEnvs():
 
         self.dis = dijkstra(self.dx, find_grid_index([0.7, 0.5], self.dx), self.bdset).to(self.device)
         # self.dis.requires_grad=True
-        self.FEM_init()
+        #self.FEM_init()
         self.sparsesolve = SparseSolve.apply
         torch.cuda.empty_cache()
         '''
@@ -293,60 +273,57 @@ class NavigationEnvs():
                 self.dis[idx] = 0
         self.o = 0
         '''
-    def reset(self):
-        self.suc = 0
-        self.cnt = 0
-        self.div = np.ones(self.n_robots)
-        self.noactive = np.zeros(self.n_robots)
-        self.vis = np.zeros(self.n_robots)
-        o = random.sample(range(0, 15), 4)
-        # o.sort()
-        # o=[5,8,9,10]
+        self.load_roadmap(fn)
+    def load_roadmap(self,fn):
+        import pickle
+        obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
+        self.reset(current_obs=obs, wind_size=wind_size)
 
-        idx = 0
-        for k in o:
-            for i in range(5):
-                for j in range(5):
-                    self.state[idx * 2:idx * 2 + 2] = [0.02 * i + self.init_state[k][0],
-                                                       0.02 * j + self.init_state[k][1]]
-                    self.oldstate[idx * 2:idx * 2 + 2] = [0.02 * i + self.init_state[k][0],
-                                                          0.02 * j + self.init_state[k][1]]
-                    # self.agent.append(self.sim.addAgent((self.state[idx*2], self.state[idx*2+1]), 0.04, 5, 0.04, 0.04, 0.01, 2, (0, 0)))
-                    self.sim.setAgentPosition(self.agent[idx], (self.state[idx * 2], self.state[idx * 2 + 1]))
-                    idx += 1
-        '''
-        for i in range(50):
-            for j in range(50):
-                idx=int(50*i+j)
-                self.state[idx*2:idx*2+2]=np.array([0.02*i,0.02*j+0.01])
-        for i in range(50):
-            for j in range(50):
-                idx=int(50*i+j+2500)
-                self.state[idx*2:idx*2+2]=np.array([0.02*i+0.01,0.02*j])
-            '''
-        return self.state  # np.append(self.state,np.zeros(2*self.n_robots))
+    def reset_viewer(self):
+        for i in range(self.n_robots):
+            self.viewer.add_agent((self.state[i*2], self.state[i*2+1]), 0.008)
+        #for p in self.goal_positions:
+        #    self.viewer.add_goal((p[0], p[1]), self.agent_radius)
+        for obs in self.current_obs:
+            obs_toadd = []
+            for points in obs:
+                print(points)
+                obs_toadd += [points[0], points[1]]
+            self.viewer.add_obs(obs_toadd)
+        if hasattr(self, 'sensor'):
+            self.viewer.sensor = self.sensor
+
+    def render(self):
+
+        if self.viewer is None:
+            self.viewer = Viewer(wind_size=(700,700))
+            self.viewer.env = self
+            self.reset_viewer()
+
+        for i in range(self.n_robots):
+            self.viewer.agent_pos_array[i] = (self.state[i*2], self.state[i*2+1])
+
+        self.viewer.render()
+    def reset(self,current_obs=None,wind_size=(1,1)):
+        self.cnt=0
+
+        if current_obs is not None:
+            self.sim.clearObstacle()
+            self.current_obs=[]
+            for obs in current_obs:
+                self.current_obs.append(obs)
+                self.sim.addObstacle(make_ccw([tuple(p/np.array(wind_size)) for p in obs]))
+                print(make_ccw([tuple(p/np.array(wind_size)) for p in obs]))
+            self.sim.processObstacles()
+        if self.viewer is not None:
+            self.viewer.reset_array()
+            self.reset_viewer()
+        #return self.state  # np.append(self.state,np.zeros(2*self.n_robots))
 
     def find_grid_index(self):
         pos = self.state.reshape([self.n_robots, 2])
         self.in_grid = (pos[:, 1] / self.dx).astype(np.int32) * self.size + (pos[:, 0] / self.dx).astype(np.int32)
 
-    def render(self):
-        pos = self.state.reshape([-1, 2])
-        bd = np.array(self.aim).reshape([-1, 2])
-        q = np.zeros([self.N, 2])
-        for i in range(self.N):
-            q[i] = [self.x0[i], self.y0[i]]
-        self.gui.circles(q, radius=3, color=0x068587)
-        self.gui.circles(pos, radius=4, color=0xF7EED6)
-        self.gui.circles(bd, radius=10, color=0xF4A460)
-
-        self.gui.rect([0.5, 0.2], [0.54, 0.8], radius=1, color=0xF4A460)
-        self.gui.rect([0.2, 0.2], [0.5, 0.24], radius=1, color=0xF4A460)
-        self.gui.rect([0.2, 0.76], [0.5, 0.8], radius=1, color=0xF4A460)
-
-        self.gui.lines(begin=pos, end=pos + 0.04 * self.deltap, radius=1, color=0x068587)
-        # self.gui.show('img/06d.png')
-        self.gui.show()
 
     def FEM_init(self):
         mask = torch.zeros([self.size_x, self.size_y])
@@ -438,34 +415,6 @@ class NavigationEnvs():
 
         return I  # torch.cat((I,target_map),1)
 
-    def apply(self, state, action):
-        k = action.size(0)
-
-        x0 = action[:, ::4].unsqueeze(2)
-        y0 = action[:, 1::4].unsqueeze(2)
-        alpha = (action[:, 2::4].unsqueeze(2)) * 29.0 + 1.0
-        omega = action[:, 3::4].unsqueeze(2)
-
-        ux = state[:, ::2].unsqueeze(0)
-        uy = state[:, 1::2].unsqueeze(0)
-
-        r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)) + self.eps
-
-        vel_x = (torch.sum(-0.1 * (alpha + 1) * (2 * omega - 1) * torch.exp(-alpha * r) * (uy - y0) / r,
-                           dim=1))
-        vel_y = (torch.sum(0.1 * (alpha + 1) * (2 * omega - 1) * torch.exp(-alpha * r) * (ux - x0) / r,
-                           dim=1))
-        rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y)
-        energy = (torch.mean(rr, 1) + self.eps)
-        vel_x = vel_x / energy
-        vel_y = vel_y / energy
-        rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y)
-        rr = F.relu(rr / 2.0 - 1.0) + 1.0
-
-        # print(time.time()-t0)
-        # print(vel_y.size())
-
-        return torch.cat((vel_x / rr, vel_y / rr), 1)  # .squeeze(2)
 
     def projection(self, action):
         # print(action.requires_grad)
@@ -640,7 +589,6 @@ class NavigationEnvs():
         for i in range(self.n_robots):
             self.oldvel[i * 2:i * 2 + 2] = self.vel[i * 2:i * 2 + 2]
             self.vel[i * 2:i * 2 + 2] = self.state[i * 2:i * 2 + 2] - self.oldstate[i * 2:i * 2 + 2]
-            self.angle[i] = get_angle(self.vel[i * 2:i * 2 + 2], self.oldvel[i * 2:i * 2 + 2])
 
         reward1, reward2 = get_reward(self.n_robots, self.aim, self.state, self.oldstate, self.angle, self.dis, self.dx)
         reward = reward1  # +reward2

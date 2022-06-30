@@ -8,7 +8,7 @@ from torch.distributions import Categorical
 import random
 
 
-import rvo2
+import rvo2,pyglet
 from robot_envs.robot_env import *
 from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
@@ -16,9 +16,9 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.1
                  , horizon=150
-                 , num_sample_steps=1#2
+                 , num_sample_steps=12
                  , num_pre_steps=10
-                 , num_train_steps=64#* 25
+                 , num_train_steps=64* 25
                  , num_init_step=0
                  , buffer_size=1800
                  , batch_size=64):
@@ -65,7 +65,7 @@ class PolicyNet(nn.Module):
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
                     nn.init.kaiming_uniform_(param, a=1e-3)
-            self.lr = 1e-3
+            self.lr = 3e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
         self.CFLayer = CollisionFreeLayer.apply
@@ -100,12 +100,9 @@ class PolicyNet(nn.Module):
         v = self.env.get_velocity(state, velocity)
         v = self.switch(v, state, target)
         if training:
-            xNew,v1 = self.MultiCFLayer(self.env, state, v)
-            test,v2=self.CFLayer(self.env, state, v)
-            #print(torch.sum(torch.abs(v1-v2)))
-            print(torch.sum(torch.abs(v1)),torch.sum(torch.abs(v2)))
+            xNew = self.MultiCFLayer(self.env, state, v)
         else:
-            xNew,_ = self.CFLayer(self.env, state, v)
+            xNew = self.CFLayer(self.env, state, v)
 
         return xNew
 
@@ -265,8 +262,12 @@ if __name__ == '__main__':
     sim = rvo2.PyRVOSimulator(3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
     multisim = rvo2.PyRVOMultiSimulator(batch_size,3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
 
-    env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM)
-
+    env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM,fn="./robot_envs/mazes_g100w700h700_Var10/maze18.dat")
+    def step(dt):
+        env.render()
+    pyglet.clock.schedule_interval(step,1.0/60)
+    pyglet.app.run()
+    '''
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
@@ -276,7 +277,7 @@ if __name__ == '__main__':
     # policy.eval()
     policy.init_sample()
     for i in range(iter):
-        if i in [15, 45]:
+        if i in [30, 70]:
             policy.lr *= 0.3
         #policy.eval()
         policy.sample(False)
@@ -289,3 +290,4 @@ if __name__ == '__main__':
         print('iter= ', i, 'loss= ', loss)
         if i % 1 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)
+    '''

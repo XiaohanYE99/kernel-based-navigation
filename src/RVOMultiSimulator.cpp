@@ -137,17 +137,12 @@ void RVOMultiSimulator::doNewtonStep(bool require_grad) {
   for(size_t i=0; i<_sims.size(); i++)
     _sims[i]->doNewtonStep(require_grad);
 }
-const std::vector<Eigen::MatrixXd>& RVOMultiSimulator::getGradV() {
-  for(size_t i=0; i<_sims.size(); i++)
-  {
-    _gradVs[i]=_sims[i]->getGradV();
-  }
-  return _gradVs;
+const Eigen::MatrixXd& RVOMultiSimulator::getGradV(size_t i) {
+
+  return _sims[i]->getGradV();
 }
-const std::vector<Eigen::MatrixXd>& RVOMultiSimulator::getGradX() {
-  for(size_t i=0; i<_sims.size(); i++)
-    _gradXs[i]=_sims[i]->getGradX();
-  return _gradXs;
+const Eigen::MatrixXd& RVOMultiSimulator::getGradX(size_t i) {
+  return _sims[i]->getGradX();
 }
 size_t RVOMultiSimulator::getAgentMaxNeighbors(size_t agentNo) const {
   return _sims[0]->getAgentMaxNeighbors(agentNo);

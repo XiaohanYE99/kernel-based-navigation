@@ -320,8 +320,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     }
   }
   if(require_grad) {
-    //sol.compute(h.sparseView());
-    sol.compute(MatrixXd::Identity(x.size(), x.size()).sparseView());
+    sol.compute((MatrixXd::Identity(x.size(), x.size())*minPertubation+h).sparseView());
     partialxStar_v=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_));
     partialxStar_x=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/(timeStep_*timeStep_)));
   }

@@ -133,8 +133,8 @@ cdef extern from "RVOMultiSimulator.h" namespace "RVO":
         void setTimeStep(double timeStep)
         void setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin)
 
-        const vector[MatrixXd]& getGradV()
-        const vector[MatrixXd]& getGradX()
+        const MatrixXd &getGradV(size_t i)
+        const MatrixXd &getGradX(size_t i)
 
 cdef class PyRVOSimulator:
     cdef RVOSimulator *thisptr
@@ -454,9 +454,7 @@ cdef class PyRVOMultiSimulator:
     #def shouldUpdate(self):
     #    return self.thisptr.shouldUpdate()
 
-    def getGradV(self):
-        cdef vector[MatrixXd] gradV = self.thisptr.getGradV()
-        return [ndarray_view(gradV[i]) for i in range(self.batch)]
-    def getGradX(self):
-        cdef vector[MatrixXd] gradX = self.thisptr.getGradX()
-        return [ndarray_view(gradX[i]) for i in range(self.batch)]
+    def getGradV(self,size_t i):
+        return ndarray_view(self.thisptr.getGradV(i))
+    def getGradX(self,size_t i):
+        return ndarray_view(self.thisptr.getGradX(i))

@@ -99,6 +99,7 @@ class PolicyNet(nn.Module):
 
         v = self.env.get_velocity(state, velocity)
         v = self.switch(v, state, target)
+
         if training:
             xNew = self.MultiCFLayer(self.env, state, v)
         else:
@@ -124,28 +125,6 @@ class PolicyNet(nn.Module):
 
     def forward(self):
         raise NotImplementedError
-
-    '''
-    def train(self):
-        loss_sum=0
-        init_state=random.sample(self.buffer,self.num_train_steps)
-        for state in init_state:
-            loss=0
-            state=state.to(device)
-            state.requires_grad=True
-            #s=state
-            for step in range(self.num_pre_steps):
-                state = policy.implement(state)
-                #self.env.MBStep(state,render=False)
-                loss += self.env.MBLoss(state)
-            self.opt.zero_grad()
-            loss.backward()
-            print(state.grad)
-            self.opt.step()
-            #print(loss.item())
-            loss_sum+=loss.item()
-        return loss_sum/self.num_train_steps
-        '''
 
     def reset_env(self):
         self.env.cnt = 0
@@ -205,7 +184,7 @@ class PolicyNet(nn.Module):
     def sample(self, use_random_policy=False):
 
         for i in range(self.num_sample_steps):
-            state = self.env.reset()
+            state = self.env.reset_agent()
             # state=self.reset_env()
             state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
             for step in range(self.horizon):
@@ -230,7 +209,7 @@ class PolicyNet(nn.Module):
 
     def test(self):
         for i in range(self.num_sample_steps):
-            state = self.env.reset()
+            state = self.env.reset_agent()
             # state = self.reset_env()
             state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
             for step in range(self.horizon):
@@ -262,12 +241,8 @@ if __name__ == '__main__':
     sim = rvo2.PyRVOSimulator(3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
     multisim = rvo2.PyRVOMultiSimulator(batch_size,3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
 
-    env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM,fn="./robot_envs/mazes_g100w700h700_Var10/maze18.dat")
-    def step(dt):
-        env.render()
-    pyglet.clock.schedule_interval(step,1.0/60)
-    pyglet.app.run()
-    '''
+    env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM,fn="./robot_envs/mazes_g100w700h700/maze18.dat")
+
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
@@ -275,13 +250,13 @@ if __name__ == '__main__':
     #policy.actor = torch.load('model/model_12.pth')
     # init sample
     # policy.eval()
-    policy.init_sample()
+    #policy.init_sample()
     for i in range(iter):
         if i in [30, 70]:
             policy.lr *= 0.3
         #policy.eval()
         policy.sample(False)
-
+        pyglet.app.run()
         # policy.test()
         policy.train()
         loss = 0
@@ -290,4 +265,3 @@ if __name__ == '__main__':
         print('iter= ', i, 'loss= ', loss)
         if i % 1 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)
-    '''

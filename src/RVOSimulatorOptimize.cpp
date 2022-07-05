@@ -172,7 +172,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef);	//this can be infinite or nan
+                coef*10);	//this can be infinite or nan
         double px=obstacle1->point_.x();
         double py=obstacle1->point_.y();
         if(g) {
@@ -194,7 +194,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef);	//this can be infinite or nan
+                coef*10);	//this can be infinite or nan
         double px=obstacle2->point_.x();
         double py=obstacle2->point_.y();
         if(g) {
@@ -216,7 +216,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef);	//this can be infinite or nan
+                coef*10);	//this can be infinite or nan
         double px=obstacle1->point_.x()+s*obstacleVector.x();
         double py=obstacle1->point_.y()+s*obstacleVector.y();
         if(g) {

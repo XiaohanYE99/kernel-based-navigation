@@ -16,12 +16,12 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.1
                  , horizon=150
-                 , num_sample_steps=12
-                 , num_pre_steps=10
-                 , num_train_steps=64* 25
+                 , num_sample_steps=1
+                 , num_pre_steps=5
+                 , num_train_steps=128
                  , num_init_step=0
-                 , buffer_size=1800
-                 , batch_size=64):
+                 , buffer_size=150
+                 , batch_size=128):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
         self.action_var = torch.full((action_dim,), action_std_init * action_std_init).to(device)
@@ -42,7 +42,7 @@ class PolicyNet(nn.Module):
             self.action_dim = action_dim
         # actor
         if has_continuous_action_space:
-
+            '''
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, 64),
                 nn.ReLU(),
@@ -55,13 +55,13 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(1, 8, 7, 2, 3),  nn.BatchNorm2d(8),nn.ReLU(),  # [50,50,8]
-                nn.Conv2d(8, 12, 5, 2, 2),nn.BatchNorm2d(12), nn.ReLU(),  # [25,25,16]
-                nn.Conv2d(12, 20, 5, 2, 2), nn.BatchNorm2d(20),nn.ReLU(), nn.Flatten(),  # [13,13,32]
-                nn.Linear(20 * 13 * 13, 128),nn.ReLU(),
+                nn.Conv2d(2, 8, 7, 2, 3), nn.BatchNorm2d(8), nn.LeakyReLU(0.1),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12),nn.LeakyReLU(0.1),  # [25,25,16]
+                nn.Conv2d(12, 20, 5, 2, 2),nn.BatchNorm2d(20),nn.LeakyReLU(0.1), nn.Flatten(),  # [13,13,32]
+                nn.Linear(20 * 13 * 13, 128),nn.LeakyReLU(0.1),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
-            '''
+
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
                     nn.init.kaiming_uniform_(param, a=1e-3)
@@ -80,7 +80,7 @@ class PolicyNet(nn.Module):
         alpha=1.0-F.relu(1.0-alpha)
         alpha=torch.cat((alpha,alpha),1)
         #print(alpha)
-        return (1.0-alpha)*v+alpha*(-torch.cat((x/r,y/r),1))
+        return (1.0-alpha)*v+alpha*(-1.2*torch.cat((x/r,y/r),1))
 
 
     def implement(self, state, target,training):
@@ -89,7 +89,7 @@ class PolicyNet(nn.Module):
 
         # action = self.controller(I)
 
-        action = torch.squeeze(self.actor(state), 1)
+        action = torch.squeeze(self.actor(I), 1)
 
         for i in range(self.env.N):
             self.env.x0[i] = action[0][5 * i]
@@ -154,6 +154,7 @@ class PolicyNet(nn.Module):
         init_target = random.sample(self.target_buffer, self.num_train_steps)
         t = int(self.num_train_steps / self.batch_size)
         for i in range(t):
+
             state_batch = np.array(init_state[i * self.batch_size:(i + 1) * self.batch_size],
                                    dtype=np.float32).squeeze()
             target = np.array(init_target[i * self.batch_size:(i + 1) * self.batch_size],
@@ -169,6 +170,7 @@ class PolicyNet(nn.Module):
                 # s=xNew
             loss = self.env.MBLoss(s, state)
             self.opt.zero_grad()
+            #with torch.autograd.detect_anomaly():
             loss.backward()
             #print(state.grad)
             self.opt.step()
@@ -216,10 +218,13 @@ class PolicyNet(nn.Module):
                 with torch.no_grad():
                     state = policy.implement(state)
                     self.env.MBStep(state)
-
+    def reset(self,path='./robot_envs/mazes_g100w700h700/maze'):
+        idx=random.randint(0,1000)
+        fn=path+str(idx)+'.dat'
+        self.env.load_roadmap(fn)
 
 if __name__ == '__main__':
-    iter = 100
+    iter = 1000
     steps = 100
     target_x = 0.7
     target_y = 0.5
@@ -241,22 +246,23 @@ if __name__ == '__main__':
     sim = rvo2.PyRVOSimulator(3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
     multisim = rvo2.PyRVOMultiSimulator(batch_size,3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
 
-    env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM,fn="./robot_envs/mazes_g100w700h700/maze18.dat")
+    env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM)
 
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
-    #policy.actor = torch.load('model/model_12.pth')
+    #policy.actor = torch.load('model/model_96.pth')
     # init sample
     # policy.eval()
     #policy.init_sample()
     for i in range(iter):
-        if i in [30, 70]:
+        if i in [300, 800]:
             policy.lr *= 0.3
         #policy.eval()
+        policy.reset()
         policy.sample(False)
-        pyglet.app.run()
+
         # policy.test()
         policy.train()
         loss = 0
@@ -265,3 +271,4 @@ if __name__ == '__main__':
         print('iter= ', i, 'loss= ', loss)
         if i % 1 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)
+    pyglet.app.run()

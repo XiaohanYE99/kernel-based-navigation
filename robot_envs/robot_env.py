@@ -118,7 +118,10 @@ def obstacleMap(grid_size,dx,obstacles,wind_size):
             pos0=[(i)*dx,(j)*dx]
             for obs in obstacles:
                 if is_in_poly(pos0,obs/wind_size):
-                    obs_map[i,j]=obs_map[i-1,j]=obs_map[i,j-1]=obs_map[i-1,j-1]=1.0
+                    obs_map[i,j]+=0.25
+                    obs_map[i-1,j]+=0.25
+                    obs_map[i,j-1]+=0.25
+                    obs_map[i-1,j-1]+=0.25
                     break
 
     return obs_map
@@ -136,7 +139,7 @@ def dijkstra(dx, start, obs_map):
     L.append([dx, -dx, 0.1414])
     L.append([-dx, dx, 0.1414])
     L.append([-dx, -dx, 0.1414])
-    for i in range(40000):
+    for i in range(12000):
         G[i] = {}
     while x < 0.99:
         y = dx
@@ -146,12 +149,13 @@ def dijkstra(dx, start, obs_map):
                 flag = 1
                 tx = x + L[i][0]
                 ty = y + L[i][1]
-
-                if obs_map[int(tx/dx),int(ty/dx)]==0:
+                ix=int(tx/dx)
+                iy=int(ty/dx)
+                if obs_map[ix,iy]==0:
                     G[idx][find_grid_index([tx, ty], dx)] = L[i][2]
             y += dx
         x += dx
-    INF = 100  # 999999999
+    INF = 999999999
 
     dis = dict((key, INF) for key in G)
     dis[start] = 0
@@ -180,7 +184,6 @@ def dijkstra(dx, start, obs_map):
                 path[node] = temp
 
     diss = list(dis.values())
-
     return torch.tensor(diss, dtype=torch.float32)
 
 
@@ -266,7 +269,6 @@ class NavigationEnvs():
                                  (0, 0))
 
         self.sparsesolve = SparseSolve.apply
-        torch.cuda.empty_cache()
 
 
     def load_roadmap(self,fn):
@@ -278,6 +280,7 @@ class NavigationEnvs():
         obs.append(Viewer.get_box_ll(x=14, y=700, lowerleft=(0, 0)))
         self.reset(current_obs=obs, wind_size=wind_size)
         self.FEM_init()
+        torch.cuda.empty_cache()
 
     def reset_viewer(self):
         for i in range(self.n_robots):
@@ -362,7 +365,8 @@ class NavigationEnvs():
             self.obs_map=obstacleMap([self.size_x,self.size_y],self.dx,self.current_obs,np.array(self.wind_size))
             self.reset_init_agent()
             self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
-            self.get_target_map()
+            self.dis[self.dis>100]=0
+            #self.get_target_map()
 
         if self.viewer is not None:
             self.viewer.reset_array()
@@ -385,7 +389,7 @@ class NavigationEnvs():
         self.mask_y = torch.ones([self.size_x, self.size_y + 1], dtype=torch.float32).to(self.device)
         for i in range(self.size_x):
             for j in range(self.size_y):
-                if self.obs_map[i,j]==1:
+                if self.obs_map[i,j]>0:
                     mask[i, j] = 1
         for i in range(self.size_x):
             for j in range(self.size_y):
@@ -441,13 +445,15 @@ class NavigationEnvs():
         I = torch.zeros((pos.size(0), 1, self.size_x, self.size_y)).to(self.device)
         #target_map = torch.zeros_like(I).to(self.device)
         #target_map[:,0,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=50
+        '''
         target_map=self.target_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
         target_map[target_map>=10]=10
         target_map/=10
+        '''
         obs_map=self.obs_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
-        add_map=torch.cat((target_map,obs_map),1)
+        #add_map=torch.cat((target_map,obs_map),1)
         obs_map.requires_grad=True
 
         for i in range(pos.size(0)):
@@ -459,10 +465,10 @@ class NavigationEnvs():
             alphax = px - idx * self.dx
             alphay = py - idy * self.dx
 
-            I[i, 0, idx.long() + 1, idy.long() + 1] += 5*alphax * alphay
-            I[i, 0, idx.long(), idy.long() + 1] += 5*(1 - alphax) * alphay
-            I[i, 0, idx.long() + 1, idy.long()] += 5*alphax * (1 - alphay)
-            I[i, 0, idx.long(), idy.long()] += 5*(1 - alphax) * (1 - alphay)
+            I[i, 0, idx.long() + 1, idy.long() + 1] += 1*alphax * alphay
+            I[i, 0, idx.long(), idy.long() + 1] += 1*(1 - alphax) * alphay
+            I[i, 0, idx.long() + 1, idy.long()] += 1*alphax * (1 - alphay)
+            I[i, 0, idx.long(), idy.long()] += 1*(1 - alphax) * (1 - alphay)
 
             # target[i,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
         # I+=target
@@ -490,14 +496,14 @@ class NavigationEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)+ self.eps)
 
-            velocity_x = (torch.sum(0.5*(0.3*alpha+1)*phix  * torch.exp(-alpha * r) ,
+            velocity_x = (torch.sum((0.3*alpha+1)*phix  * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)+ self.eps)
-            velocity_y = (torch.sum(0.5*(0.3*alpha+1)*phiy * torch.exp(-alpha * r) ,
+            velocity_y = (torch.sum((0.3*alpha+1)*phiy * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
@@ -574,7 +580,7 @@ class NavigationEnvs():
         vel_y = vel_y / energy
 
         rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y+ self.eps)
-        rr = F.relu(rr / 2.0 - 1.0) + 1.0
+        #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
         return 1.5*torch.cat((vel_x / rr, vel_y / rr), 1)  # .squeeze(2)
 

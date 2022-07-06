@@ -15,13 +15,13 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.1
-                 , horizon=150
+                 , horizon=160
                  , num_sample_steps=1
                  , num_pre_steps=5
-                 , num_train_steps=128
+                 , num_train_steps=160
                  , num_init_step=0
-                 , buffer_size=150
-                 , batch_size=128):
+                 , buffer_size=160
+                 , batch_size=160):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
         self.action_var = torch.full((action_dim,), action_std_init * action_std_init).to(device)
@@ -56,16 +56,17 @@ class PolicyNet(nn.Module):
             '''
             self.actor = nn.Sequential(
                 nn.Conv2d(2, 8, 7, 2, 3), nn.BatchNorm2d(8), nn.LeakyReLU(0.1),  # [50,50,8]
-                nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12),nn.LeakyReLU(0.1),  # [25,25,16]
-                nn.Conv2d(12, 20, 5, 2, 2),nn.BatchNorm2d(20),nn.LeakyReLU(0.1), nn.Flatten(),  # [13,13,32]
-                nn.Linear(20 * 13 * 13, 128),nn.LeakyReLU(0.1),
+                nn.Conv2d(8, 16, 5, 2, 2), nn.BatchNorm2d(16), nn.LeakyReLU(0.1),  # [25,25,16]
+                nn.Conv2d(16, 32, 5, 2, 2), nn.BatchNorm2d(32), nn.LeakyReLU(0.1),  # [13,13,32]
+                nn.Conv2d(32, 64, 3, 2, 1),nn.BatchNorm2d(64), nn.LeakyReLU(0.1), nn.Flatten(),  # [7,7,64]
+                nn.Linear(64 * 7 * 7, 128),nn.LeakyReLU(0.1),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
                     nn.init.kaiming_uniform_(param, a=1e-3)
-            self.lr = 3e-4
+            self.lr = 1e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
         self.CFLayer = CollisionFreeLayer.apply
@@ -125,27 +126,6 @@ class PolicyNet(nn.Module):
 
     def forward(self):
         raise NotImplementedError
-
-    def reset_env(self):
-        self.env.cnt = 0
-        self.env.target = random.randint(1, 4)
-        if self.env.target == 1:
-            self.env.aim = [0.1, 0.5]
-        elif self.env.target == 2:
-            self.env.aim = [0.9, 0.5]
-        elif self.env.target == 3:
-            self.env.aim = [0.5, 0.1]
-        elif self.env.target == 4:
-            self.env.aim = [0.5, 0.9]
-        # self.env.aim = [0.5, 0.9]
-        for i in range(5):
-            for j in range(5):
-                idx = i * 5 + j
-                self.env.state[idx * 2:idx * 2 + 2] = [0.46 + i * 0.02, 0.46 + j * 0.02]
-                self.env.sim.setAgentPosition(self.env.agent[idx],
-                                              (self.env.state[idx * 2], self.env.state[idx * 2 + 1]))
-
-        return self.env.state
 
     def update(self):
 
@@ -219,7 +199,7 @@ class PolicyNet(nn.Module):
                     state = policy.implement(state)
                     self.env.MBStep(state)
     def reset(self,path='./robot_envs/mazes_g100w700h700/maze'):
-        idx=random.randint(0,1000)
+        idx=random.randint(0,50)
         fn=path+str(idx)+'.dat'
         self.env.load_roadmap(fn)
 
@@ -241,7 +221,7 @@ if __name__ == '__main__':
     use_kernel_loop = False  # calculating grid velocity with kernel loop
     use_sparse_FEM = False  # use sparse FEM solver
 
-    batch_size = 64
+    batch_size = 160
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
     sim = rvo2.PyRVOSimulator(3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
     multisim = rvo2.PyRVOMultiSimulator(batch_size,3 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
@@ -252,10 +232,11 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
-    #policy.actor = torch.load('model/model_96.pth')
+    #policy.actor = torch.load('model/model_996.pth')
     # init sample
     # policy.eval()
     #policy.init_sample()
+    sumloss=0
     for i in range(iter):
         if i in [300, 800]:
             policy.lr *= 0.3
@@ -264,11 +245,16 @@ if __name__ == '__main__':
         policy.sample(False)
 
         # policy.test()
-        policy.train()
+        #policy.train()
         loss = 0
         for k in range(1):
             loss += policy.update()
+        torch.cuda.empty_cache()
         print('iter= ', i, 'loss= ', loss)
+        sumloss+=loss.item()
         if i % 1 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)
+        if i%50==0:
+            print('iter=',i,'sumloss= ',sumloss/50)
+            sumloss=0
     pyglet.app.run()

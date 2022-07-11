@@ -172,7 +172,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef*10);	//this can be infinite or nan
+                coef*100);	//this can be infinite or nan
         double px=obstacle1->point_.x();
         double py=obstacle1->point_.y();
         if(g) {
@@ -194,7 +194,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef*10);	//this can be infinite or nan
+                coef*100);	//this can be infinite or nan
         double px=obstacle2->point_.x();
         double py=obstacle2->point_.y();
         if(g) {
@@ -216,7 +216,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef*10);	//this can be infinite or nan
+                coef*100);	//this can be infinite or nan
         double px=obstacle1->point_.x()+s*obstacleVector.x();
         double py=obstacle1->point_.y()+s*obstacleVector.y();
         if(g) {
@@ -244,7 +244,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
   int nBarrier,iter;
   double maxPerturbation=1e2;
   double minPertubation=1e-9;
-  double perturbation=1;
+  double perturbation=1e-8;
   double perturbationDec=0.8;
   double perturbationInc=2.0;
   //Eigen::SimplicialLDLT<Eigen::SparseMatrix<double,0,int>> invH,invB;
@@ -320,9 +320,11 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     }
   }
   if(require_grad) {
-    sol.compute((MatrixXd::Identity(x.size(), x.size())*minPertubation+h).sparseView());
+    sol.compute(h.sparseView());
     partialxStar_v=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/timeStep_));
     partialxStar_x=sol.solve(MatrixXd::Identity(x.size(), x.size())*(1.0/(timeStep_*timeStep_)));
+    //if(partialxStar_x.cwiseAbs().maxCoeff()>10)
+    //std::cout<<h.cwiseAbs().maxCoeff()<<"  "<<sol.solve(MatrixXd::Identity(x.size(), x.size())).cwiseAbs().maxCoeff()<<std::endl;
   }
   succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
   //std::cout<<"status="<<succ<<std::endl;
@@ -404,15 +406,17 @@ void RVOSimulator::doNewtonStep(bool require_grad) {
     agents_[i]->computeNeighbors();
 #endif
   optimize(v,x,xNew,require_grad);
-  /*VectorXd dx;
+  VectorXd dx;
   dx.setRandom(x.size());
   VectorXd xNew1=xNew;
 
-  optimize(v, x, xNew);
-  MatrixXd q=partialxStar_v;
+  optimize(v, x, xNew,require_grad);
+  MatrixXd q=partialxStar_x;
   double delta=1e-4;
-  optimize(v+dx*delta,x,xNew1);
-  std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<((xNew1-xNew)/delta-q*dx).squaredNorm()<<std::endl;*/
+  optimize(v,x+dx*delta,xNew1,require_grad);
+  double error=((xNew1-xNew)/delta-q*dx).squaredNorm();
+  if(error>1)
+  std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<error<<std::endl;
 
   for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
     agents_[i]->newVelocity_=Vector2((xNew[i]-x[i])/timeStep_,(xNew[i+agent_size]-x[i+agent_size])/timeStep_);

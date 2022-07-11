@@ -44,7 +44,11 @@ class MultiCollisionFreeLayer(Function):
     @staticmethod
     def backward(ctx, grad_output):
         dx,dv=ctx.saved_tensors
-        return None, torch.matmul(grad_output,dx) , torch.matmul(grad_output,dv)
+        dx[dx>4]=0
+        dx[dx<-4]=0
+        dv[dv>2]=0
+        dv[dv<-2]=0
+        return None, torch.matmul(grad_output.unsqueeze(1),dx).squeeze(1) , torch.matmul(grad_output.unsqueeze(1),dv).squeeze(1)
 
 
 class CollisionFreeLayer(Function):
@@ -86,4 +90,5 @@ class CollisionFreeLayer(Function):
     @staticmethod
     def backward(ctx, grad_output):
         dx, dv = ctx.saved_tensors
+
         return None, torch.matmul(grad_output, dx), torch.matmul(grad_output, dv)

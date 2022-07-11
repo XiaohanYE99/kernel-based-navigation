@@ -17,7 +17,7 @@ class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.8
                  , horizon=128
                  , num_sample_steps=1
-                 , num_pre_steps=5
+                 , num_pre_steps=1
                  , num_train_steps=128
                  , num_init_step=0
                  , buffer_size=128
@@ -60,16 +60,17 @@ class PolicyNet(nn.Module):
                 nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12), nn.ReLU(),  # [25,25,16]
                 nn.Conv2d(12, 20, 5, 2, 2),nn.BatchNorm2d(20), nn.ReLU(), nn.Flatten(),  # [9,9,128]
                 nn.Linear(20 * 7 * 7, 128),nn.ReLU(),
-                nn.Linear(128, action_dim)#, nn.Sigmoid()
+                nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
 
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
-                    nn.init.kaiming_uniform_(param, a=1e1)
+                    nn.init.kaiming_uniform_(param, a=1e-2)
 
             self.lr = 3e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
+
 
         self.CFLayer = CollisionFreeLayer.apply
         self.MultiCFLayer = MultiCollisionFreeLayer.apply
@@ -91,7 +92,7 @@ class PolicyNet(nn.Module):
         I = I.to(device)
         # action = self.controller(I)
 
-        action = torch.squeeze(self.actor(I), 1)+0.5
+        action = torch.squeeze(self.actor(I), 1)#+0.5
 
         for i in range(self.env.N):
             self.env.x0[i] = action[0][5 * i]
@@ -108,13 +109,13 @@ class PolicyNet(nn.Module):
         v = v + dist.sample()
         '''
         v = self.switch(v, state, target)
-
+        state=state*200
         if training:
             xNew = self.MultiCFLayer(self.env, state, v)
         else:
             xNew = self.CFLayer(self.env, state, v)
-
-        return xNew,v
+        xNew=xNew/200
+        return xNew
 
     def act(self, state):
         I = self.env.P2G(state, [0])
@@ -153,14 +154,14 @@ class PolicyNet(nn.Module):
             loss = 0
 
             for step in range(self.num_pre_steps):
-                xNew,v = policy.implement(s, self.env.aim,training=True)
+                xNew = policy.implement(s, self.env.aim,training=True)
 
                 s=xNew
             loss = self.env.MBLoss(s, state)
             self.opt.zero_grad()
             #with torch.autograd.detect_anomaly():
             loss.backward()
-            #print(state.grad)
+            print(state.grad)
             self.opt.step()
             nn.utils.clip_grad_norm_(self.actor.parameters(), 40)
             # print(loss.item())
@@ -172,17 +173,18 @@ class PolicyNet(nn.Module):
             self.sample(use_random_policy=True)
 
     def sample(self, use_random_policy=False):
-
+        loss=0
         for i in range(self.num_sample_steps):
             state = self.env.reset_agent()
             # state=self.reset_env()
             state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
+            s=state
             for step in range(self.horizon):
                 with torch.no_grad():
                     if use_random_policy:
-                        state,_ = policy.implement(state, self.env.aim,training=False)
+                        state = policy.implement(state, self.env.aim,training=False)
                     else:
-                        state,_ = policy.implement(state, self.env.aim,training=False)
+                        state = policy.implement(state, self.env.aim,training=False)
                     self.env.MBStep(state)
 
                 if not self.isfull:
@@ -196,7 +198,8 @@ class PolicyNet(nn.Module):
                 if self.buffer_top == self.buffer_size:
                     self.is_full = True
                     self.buffer_top = 0
-
+            loss+=self.env.MBLoss(state,s)
+        return loss
     def test(self):
         for i in range(self.num_sample_steps):
             state = self.env.reset_agent()
@@ -231,8 +234,8 @@ if __name__ == '__main__':
 
     batch_size = 128
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
-    sim = rvo2.PyRVOSimulator(4 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
-    multisim = rvo2.PyRVOMultiSimulator(batch_size,4 / 400., 0.03, 5, 0.04, 0.04, 0.01, 2)
+    sim = rvo2.PyRVOSimulator(200 / 400., 10, 100, 0.1, 1.5, 2.0, 2)
+    multisim = rvo2.PyRVOMultiSimulator(batch_size,200 / 400., 10, 100, 0.1, 1.5, 2.0, 2)
 
     env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM)
 
@@ -251,16 +254,15 @@ if __name__ == '__main__':
 
         policy.reset()
         #policy.eval()
-        policy.sample(False)
+        loss=policy.sample(False)
 
         # policy.test()
         policy.train()
-        loss = 0
         for k in range(1):
-            loss = policy.update()
+            policy.update()
         torch.cuda.empty_cache()
         print('iter= ', i, 'loss= ', loss)
-        sumloss+=loss.item()
+        sumloss+=loss
         if i % 10 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)
         if i%50==0:

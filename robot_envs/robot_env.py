@@ -30,7 +30,7 @@ pi = np.pi
 
 
 def find_grid_index(pos, dx):
-    return int((pos[1]) / dx) * 50 + int((pos[0]) / dx)
+    return int((pos[1]+0.1*dx) / dx) * 50 + int((pos[0]+0.1*dx) / dx)
 
 
 def make_ccw(pts):
@@ -145,13 +145,14 @@ def dijkstra(dx, start, obs_map):
         y = dx
         while y < 1.0-dx:
             idx = find_grid_index([x, y], dx)
+
             for i in range(8):
                 flag = 1
                 tx = x + L[i][0]
                 ty = y + L[i][1]
                 ix=int(tx/dx)
                 iy=int(ty/dx)
-                if obs_map[ix,iy]==0:
+                if obs_map[ix,iy]<1 or ix<=0.02/dx or ix>=0.98/dx or iy<=0.02/dx or iy>=0.98/dx:
                     G[idx][find_grid_index([tx, ty], dx)] = L[i][2]
             y += dx
         x += dx
@@ -199,8 +200,8 @@ class NavigationEnvs():
         self.current_obs=[]
         self.viewer=None
 
-        self.sim.setNewtonParameters(100, 1e-0, 1e-3, 1e5, 1e-6)
-        self.multisim.setNewtonParameters(100, 1e-0, 1e-3, 1e5, 1e-6)
+        self.sim.setNewtonParameters(1000, 1e-4, 50, 1e-1, 1e-6)
+        self.multisim.setNewtonParameters(1000, 1e-4, 50, 1e-1, 1e-6)
 
         self.N = 15  # kernel number
         self.radius = 0.008  # robot radius
@@ -262,10 +263,10 @@ class NavigationEnvs():
 
         for i in range(self.n_robots):
             self.agent.append(
-                self.sim.addAgent((random.uniform(-1, 1), random.uniform(-1, 1)), 0.04, 100, 0.04, 0.04, self.radius, 1,
+                self.sim.addAgent((random.uniform(-1, 1), random.uniform(-1, 1)), 10, 100, 1.5, 2.0, self.radius*200, 1,
                                  (0, 0)))
         for i in range(self.n_robots):
-            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 0.04, 100, 0.04, 0.04, self.radius, 1,
+            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 10, 100, 1.5, 2.0, self.radius, 1,
                                  (0, 0))
 
         self.sparsesolve = SparseSolve.apply
@@ -356,12 +357,14 @@ class NavigationEnvs():
             self.sim.clearObstacle()
             self.multisim.clearObstacle()
             self.current_obs=[]
+
             for obs in current_obs:
                 self.current_obs.append(obs)
-                self.sim.addObstacle(make_ccw([tuple(p/np.array(wind_size)) for p in obs]))
-                self.multisim.addObstacle(make_ccw([tuple(p / np.array(wind_size)) for p in obs]))
+                self.sim.addObstacle(make_ccw([tuple(p*np.array([200,200])/np.array(wind_size)) for p in obs]))
+                self.multisim.addObstacle(make_ccw([tuple(p*np.array([200,200]) / np.array(wind_size)) for p in obs]))
             self.sim.processObstacles()
             self.multisim.processObstacles()
+
             self.obs_map=obstacleMap([self.size_x,self.size_y],self.dx,self.current_obs,np.array(self.wind_size))
             self.reset_init_agent()
             self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
@@ -504,14 +507,14 @@ class NavigationEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)+ self.eps)
 
-            velocity_x = (1*torch.sum((0.2*alpha+1)*phix  * torch.exp(-alpha * r) ,
+            velocity_x = (10*torch.sum((0.2*alpha+1)*phix  * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)+ self.eps)
-            velocity_y = (1*torch.sum((0.2*alpha+1)*phiy * torch.exp(-alpha * r) ,
+            velocity_y = (10*torch.sum((0.2*alpha+1)*phiy * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
@@ -589,7 +592,7 @@ class NavigationEnvs():
         vel_y = vel_y / energy
 
         rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y+ self.eps)
-        rr = F.relu(rr / 2.0 - 1.0) + 1.0
+        #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
         return 1.0*torch.cat((vel_x / rr, vel_y / rr), 1)  # .squeeze(2)
 
@@ -697,6 +700,8 @@ class NavigationEnvs():
                     1.0 - alphax) * alphay \
                       + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
                               1.0 - alphax) * (1.0 - alphay)
+            #if self.dis[id + self.size_y + 1].item()>15 or self.dis[id + self.size_y].item()>15 or self.dis[id + 1].item()>15 or self.dis[id].item()>15:
+            #print(self.dis[id + self.size_y + 1], self.dis[id + self.size_y], self.dis[id + 1], self.dis[id])
             #loss+=torch.sum(distnew)
 
             idx = torch.floor(x[i, ::2] / self.dx)
@@ -709,9 +714,11 @@ class NavigationEnvs():
                       + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
                               1.0 - alphax) * (1.0 - alphay)
             #loss += torch.sum(torch.square(distnew) - torch.square(distold))
-
             loss += torch.sum(distnew - distold)
             #loss+=torch.sum(xNew-x)
 
         return loss
-
+        '''
+        xNew = xNew.squeeze(0)
+        return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))
+        '''

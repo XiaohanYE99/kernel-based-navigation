@@ -172,7 +172,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef*100);	//this can be infinite or nan
+                coef*1);	//this can be infinite or nan
         double px=obstacle1->point_.x();
         double py=obstacle1->point_.y();
         if(g) {
@@ -194,7 +194,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef*100);	//this can be infinite or nan
+                coef*1);	//this can be infinite or nan
         double px=obstacle2->point_.x();
         double py=obstacle2->point_.y();
         if(g) {
@@ -216,7 +216,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 g?&D:NULL,
                 h?&DD:NULL,
                 d0,
-                coef*100);	//this can be infinite or nan
+                coef*1);	//this can be infinite or nan
         double px=obstacle1->point_.x()+s*obstacleVector.x();
         double py=obstacle1->point_.y()+s*obstacleVector.y();
         if(g) {
@@ -244,7 +244,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
   int nBarrier,iter;
   double maxPerturbation=1e2;
   double minPertubation=1e-9;
-  double perturbation=1e-8;
+  double perturbation=1e-4;
   double perturbationDec=0.8;
   double perturbationInc=2.0;
   //Eigen::SimplicialLDLT<Eigen::SparseMatrix<double,0,int>> invH,invB;
@@ -410,13 +410,12 @@ void RVOSimulator::doNewtonStep(bool require_grad) {
   dx.setRandom(x.size());
   VectorXd xNew1=xNew;
 
-  optimize(v, x, xNew,require_grad);
   MatrixXd q=partialxStar_x;
   double delta=1e-4;
   optimize(v,x+dx*delta,xNew1,require_grad);
   double error=((xNew1-xNew)/delta-q*dx).squaredNorm();
-  if(error>1)
-  std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<error<<std::endl;
+  //if(error>1)
+  //std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<((xNew1-xNew)/delta).squaredNorm()<<" "<<partialxStar_v.cwiseAbs().maxCoeff()<<std::endl;
 
   for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
     agents_[i]->newVelocity_=Vector2((xNew[i]-x[i])/timeStep_,(xNew[i+agent_size]-x[i+agent_size])/timeStep_);

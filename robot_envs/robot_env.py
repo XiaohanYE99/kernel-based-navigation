@@ -200,8 +200,8 @@ class NavigationEnvs():
         self.current_obs=[]
         self.viewer=None
 
-        self.sim.setNewtonParameters(1000, 1e-4, 50, 1e-1, 1e-6)
-        self.multisim.setNewtonParameters(1000, 1e-4, 50, 1e-1, 1e-6)
+        self.sim.setNewtonParameters(300, 1e-3, 25, 1e-3, 1e-6)
+        self.multisim.setNewtonParameters(300, 1e-3, 25, 1e-3, 1e-6)
 
         self.N = 15  # kernel number
         self.radius = 0.008  # robot radius
@@ -266,7 +266,7 @@ class NavigationEnvs():
                 self.sim.addAgent((random.uniform(-1, 1), random.uniform(-1, 1)), 10, 100, 1.5, 2.0, self.radius*200, 1,
                                  (0, 0)))
         for i in range(self.n_robots):
-            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 10, 100, 1.5, 2.0, self.radius, 1,
+            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 10, 100, 1.5, 2.0, self.radius*200, 1,
                                  (0, 0))
 
         self.sparsesolve = SparseSolve.apply
@@ -594,7 +594,7 @@ class NavigationEnvs():
         rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y+ self.eps)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
-        return 1.0*torch.cat((vel_x / rr, vel_y / rr), 1)  # .squeeze(2)
+        return 1.5*torch.cat((vel_x / rr, vel_y / rr), 1)  # .squeeze(2)
 
         #return torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
 

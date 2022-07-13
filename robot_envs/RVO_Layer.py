@@ -29,7 +29,6 @@ class MultiCollisionFreeLayer(Function):
         #px=env.multisim.getGradX()
 
         for i in range(env.batch_size):
-
             partial_v[i] = torch.from_numpy(env.multisim.getGradV(i)).float()
             partial_x[i] = torch.from_numpy(env.multisim.getGradX(i)).float()
         #print(torch.sqrt(torch.sum(torch.square(partial_v))))
@@ -44,12 +43,12 @@ class MultiCollisionFreeLayer(Function):
     @staticmethod
     def backward(ctx, grad_output):
         dx,dv=ctx.saved_tensors
-
+        '''
         for i in range(dx.size(0)):
             if torch.max(torch.abs(dx[i]))>10:
                 dx[i]=dx[i]*0
                 dv[i]=dv[i]*0
-        '''
+        
         dx[dx>10]=0
         dx[dx<-10]=0
         dv[dv>10]=0

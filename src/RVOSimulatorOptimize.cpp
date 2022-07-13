@@ -40,6 +40,7 @@
 #include "time.h"
 #include <fstream>
 #include <string>
+#include <math.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -111,7 +112,6 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
                 h?&DD:NULL,
                 d0,
                 coef);	//this can be infinite or nan
-
         if(g) {
           (*g)[i]+=D*2*(newX[i]-newX[j]);
           (*g)[j]-=D*2*(newX[i]-newX[j]);
@@ -159,7 +159,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
       const double distSq1 = relativePosition1.squaredNorm();
       const double distSq2 = relativePosition2.squaredNorm();
 
-      const double radiusSq = R*R;
+      const double radiusSq = 2*R*R;
 
       const Vector2d obstacleVector(obstacle2->point_.x() - obstacle1->point_.x(),obstacle2->point_.y() - obstacle1->point_.y());
       const double s = (-relativePosition1 .dot(obstacleVector)) / obstacleVector.squaredNorm();
@@ -209,27 +209,31 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
         }
       }
 
-      else if (s >= 0.0 && s <= 1.0f && distSqLine < radiusSq+d0) {
+      if (s >= 0.0 && s <= 1.0f && distSqLine < radiusSq+d0) {
 
-        double D,DD;
-        f+=clog(distSqLine-radiusSq,
-                g?&D:NULL,
-                h?&DD:NULL,
-                d0,
-                coef*1);	//this can be infinite or nan
-        double px=obstacle1->point_.x()+s*obstacleVector.x();
-        double py=obstacle1->point_.y()+s*obstacleVector.y();
-        if(g) {
-          (*g)[i]+=D*2*(newX[i]-px);
-          (*g)[i+newX.size()/2]+=D*2*(newX[i+newX.size()/2]-py);
-        }
-        if(h) {
-          (*h)(i,i)+=2*D+DD*4*pow(newX[i]-px,2);
-          (*h)(i,i+newX.size()/2)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
-          (*h)(i+newX.size()/2,i)+=DD*4*(newX[i]-px)*(newX[i+newX.size()/2]-py);
-          (*h)(i+newX.size()/2,i+newX.size()/2)+=2*D+DD*4*pow(newX[i+newX.size()/2]-py,2);
-        }
-      }
+					double D,DD;
+					f+=clog(distSqLine-radiusSq,
+                    g?&D:NULL,
+                    h?&DD:NULL,
+                    d0,
+                    coef*1);	//this can be infinite or nan
+					double dx1=pos[0]-obstacle1->point_.x();
+					double dy1=pos[1]-obstacle1->point_.y();
+					double dx=obstacleVector.x();
+					double dy=obstacleVector.y();
+					double cr=dx1*dy-dy1*dx;
+					double len=obstacleVector.squaredNorm();
+					if(g) {
+						(*g)[i]+=(D*2*cr*dy)/len;
+						(*g)[i+newX.size()/2]+=(-D*2*cr*dx)/len;
+					}
+					if(h) {
+                        (*h)(i,i)+=2*dy*dy*D/len+DD*pow(2*dy*cr,2)/pow(len,2);
+                        (*h)(i,i+newX.size()/2)+=(DD*4*dx*dy*cr*cr)/pow(len,2);
+                        (*h)(i+newX.size()/2,i)+=(DD*4*dx*dy*cr*cr)/pow(len,2);
+                        (*h)(i+newX.size()/2,i+newX.size()/2)+=2*dx*dx*D/len+DD*pow(2*dx*cr,2)/pow(len,2);
+                    }
+				}
     }
   }
 #endif
@@ -244,7 +248,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
   int nBarrier,iter;
   double maxPerturbation=1e2;
   double minPertubation=1e-9;
-  double perturbation=1e-4;
+  double perturbation=1e0;
   double perturbationDec=0.8;
   double perturbationInc=2.0;
   //Eigen::SimplicialLDLT<Eigen::SparseMatrix<double,0,int>> invH,invB;
@@ -406,7 +410,7 @@ void RVOSimulator::doNewtonStep(bool require_grad) {
     agents_[i]->computeNeighbors();
 #endif
   optimize(v,x,xNew,require_grad);
-  VectorXd dx;
+  /*VectorXd dx;
   dx.setRandom(x.size());
   VectorXd xNew1=xNew;
 
@@ -414,8 +418,30 @@ void RVOSimulator::doNewtonStep(bool require_grad) {
   double delta=1e-4;
   optimize(v,x+dx*delta,xNew1,require_grad);
   double error=((xNew1-xNew)/delta-q*dx).squaredNorm();
-  //if(error>1)
-  //std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<((xNew1-xNew)/delta).squaredNorm()<<" "<<partialxStar_v.cwiseAbs().maxCoeff()<<std::endl;
+  if(error>1)
+  {
+    std::cout<<(q*dx).squaredNorm()<<"   "<<"Vstar error: "<<((xNew1-xNew)/delta).squaredNorm()<<" "<<partialxStar_v.cwiseAbs().maxCoeff()<<std::endl;
+    VectorXd newX1;
+			VectorXd g,g2;
+			MatrixXd h;
+            xNew=x;
+			int B=0;
+			newX1=xNew;
+			delta=1e-8;
+			dx.setRandom(x.size());
+
+			double f=energy(v,x,xNew,B,&g,&h);
+
+			double f2=energy(v,x,xNew+dx*delta,B,&g2,NULL);
+			std::cout << "Gradient: " << g.dot(dx) <<
+			" Error: " << (f2-f)/delta -g.dot(dx)<< std::endl;
+			std::cout << "Hessian: " << (h*dx).norm() <<
+			" Error: " << (h*dx-(g2-g)/delta).norm() << std::endl;
+			std::cout<<"f2: "<<f2<<" f: "<<f<<std::endl;
+  }*/
+
+
+
 
   for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
     agents_[i]->newVelocity_=Vector2((xNew[i]-x[i])/timeStep_,(xNew[i+agent_size]-x[i+agent_size])/timeStep_);

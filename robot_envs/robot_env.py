@@ -200,12 +200,13 @@ class NavigationEnvs():
         self.current_obs=[]
         self.viewer=None
 
-        self.sim.setNewtonParameters(300, 1e-3, 25, 1e-3, 1e-6)
-        self.multisim.setNewtonParameters(300, 1e-3, 25, 1e-3, 1e-6)
+        self.sim.setNewtonParameters(1000, 1e-6, 100, 1e-1 ,1e-6)
+        self.multisim.setNewtonParameters(1000, 1e-6, 100, 1e-1, 1e-6)
 
         self.N = 15  # kernel number
         self.radius = 0.008  # robot radius
         self.n_robots = 50  # robot number
+        self.scale=1000
 
         self.agent = []
         self.suc = 0
@@ -263,10 +264,10 @@ class NavigationEnvs():
 
         for i in range(self.n_robots):
             self.agent.append(
-                self.sim.addAgent((random.uniform(-1, 1), random.uniform(-1, 1)), 10, 100, 1.5, 2.0, self.radius*200, 1,
+                self.sim.addAgent((random.uniform(-1, 1), random.uniform(-1, 1)), 10, 100, 1.5, 2.0, self.radius*self.scale, 1,
                                  (0, 0)))
         for i in range(self.n_robots):
-            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 10, 100, 1.5, 2.0, self.radius*200, 1,
+            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 10, 100, 1.5, 2.0, self.radius*self.scale, 1,
                                  (0, 0))
 
         self.sparsesolve = SparseSolve.apply
@@ -285,9 +286,9 @@ class NavigationEnvs():
 
     def reset_viewer(self):
         for i in range(self.n_robots):
-            self.viewer.add_agent((self.state[i*2]*self.wind_size[0], self.state[i*2+1]*self.wind_size[1]), 0.008*self.wind_size[0])
+            self.viewer.add_agent((self.state[i*2]*self.wind_size[0]/self.scale, self.state[i*2+1]*self.wind_size[1]/self.scale), self.radius*self.wind_size[0])
         for i in range(self.N):
-            self.viewer.add_waypoint((self.x0[i]*self.wind_size[0],self.y0[i]*self.wind_size[0]),0.008*self.wind_size[0])
+            self.viewer.add_waypoint((self.x0[i]*self.wind_size[0],self.y0[i]*self.wind_size[0]),self.radius*self.wind_size[0])
         #for p in self.goal_positions:
         self.viewer.add_goal((self.aim[0]*self.wind_size[0], self.aim[1]*self.wind_size[0]), 0.016*self.wind_size[0])
         for obs in self.current_obs:
@@ -312,7 +313,7 @@ class NavigationEnvs():
             self.reset_viewer()
 
         for i in range(self.n_robots):
-            self.viewer.agent_pos_array[i] = (self.state[i*2]*self.wind_size[0], self.state[i*2+1]*self.wind_size[1])
+            self.viewer.agent_pos_array[i] = (self.state[i*2]*self.wind_size[0]/self.scale, self.state[i*2+1]*self.wind_size[1]/self.scale)
         for i in range(self.N):
             self.viewer.waypoint_pos_array[i]=(self.x0[i]*self.wind_size[0],self.y0[i]*self.wind_size[0])
         self.viewer.goal_pos_array[0] = (self.aim[0]*self.wind_size[0], self.aim[1]*self.wind_size[0])
@@ -338,7 +339,7 @@ class NavigationEnvs():
         agent_no=random.sample(self.init_state, self.n_robots)
         for i in range(self.n_robots):
             self.state[i * 2:i * 2 + 2] = agent_no[i]
-        return self.state
+        return self.state*self.scale
     def reset_aim(self):
         p=np.random.rand()*0.8+0.1
         a=random.randint(0,4)
@@ -360,8 +361,8 @@ class NavigationEnvs():
 
             for obs in current_obs:
                 self.current_obs.append(obs)
-                self.sim.addObstacle(make_ccw([tuple(p*np.array([200,200])/np.array(wind_size)) for p in obs]))
-                self.multisim.addObstacle(make_ccw([tuple(p*np.array([200,200]) / np.array(wind_size)) for p in obs]))
+                self.sim.addObstacle(make_ccw([tuple(p*np.array([self.scale,self.scale])/np.array(wind_size)) for p in obs]))
+                self.multisim.addObstacle(make_ccw([tuple(p*np.array([self.scale,self.scale]) / np.array(wind_size)) for p in obs]))
             self.sim.processObstacles()
             self.multisim.processObstacles()
 
@@ -460,8 +461,8 @@ class NavigationEnvs():
         obs_map.requires_grad=True
 
         for i in range(pos.size(0)):
-            px = pos[i, ::2]
-            py = pos[i, 1::2]
+            px = pos[i, ::2]/self.scale
+            py = pos[i, 1::2]/self.scale
 
             idx = torch.floor(px / self.dx)
             idy = torch.floor(py / self.dx)
@@ -480,8 +481,8 @@ class NavigationEnvs():
         for i in range(2):
             print(torch.std(input[:,i,:,:]))
         '''
-        input[:,0,:,:]=input[:,0,:,:]/0.1028
-        input[:, 1, :, :] = input[:, 0, :, :] / 0.4176
+        input[:,0,:,:]=input[:,0,:,:]/0.1008
+        input[:, 1, :, :] = input[:, 0, :, :] / 0.4102
         #input[:, 2, :, :] = input[:, 0, :, :] / 0.4424
         return input
 
@@ -582,7 +583,7 @@ class NavigationEnvs():
         idx2 = (idx_y * self.size_x + idx_x).long()
         vel_y = torch.gather(velocity_y, 1, idx2) * (1.0 - alpha_y) + torch.gather(velocity_y, 1,
                                                                                    idx2 + self.size_x) * alpha_y
-
+        '''
         # velocity boundary
         rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y+ self.eps)
 
@@ -590,8 +591,8 @@ class NavigationEnvs():
 
         vel_x = vel_x / energy
         vel_y = vel_y / energy
-
-        rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y+ self.eps)
+        '''
+        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ self.eps)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
         return 1.5*torch.cat((vel_x / rr, vel_y / rr), 1)  # .squeeze(2)
@@ -689,6 +690,8 @@ class NavigationEnvs():
     def MBLoss(self, xNew, x):
 
         loss = 0
+        xNew=xNew/self.scale
+        x=x/self.scale
         for i in range(xNew.size(0)):
 
             idx = torch.floor(xNew[i, ::2] / self.dx)

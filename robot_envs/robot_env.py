@@ -271,11 +271,13 @@ class NavigationEnvs():
                                  (0, 0))
 
         self.sparsesolve = SparseSolve.apply
+        self.a=0
 
 
     def load_roadmap(self,fn):
         import pickle
         obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
+
         obs.append(Viewer.get_box_ll(x=700, y=14, lowerleft=(0,0)))
         obs.append(Viewer.get_box_ll(x=14, y=700, lowerleft=(686, 0)))
         obs.append(Viewer.get_box_ll(x=700, y=14, lowerleft=(0, 686)))
@@ -341,17 +343,18 @@ class NavigationEnvs():
             self.state[i * 2:i * 2 + 2] = agent_no[i]
         return self.state*self.scale
     def reset_aim(self):
-        p=np.random.rand()*0.8+0.1
-        a=random.randint(0,4)
+        p=np.random.rand()*0.4+0.1
+        self.a=(self.a+1)%4
+        a=self.a
         if a==0:
             self.aim=[p,0.1]
         elif a==1:
-            self.aim=[p,0.9]
+            self.aim=[1.0-p,0.9]
         elif a==2:
-            self.aim=[0.1,p]
+            self.aim=[0.1,1.0-p]
         else:
             self.aim=[0.9,p]
-        self.aim=[0.1,0.1]
+        #self.aim=[0.1,0.1]
     def reset(self,current_obs=None,wind_size=(1,1)):
         self.wind_size=wind_size
         if current_obs is not None:
@@ -447,18 +450,18 @@ class NavigationEnvs():
 
     def P2G(self, pos, target):
         I = torch.zeros((pos.size(0), 1, self.size_x, self.size_y)).to(self.device)
-        #target_map = torch.zeros_like(I).to(self.device)
-        #target_map[:,0,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=50
+        target_map = torch.zeros_like(I).to(self.device)
+        target_map[:,0,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=1
         '''
         target_map=self.target_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
-        target_map[target_map>=10]=10
-        target_map/=10
+        target_map[target_map>=20]=20
+        target_map/=20
         '''
         obs_map=self.obs_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
-        #add_map=torch.cat((target_map,obs_map),1)
-        obs_map.requires_grad=True
+        add_map=torch.cat((target_map,obs_map),1)
+        add_map.requires_grad=True
 
         for i in range(pos.size(0)):
             px = pos[i, ::2]/self.scale
@@ -476,14 +479,14 @@ class NavigationEnvs():
 
             # target[i,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
         # I+=target
-        input=torch.cat((I,obs_map),1)
+        input=torch.cat((I,add_map),1)
         '''
-        for i in range(2):
+        for i in range(3):
             print(torch.std(input[:,i,:,:]))
         '''
-        input[:,0,:,:]=input[:,0,:,:]/0.1008
-        input[:, 1, :, :] = input[:, 0, :, :] / 0.4102
-        #input[:, 2, :, :] = input[:, 0, :, :] / 0.4424
+        input[:,0,:,:]=input[:,0,:,:]/0.1#0.1008
+        input[:, 1, :, :] = input[:, 1, :, :] / 0.02#0.0687
+        input[:, 2, :, :] = input[:, 2, :, :] / 0.4177#0.4424
         return input
 
 
@@ -508,14 +511,14 @@ class NavigationEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)+ self.eps)
 
-            velocity_x = (10*torch.sum((0.2*alpha+1)*phix  * torch.exp(-alpha * r) ,
+            velocity_x = (1*torch.sum((0.2*alpha+1)*phix  * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)+ self.eps)
-            velocity_y = (10*torch.sum((0.2*alpha+1)*phiy * torch.exp(-alpha * r) ,
+            velocity_y = (1*torch.sum((0.2*alpha+1)*phiy * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
@@ -538,8 +541,8 @@ class NavigationEnvs():
         velocity = torch.cat(
             (torch.flatten(velocity_x.transpose(1, 2), 1), torch.flatten(velocity_y.transpose(1, 2), 1)),
             1)  # .unsqueeze(2)
-        velocity[velocity>2]=2
-        velocity[velocity<-2]=-2
+        #velocity[velocity>2]=3
+        #velocity[velocity<-2]=-3
         if self.use_sparse_FEM == False:
             velocity = (velocity).T
             v1 = torch.matmul(self.GT, velocity)
@@ -595,7 +598,7 @@ class NavigationEnvs():
         rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ self.eps)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
-        return 1.5*torch.cat((vel_x / rr, vel_y / rr), 1)  # .squeeze(2)
+        return 3.0*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)
 
         #return torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
 
@@ -722,6 +725,7 @@ class NavigationEnvs():
 
         return loss
         '''
-        xNew = xNew.squeeze(0)
-        return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))
+        xNew=xNew/self.scale
+        #return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))
+        return torch.sum(torch.square(xNew[:,::2] - self.aim[0]) + torch.square(xNew[:,1::2] - self.aim[1]))
         '''

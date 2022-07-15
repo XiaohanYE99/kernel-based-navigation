@@ -132,10 +132,10 @@ void RVOMultiSimulator::setNewtonParameters(size_t maxIter, double tol, double d
   for(size_t i=0; i<_sims.size(); i++)
     _sims[i]->setNewtonParameters(maxIter,tol,d0,coef,alphaMin);
 }
-void RVOMultiSimulator::doNewtonStep(bool require_grad) {
+void RVOMultiSimulator::doNewtonStep(bool require_grad, bool useSpatialHash, bool output) {
   #pragma omp parallel for
   for(size_t i=0; i<_sims.size(); i++)
-    _sims[i]->doNewtonStep(require_grad);
+    _sims[i]->doNewtonStep(require_grad, useSpatialHash, output);
 }
 const Eigen::MatrixXd& RVOMultiSimulator::getGradV(size_t i) {
 

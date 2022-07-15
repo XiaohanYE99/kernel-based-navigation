@@ -62,9 +62,8 @@ if(ENABLE_OPENMP AND OpenMP_FOUND)
   target_compile_options(${RVO_LIBRARY} PRIVATE ${OpenMP_CXX_FLAGS})
 endif()
 
-
 if(WIN32)
-    set_target_properties(RVO PROPERTIES COMPILE_DEFINITIONS NOMINMAX)
+  set_target_properties(RVO PROPERTIES COMPILE_DEFINITIONS NOMINMAX)
 endif()
 
 install(FILES ${RVO_HEADERS} DESTINATION include)

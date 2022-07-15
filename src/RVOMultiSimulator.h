@@ -62,7 +62,7 @@ class RVOMultiSimulator {
   void updateAgents();
   void doStepCar();
   void setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin);
-  void doNewtonStep(bool require_grad);
+  void doNewtonStep(bool require_grad, bool spatialHash, bool output);
   const Eigen::MatrixXd& getGradV(size_t i);
   const Eigen::MatrixXd& getGradX(size_t i);
   size_t getAgentMaxNeighbors(size_t agentNo) const;

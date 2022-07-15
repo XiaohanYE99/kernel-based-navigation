@@ -44,7 +44,6 @@
 #include <Eigen/Dense>
 #include <Eigen/SparseCholesky>
 
-
 #define number_of_threads 4
 #include "Vector2.h"
 typedef Eigen::SparseMatrix<double> SMat;
@@ -238,16 +237,17 @@ class RVOSimulator {
   void doStepCar();
 
   void setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin);
-
+  void synchronizeAgentPositions(const Eigen::VectorXd& x);
   double energy(const Eigen::VectorXd& v, const Eigen::VectorXd& x, const Eigen::VectorXd& newX,
-                int& nBarrier,Eigen::VectorXd* g, Eigen::MatrixXd* h);
-  bool optimize(const Eigen::VectorXd& v, const Eigen::VectorXd& x, Eigen::VectorXd& xNew,bool require_grad);
+                Eigen::Matrix<int,4,1>& nBarrier,Eigen::VectorXd* g, Eigen::MatrixXd* h, bool useSpatialHash);
+  bool optimize(const Eigen::VectorXd& v, const Eigen::VectorXd& x, Eigen::VectorXd& xNew,
+                bool require_grad, bool useSpatialHash, bool output);
   bool linesearch(const Eigen::VectorXd& v,const Eigen::VectorXd& x, const double Ex,
                   const Eigen::VectorXd& g,const Eigen::VectorXd& d,
                   double& alpha,Eigen::VectorXd& xNew,
                   std::function<double(const Eigen::VectorXd&)> E);
-  void checkEnergyFD();
-  void doNewtonStep(bool require_grad);
+  void checkEnergyFD(double d0Tmp_=0, double vScale_=1, double xScale_=100);
+  bool doNewtonStep(bool require_grad, bool useSpatialHash, bool output);
   const Eigen::MatrixXd& getGradV() const;
   const Eigen::MatrixXd& getGradX() const;
 

@@ -46,157 +46,161 @@ namespace RVO {
  *             simulation.
  */
 class KdTree {
-private:
+ private:
+  /**
+   * \brief      Defines an agent <i>k</i>d-tree node.
+   */
+  class AgentTreeNode {
+   public:
     /**
-     * \brief      Defines an agent <i>k</i>d-tree node.
+     * \brief      The beginning node number.
      */
-    class AgentTreeNode {
-    public:
-        /**
-         * \brief      The beginning node number.
-         */
-        size_t begin;
-
-        /**
-         * \brief      The ending node number.
-         */
-        size_t end;
-
-        /**
-         * \brief      The left node number.
-         */
-        size_t left;
-
-        /**
-         * \brief      The maximum x-coordinate.
-         */
-        double maxX;
-
-        /**
-         * \brief      The maximum y-coordinate.
-         */
-        double maxY;
-
-        /**
-         * \brief      The minimum x-coordinate.
-         */
-        double minX;
-
-        /**
-         * \brief      The minimum y-coordinate.
-         */
-        double minY;
-
-        /**
-         * \brief      The right node number.
-         */
-        size_t right;
-    };
+    size_t begin;
 
     /**
-     * \brief      Defines an obstacle <i>k</i>d-tree node.
+     * \brief      The ending node number.
      */
-    class ObstacleTreeNode {
-    public:
-        /**
-         * \brief      The left obstacle tree node.
-         */
-        ObstacleTreeNode *left;
-
-        /**
-         * \brief      The obstacle number.
-         */
-        const Obstacle *obstacle;
-
-        /**
-         * \brief      The right obstacle tree node.
-         */
-        ObstacleTreeNode *right;
-    };
+    size_t end;
 
     /**
-     * \brief      Constructs a <i>k</i>d-tree instance.
-     * \param      sim             The simulator instance.
+     * \brief      The left node number.
      */
-    explicit KdTree(RVOSimulator *sim);
+    size_t left;
 
     /**
-     * \brief      Destroys this kd-tree instance.
+     * \brief      The maximum x-coordinate.
      */
-    ~KdTree();
+    double maxX;
 
     /**
-     * \brief      Builds an agent <i>k</i>d-tree.
+     * \brief      The maximum y-coordinate.
      */
-    void buildAgentTree();
-
-    void buildAgentTreeRecursive(size_t begin, size_t end, size_t node);
+    double maxY;
 
     /**
-     * \brief      Builds an obstacle <i>k</i>d-tree.
+     * \brief      The minimum x-coordinate.
      */
-    void buildObstacleTree();
-
-    ObstacleTreeNode *buildObstacleTreeRecursive(const std::vector<Obstacle *> &
-            obstacles);
+    double minX;
 
     /**
-     * \brief      Computes the agent neighbors of the specified agent.
-     * \param      agent           A pointer to the agent for which agent
-     *                             neighbors are to be computed.
-     * \param      rangeSq         The squared range around the agent.
+     * \brief      The minimum y-coordinate.
      */
-    void computeAgentNeighbors(Agent *agent, double &rangeSq) const;
+    double minY;
 
     /**
-     * \brief      Computes the obstacle neighbors of the specified agent.
-     * \param      agent           A pointer to the agent for which obstacle
-     *                             neighbors are to be computed.
-     * \param      rangeSq         The squared range around the agent.
+     * \brief      The right node number.
      */
-    void computeObstacleNeighbors(Agent *agent, double rangeSq) const;
+    size_t right;
+  };
+
+  /**
+   * \brief      Defines an obstacle <i>k</i>d-tree node.
+   */
+  class ObstacleTreeNode {
+   public:
+    /**
+     * \brief      The left obstacle tree node.
+     */
+    ObstacleTreeNode *left;
 
     /**
-     * \brief      Deletes the specified obstacle tree node.
-     * \param      node            A pointer to the obstacle tree node to be
-     *                             deleted.
+     * \brief      The obstacle number.
      */
-    void deleteObstacleTree(ObstacleTreeNode *node);
-
-    void queryAgentTreeRecursive(Agent *agent, double &rangeSq,
-                                 size_t node) const;
-
-    void queryObstacleTreeRecursive(Agent *agent, double rangeSq,
-                                    const ObstacleTreeNode *node) const;
+    const Obstacle *obstacle;
 
     /**
-     * \brief      Queries the visibility between two points within a
-     *             specified radius.
-     * \param      q1              The first point between which visibility is
-     *                             to be tested.
-     * \param      q2              The second point between which visibility is
-     *                             to be tested.
-     * \param      radius          The radius within which visibility is to be
-     *                             tested.
-     * \return     True if q1 and q2 are mutually visible within the radius;
-     *             false otherwise.
+     * \brief      The right obstacle tree node.
      */
-    bool queryVisibility(const Vector2 &q1, const Vector2 &q2,
-                         double radius) const;
+    ObstacleTreeNode *right;
+  };
 
-    bool queryVisibilityRecursive(const Vector2 &q1, const Vector2 &q2,
-                                  double radius,
+  /**
+   * \brief      Constructs a <i>k</i>d-tree instance.
+   * \param      sim             The simulator instance.
+   */
+  explicit KdTree(RVOSimulator *sim);
+
+  /**
+   * \brief      Destroys this kd-tree instance.
+   */
+  ~KdTree();
+
+  /**
+   * \brief      Builds an agent <i>k</i>d-tree.
+   */
+  void buildAgentTree();
+
+  void updateAgentTree();
+
+  void buildAgentTreeRecursive(size_t begin, size_t end, size_t node);
+
+  void updateAgentTreeRecursive(size_t node);
+
+  /**
+   * \brief      Builds an obstacle <i>k</i>d-tree.
+   */
+  void buildObstacleTree();
+
+  ObstacleTreeNode *buildObstacleTreeRecursive(const std::vector<Obstacle *> &
+      obstacles);
+
+  /**
+   * \brief      Computes the agent neighbors of the specified agent.
+   * \param      agent           A pointer to the agent for which agent
+   *                             neighbors are to be computed.
+   * \param      rangeSq         The squared range around the agent.
+   */
+  void computeAgentNeighbors(Agent *agent, double &rangeSq) const;
+
+  /**
+   * \brief      Computes the obstacle neighbors of the specified agent.
+   * \param      agent           A pointer to the agent for which obstacle
+   *                             neighbors are to be computed.
+   * \param      rangeSq         The squared range around the agent.
+   */
+  void computeObstacleNeighbors(Agent *agent, double rangeSq) const;
+
+  /**
+   * \brief      Deletes the specified obstacle tree node.
+   * \param      node            A pointer to the obstacle tree node to be
+   *                             deleted.
+   */
+  void deleteObstacleTree(ObstacleTreeNode *node);
+
+  void queryAgentTreeRecursive(Agent *agent, double &rangeSq,
+                               size_t node) const;
+
+  void queryObstacleTreeRecursive(Agent *agent, double rangeSq,
                                   const ObstacleTreeNode *node) const;
 
-    std::vector<Agent *> agents_;
-    std::vector<AgentTreeNode> agentTree_;
-    ObstacleTreeNode *obstacleTree_;
-    RVOSimulator *sim_;
+  /**
+   * \brief      Queries the visibility between two points within a
+   *             specified radius.
+   * \param      q1              The first point between which visibility is
+   *                             to be tested.
+   * \param      q2              The second point between which visibility is
+   *                             to be tested.
+   * \param      radius          The radius within which visibility is to be
+   *                             tested.
+   * \return     True if q1 and q2 are mutually visible within the radius;
+   *             false otherwise.
+   */
+  bool queryVisibility(const Vector2 &q1, const Vector2 &q2,
+                       double radius) const;
 
-    static const size_t MAX_LEAF_SIZE = 10;
+  bool queryVisibilityRecursive(const Vector2 &q1, const Vector2 &q2,
+                                double radius,
+                                const ObstacleTreeNode *node) const;
 
-    friend class Agent;
-    friend class RVOSimulator;
+  std::vector<Agent *> agents_;
+  std::vector<AgentTreeNode> agentTree_;
+  ObstacleTreeNode *obstacleTree_;
+  RVOSimulator *sim_;
+
+  static const size_t MAX_LEAF_SIZE = 10;
+
+  friend class Agent;
+  friend class RVOSimulator;
 };
 }
 

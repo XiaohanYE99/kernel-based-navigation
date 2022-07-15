@@ -239,9 +239,10 @@ class RVOSimulator {
   void setNewtonParameters(size_t maxIter, double tol, double d0, double coef, double alphaMin);
   void synchronizeAgentPositions(const Eigen::VectorXd& x);
   double energy(const Eigen::VectorXd& v, const Eigen::VectorXd& x, const Eigen::VectorXd& newX,
-                Eigen::Matrix<int,4,1>& nBarrier,Eigen::VectorXd* g, Eigen::MatrixXd* h, bool useSpatialHash);
+                Eigen::Matrix<int,4,1>& nBarrier,Eigen::VectorXd* g, Eigen::MatrixXd* h, bool useSpatialHash, bool useSpatialHashForObstacle);
   bool optimize(const Eigen::VectorXd& v, const Eigen::VectorXd& x, Eigen::VectorXd& xNew,
                 bool require_grad, bool useSpatialHash, bool output);
+  void replayError();
   bool linesearch(const Eigen::VectorXd& v,const Eigen::VectorXd& x, const double Ex,
                   const Eigen::VectorXd& g,const Eigen::VectorXd& d,
                   double& alpha,Eigen::VectorXd& xNew,

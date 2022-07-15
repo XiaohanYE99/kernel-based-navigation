@@ -36,6 +36,7 @@
 #include "KdTree.h"
 #include "Obstacle.h"
 
+#include <experimental/filesystem>
 #include <iostream>
 #include "time.h"
 #include <fstream>
@@ -45,6 +46,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#define WRITE_ERROR
 using namespace Eigen;
 
 namespace RVO {
@@ -79,7 +81,7 @@ void RVOSimulator::synchronizeAgentPositions(const VectorXd& x) {
   }
 }
 double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd& newX,
-                            Eigen::Matrix<int,4,1>& nBarrier,VectorXd* g, MatrixXd* h, bool useSpatialHash) {
+                            Eigen::Matrix<int,4,1>& nBarrier,VectorXd* g, MatrixXd* h, bool useSpatialHash, bool useSpatialHashForObstacle) {
   nBarrier.setZero();
   double f=0.5/(timeStep_*timeStep_)*(newX-(x+v*timeStep_)).squaredNorm();
   if(g)
@@ -170,21 +172,28 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
     if(!std::isfinite(f)) //early out
       return f;
     double R=agents_[i]->radius_;
-    int maxNeighbors;
-    if(!useSpatialHash) {
-      //when not using KDTree, we need to turn off maxNeighbors to prevent updating agentTree
-      maxNeighbors=agents_[i]->maxNeighbors_;
-      agents_[i]->maxNeighbors_=0;
+    std::vector<const Obstacle*> neighborIds;
+    if(useSpatialHashForObstacle) {
+      int maxNeighbors;
+      if(!useSpatialHash) {
+        //when not using KDTree, we need to turn off maxNeighbors to prevent updating agentTree
+        maxNeighbors=agents_[i]->maxNeighbors_;
+        agents_[i]->maxNeighbors_=0;
+      }
+      agents_[i]->computeNeighbors();
+      if(!useSpatialHash) {
+        //turn on maxNeighbors again
+        agents_[i]->maxNeighbors_=maxNeighbors;
+      }
+      for(size_t k=0; k<agents_[i]->obstacleNeighbors_.size(); k++)
+        neighborIds.push_back(agents_[i]->obstacleNeighbors_[k].second);
+    } else {
+      for(Obstacle* obs:obstacles_)
+        neighborIds.push_back(obs);
     }
-    agents_[i]->computeNeighbors();
-    if(!useSpatialHash) {
-      //turn on maxNeighbors again
-      agents_[i]->maxNeighbors_=maxNeighbors;
-    }
-    for(size_t k=0; k<agents_[i]->obstacleNeighbors_.size(); k++) {
+    for(const Obstacle *obstacle1:neighborIds) {
       if(!std::isfinite(f)) //early out
         return f;
-      const Obstacle *obstacle1 = agents_[i]->obstacleNeighbors_[k].second;
       const Obstacle *obstacle2 = obstacle1->nextObstacle_;
 
       Vector2d pos(newX[i],newX[i+newX.size()/2]);
@@ -289,7 +298,8 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     kdTree_->buildAgentTree();
   }
   for(iter=0; iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++) {
-    double E=energy(v,x,newX,nBarrier,&g,&h,useSpatialHash);
+    //always use spatial hash to compute obstacle neighbors, but only use spatial hash to compute agent neighbors
+    double E=energy(v,x,newX,nBarrier,&g,&h,useSpatialHash,true);
     if(g.cwiseAbs().maxCoeff()<tol) {
       if(output)
         std::cout<<"Exit on gNormInf<"<<tol<<std::endl;
@@ -328,7 +338,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
       lastAlpha=alpha;
       //VectorXd tmp=-invH.solve(g);
       succ=linesearch(v,x,E,g,-sol.solve(g),alpha,newX,[&](const VectorXd& evalPt)->double{
-        return energy(v,x,evalPt,nBarrier,NULL,NULL,useSpatialHash);
+        return energy(v,x,evalPt,nBarrier,NULL,NULL,useSpatialHash,true);
       });
       if(succ) {
         perturbation=std::max(perturbation*perturbationDec,minPertubation);
@@ -347,9 +357,55 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     partialxStar_x=sol.solve(MatrixXd::Identity(x.size(),x.size())*(1.0/(timeStep_*timeStep_)));
   }
   succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
+#ifdef WRITE_ERROR
+  if(!succ) {
+    std::ofstream os("err.dat",std::ios::binary);
+    size_t n=v.size();
+    os.write((char*)&n,sizeof(size_t));
+    os.write((char*)v.data(),sizeof(double)*n);
+    os.write((char*)x.data(),sizeof(double)*n);
+    os.write((char*)newX.data(),sizeof(double)*n);
+    std::cout<<"Wrote error to err.dat"<<std::endl;
+  }
+#endif
   if(output)
     std::cout<<"status="<<succ<<std::endl;
   return succ;
+}
+void RVOSimulator::replayError() {
+  if(!std::experimental::filesystem::exists("err.dat"))
+    return;
+  std::ifstream is("err.dat",std::ios::binary);
+  size_t n;
+  is.read((char*)&n,sizeof(size_t));
+  VectorXd v,x,newX;
+  v.resize(n);
+  x.resize(n);
+  newX.resize(n);
+  is.read((char*)v.data(),sizeof(double)*n);
+  is.read((char*)x.data(),sizeof(double)*n);
+  is.read((char*)newX.data(),sizeof(double)*n);
+  std::cout<<"Read from to err.dat"<<std::endl;
+
+  Eigen::Matrix<int,4,1> nBarrier,nBarrier2;
+  double delta=1e-8,f,f2;
+  VectorXd g,g2,dx;
+  MatrixXd h,h2;
+  dx.setRandom(n);
+  //test spatial hash
+  f=energy(v,x,newX,nBarrier,&g,&h,false,false);
+  synchronizeAgentPositions(newX);
+  kdTree_->buildAgentTree();
+  f2=energy(v,x,newX,nBarrier2,&g2,&h2,true,true);
+  std::cout << "nBarrier=" << nBarrier.transpose() << " SpatialHash error: " << (nBarrier-nBarrier2).transpose() << std::endl;
+  std::cout << "Energy  =" << f << " SpatialHash error: " << (f2-f) << std::endl;
+  std::cout << "Gradient=" << g.cwiseAbs().maxCoeff() << " SpatialHash error: " << (g2-g).cwiseAbs().maxCoeff() << std::endl;
+  std::cout << "Hessian =" << h.cwiseAbs().maxCoeff() << " SpatialHash error: " << (h2-h).cwiseAbs().maxCoeff() << std::endl;
+  //test finite difference
+  f2=energy(v,x,newX+dx*delta,nBarrier,&g2,NULL,false,false);
+  std::cout << "Gradient=" << f << " FD error: " << g.dot(dx)-(f2-f)/delta << std::endl;
+  std::cout << "Hessian =" << (h*dx).cwiseAbs().maxCoeff() << " FD error: " << (h*dx-(g2-g)/delta).cwiseAbs().maxCoeff() << std::endl;
+  exit(EXIT_SUCCESS);
 }
 void RVOSimulator::checkEnergyFD(double d0Tmp_, double vScale_, double xScale_) {
   //user typically wants a larger d0 to allow more barreirs
@@ -374,22 +430,22 @@ void RVOSimulator::checkEnergyFD(double d0Tmp_, double vScale_, double xScale_) 
     x*=xScale_;
     newX=x;
     newX1=x;
-    f=energy(v,x,newX,nBarrier,NULL,NULL,false);
+    f=energy(v,x,newX,nBarrier,NULL,NULL,false,false);
     if(!std::isfinite(f))
       continue;
     if((nBarrier.array()<=0).any())
       continue;
     //test spatial hash
-    f=energy(v,x,newX,nBarrier,&g,&h,false);
+    f=energy(v,x,newX,nBarrier,&g,&h,false,false);
     synchronizeAgentPositions(newX);
     kdTree_->buildAgentTree();
-    f2=energy(v,x,newX,nBarrier2,&g2,&h2,true);
+    f2=energy(v,x,newX,nBarrier2,&g2,&h2,true,true);
     std::cout << "nBarrier=" << nBarrier.transpose() << " SpatialHash error: " << (nBarrier-nBarrier2).transpose() << std::endl;
     std::cout << "Energy  =" << f << " SpatialHash error: " << (f2-f) << std::endl;
     std::cout << "Gradient=" << g.cwiseAbs().maxCoeff() << " SpatialHash error: " << (g2-g).cwiseAbs().maxCoeff() << std::endl;
     std::cout << "Hessian =" << h.cwiseAbs().maxCoeff() << " SpatialHash error: " << (h2-h).cwiseAbs().maxCoeff() << std::endl;
     //test finite difference
-    f2=energy(v,x,newX+dx*delta,nBarrier,&g2,NULL,true);
+    f2=energy(v,x,newX+dx*delta,nBarrier,&g2,NULL,true,true);
     std::cout << "Gradient=" << f << " FD error: " << g.dot(dx)-(f2-f)/delta << std::endl;
     std::cout << "Hessian =" << (h*dx).cwiseAbs().maxCoeff() << " FD error: " << (h*dx-(g2-g)/delta).cwiseAbs().maxCoeff() << std::endl;
     break;

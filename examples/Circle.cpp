@@ -132,7 +132,7 @@ int main() {
   /* Set up the scenario. */
   setupScenario(sim);
 
-  sim->setNewtonParameters(100,1e-4,0.01,1,1e-6);
+  sim->setNewtonParameters(1000,1e-4,0.01,1,1e-6);
   //sim->checkEnergyFD(10);
   /* Perform (and manipulate) the simulation. */
   do {

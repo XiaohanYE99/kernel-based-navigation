@@ -198,15 +198,16 @@ int main() {
   /* Set up the scenario. */
   setupScenario(sim);
 
-  sim->setNewtonParameters(100,1e-4,0.01,1,1e-6);
+  sim->setNewtonParameters(1000,1e-4,0.01,1,1e-6);
   //sim->checkEnergyFD(10);
+  sim->replayError();
   /* Perform (and manipulate) the simulation. */
   do {
 #if RVO_OUTPUT_TIME_AND_POSITIONS
     updateVisualization(sim);
 #endif
     setPreferredVelocities(sim);
-    if(!sim->doNewtonStep(true, true, false)) {
+    if(!sim->doNewtonStep(true, false, true)) {
       std::cout << "NewtonStep failed!" << std::endl;
       break;
     }

@@ -53,6 +53,7 @@ set(RVO_SOURCES
 	RVOSimulatorOptimize.cpp)
 
 add_library(RVO ${RVO_HEADERS} ${RVO_SOURCES})
+TARGET_LINK_LIBRARIES(RVO stdc++fs)
 
 include_directories(eigen)
 

@@ -149,6 +149,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
 
   for(size_t i=0; i<x.size()/2; i++) {
     double R=agents_[i]->radius_;
+    agents_[i]->computeNeighbors();
     for (size_t k = 0; k < agents_[i]->obstacleNeighbors_.size(); k++) {
       const Obstacle *obstacle1 = agents_[i]->obstacleNeighbors_[k].second;
       const Obstacle *obstacle2 = obstacle1->nextObstacle_;
@@ -410,11 +411,11 @@ void RVOSimulator::doNewtonStep(bool require_grad) {
     agents_[i]->computeNeighbors();
 #endif
   optimize(v,x,xNew,require_grad);
-  /*VectorXd dx;
+  VectorXd dx;
   dx.setRandom(x.size());
   VectorXd xNew1=xNew;
 
-  MatrixXd q=partialxStar_x;
+  /*MatrixXd q=partialxStar_x;
   double delta=1e-4;
   optimize(v,x+dx*delta,xNew1,require_grad);
   double error=((xNew1-xNew)/delta-q*dx).squaredNorm();
@@ -444,8 +445,9 @@ void RVOSimulator::doNewtonStep(bool require_grad) {
 
 
   for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
-    agents_[i]->newVelocity_=Vector2((xNew[i]-x[i])/timeStep_,(xNew[i+agent_size]-x[i+agent_size])/timeStep_);
-    agents_[i]->update();
+    //agents_[i]->newVelocity_=Vector2((xNew[i]-x[i])/timeStep_,(xNew[i+agent_size]-x[i+agent_size])/timeStep_);
+    //agents_[i]->update();
+    agents_[i]->position_=Vector2(xNew[i],xNew[i+agent_size]);
   }
   end=clock();
   //printf("time=%f\n",(double)(end-start)/CLOCKS_PER_SEC);

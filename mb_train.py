@@ -15,13 +15,13 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.8
-                 , horizon=64
+                 , horizon=512
                  , num_sample_steps=1
                  , num_pre_steps=1
-                 , num_train_steps=64
+                 , num_train_steps=256
                  , num_init_step=0
-                 , buffer_size=64
-                 , batch_size=64):
+                 , buffer_size=512
+                 , batch_size=256):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
         self.action_var = torch.full((100,), action_std_init * action_std_init).to(device)
@@ -84,7 +84,7 @@ class PolicyNet(nn.Module):
         alpha=1.0-F.relu(1.0-alpha)
         alpha=torch.cat((alpha,alpha),1)
         #print(alpha)
-        return (1.0-alpha)*v+alpha*(-3*torch.cat((x/r,y/r),1))
+        return (1.0-alpha)*v+alpha*(-2*torch.cat((x/r,y/r),1))
 
 
     def implement(self, state, target,training):
@@ -222,10 +222,10 @@ if __name__ == '__main__':
     use_kernel_loop = False  # calculating grid velocity with kernel loop
     use_sparse_FEM = False  # use sparse FEM solver
 
-    batch_size = 64
+    batch_size = 256
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
-    sim = rvo2.PyRVOSimulator(800 / 400., 10, 100, 1.5, 2.0, 8, 2)
-    multisim = rvo2.PyRVOMultiSimulator(batch_size,800 / 400., 10, 100, 1.5, 2.0, 8, 2)
+    sim = rvo2.PyRVOSimulator(400 / 400., 10, 100, 1.5, 2.0, 8, 2)
+    multisim = rvo2.PyRVOMultiSimulator(batch_size,400 / 400., 10, 100, 1.5, 2.0, 8, 2)
 
     env = NavigationEnvs(batch_size, gui, sim, multisim, use_kernel_loop, use_sparse_FEM)
 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
-    #policy.actor = torch.load('model/model_450.pth')
+    policy.actor = torch.load('model/model_30.pth')
     # init sample
     # policy.eval()
     #policy.init_sample()

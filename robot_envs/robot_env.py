@@ -200,8 +200,8 @@ class NavigationEnvs():
         self.current_obs=[]
         self.viewer=None
 
-        self.sim.setNewtonParameters(1000, 1e-6, 100, 1e-1 ,1e-6)
-        self.multisim.setNewtonParameters(1000, 1e-6, 100, 1e-1, 1e-6)
+        self.sim.setNewtonParameters(1000, 1e-4, 100, 1e-3 ,1e-6)
+        self.multisim.setNewtonParameters(1000, 1e-4, 100, 1e-3, 1e-6)
 
         self.N = 15  # kernel number
         self.radius = 0.008  # robot radius
@@ -278,10 +278,10 @@ class NavigationEnvs():
         import pickle
         obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
 
-        obs.append(Viewer.get_box_ll(x=700, y=14, lowerleft=(0,0)))
-        obs.append(Viewer.get_box_ll(x=14, y=700, lowerleft=(686, 0)))
-        obs.append(Viewer.get_box_ll(x=700, y=14, lowerleft=(0, 686)))
-        obs.append(Viewer.get_box_ll(x=14, y=700, lowerleft=(0, 0)))
+        obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0,0)))
+        obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(685, 0)))
+        obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0, 685)))
+        obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(0, 0)))
         self.reset(current_obs=obs, wind_size=wind_size)
         self.FEM_init()
         torch.cuda.empty_cache()
@@ -396,7 +396,7 @@ class NavigationEnvs():
         self.mask_y = torch.ones([self.size_x, self.size_y + 1], dtype=torch.float32).to(self.device)
         for i in range(self.size_x):
             for j in range(self.size_y):
-                if self.obs_map[i,j]>0:
+                if self.obs_map[i,j]==1:
                     mask[i, j] = 1
         for i in range(self.size_x):
             for j in range(self.size_y):
@@ -485,8 +485,8 @@ class NavigationEnvs():
             print(torch.std(input[:,i,:,:]))
         '''
         input[:,0,:,:]=input[:,0,:,:]/0.1#0.1008
-        input[:, 1, :, :] = input[:, 1, :, :] / 0.02#0.0687
-        input[:, 2, :, :] = input[:, 2, :, :] / 0.4177#0.4424
+        input[:, 1, :, :] = input[:, 1, :, :] / 0.02
+        input[:, 2, :, :] = input[:, 2, :, :] / 0.4177
         return input
 
 
@@ -598,7 +598,7 @@ class NavigationEnvs():
         rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ self.eps)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
-        return 3.0*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)
+        return 2.0*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)
 
         #return torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
 

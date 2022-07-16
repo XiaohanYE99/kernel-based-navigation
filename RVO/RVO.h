@@ -15,7 +15,7 @@ class RVO {
   typedef Eigen::Triplet<T,int> STrip;
   typedef ParallelVector<STrip> STrips;
   typedef Eigen::SparseMatrix<T,0,int> SMatT;
-  RVO(T rad,T d0=1,T gTol=1e-4,T coef=1,int maxIter=100);
+  RVO(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=100,bool radixSort=false);
   void clearAgent();
   void clearObstacle();
   const Mat2XT& getAgent() const;
@@ -27,14 +27,17 @@ class RVO {
   void setTimestep(T timestep);
   T timestep() const;
   bool optimize(MatT* DXDV,MatT* DXDX,bool output);
+  void debugNeighbor(T scale);
+  void debugEnergy(T scale,T dscale=1);
  private:
   static T clog(T d,T* D,T* DD,T d0,T coef);
   bool lineSearch(T E,const Vec& g,const Vec& d,T& alpha,Vec& newX,
                   std::function<bool(const Vec&,T&)> eval,T alphaMin) const;
-  bool energy(const Vec& prevPos,const Vec& pos,T* f,Vec* g,SMatT* h);
-  bool energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips) const;
-  bool energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips) const;
+  bool energy(const Vec& prevPos,const Vec& pos,T* f,Vec* g,SMatT* h,Eigen::Matrix<int,4,1>& nBarrier);
+  bool energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
+  bool energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
   bool intersect(const Vec2T edgeA[2],const Vec2T edgeB[2]) const;
+  static void addBlock(Vec& g,int r,const Vec2T& blk);
   template <typename MAT>
   static void addBlock(STrips& trips,int r,int c,const MAT& blk);
   static T absMax(const SMatT& h);

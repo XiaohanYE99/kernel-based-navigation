@@ -1,0 +1,18 @@
+#include <RVO/RVO.h>
+#include <thread>
+
+int main() {
+  typedef LSCALAR T;
+  DECL_MAT_VEC_MAP_TYPES_T
+  T scale=100;
+
+  RVO::RVO rvo(1,100);
+  for(int i=0;i<10;i++)
+    rvo.addAgent((Vec2T::Random()*2-Vec2T::Ones())*scale,Vec2T::Random()*scale);
+  for(const auto& off:{Vec2T(-60,-60),Vec2T(40,-60),Vec2T(40,40),Vec2T(-60,40)})
+    rvo.addObstacle({off,off+Vec2T(20,0),off+Vec2T(20,20),off+Vec2T(0,20)});
+  rvo.debugNeighbor(scale);
+  rvo.debugEnergy(scale);
+  std::this_thread::sleep_for(std::chrono::seconds(100));
+  return 0;
+}

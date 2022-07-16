@@ -47,9 +47,8 @@ void SpatialHashLinkedList::buildSpatialHash(VecCM pos0,VecCM pos1,T R) {
   //compute parameter
   _invR=1/_R;
   _nrCell.array()=(_bb.getExtent()*_invR).cwiseMax(Vec2T::Ones()).array().ceil().cast<int>();
-  _stride[0]=_nrCell[1]*_nrCell[2];
-  _stride[1]=_nrCell[2];
-  _stride[2]=1;
+  _stride[0]=_nrCell[1];
+  _stride[1]=1;
   //relink
   _heads.assign(_nrCell.prod(),-1);
   int nrLock=(int)_writelock.size();
@@ -70,7 +69,7 @@ void SpatialHashLinkedList::buildSpatialHash(VecCM pos0,VecCM pos1,T R) {
 void SpatialHashLinkedList::detectImplicitShape(std::function<bool(AgentObstacleNeighbor)> VVss,const BoundingVolumeHierarchy& bvh,T margin) {
   if(bvh.getNodes().empty())
     return;
-  OMP_PARALLEL_FOR_
+  //OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_nodes.size(); i++) {
     BBox bb(_nodes[i]._ctr);
     bb.enlarged(_nodes[i]._radius+margin);
@@ -95,7 +94,7 @@ void SpatialHashLinkedList::detectImplicitShape(std::function<bool(AgentObstacle
   }
 }
 void SpatialHashLinkedList::detectImplicitShapeBF(std::function<bool(AgentObstacleNeighbor)> VVss,const BoundingVolumeHierarchy& bvh,T margin) {
-  OMP_PARALLEL_FOR_
+  //OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_nodes.size(); i++) {
     BBox bb(_nodes[i]._ctr);
     bb.enlarged(_nodes[i]._radius+margin);
@@ -104,6 +103,8 @@ void SpatialHashLinkedList::detectImplicitShapeBF(std::function<bool(AgentObstac
     ss.push((int)bvh.getNodes().size()-1);
     for(int j=0; j<(int)bvh.getNodes().size(); j++)
       if(bvh.getNodes()[j]._cell>=0) {
+        if(!bvh.getNodes()[j]._bb.intersect(bb))
+          continue;
         AgentObstacleNeighbor VV;
         VV._v=_vss[i];
         VV._o=bvh.getObstacles()[bvh.getNodes()[j]._cell];
@@ -114,7 +115,7 @@ void SpatialHashLinkedList::detectImplicitShapeBF(std::function<bool(AgentObstac
 void SpatialHashLinkedList::detectSphereBroad(std::function<bool(AgentNeighbor)> VVss,const SpatialHash& otherSH,T margin) {
   const SpatialHashLinkedList& other=dynamic_cast<const SpatialHashLinkedList&>(otherSH);
   bool selfCollision=this==&other;
-  OMP_PARALLEL_FOR_
+  //OMP_PARALLEL_FOR_
   for(int i=0; i<(int)other._vss.size(); i++) {
     AgentNeighbor VV;
     T searchRange=other._nodes[i]._radius+margin+_R;
@@ -138,7 +139,7 @@ void SpatialHashLinkedList::detectSphereBroadBF(std::function<bool(AgentNeighbor
   const SpatialHashLinkedList& other=dynamic_cast<const SpatialHashLinkedList&>(otherSH);
   bool selfCollision=this==&other;
   _VVCheckList.clear();
-  OMP_PARALLEL_FOR_
+  //OMP_PARALLEL_FOR_
   for(int i=0; i<(int)other._vss.size(); i++)
     for(int j=0; j<(int)_vss.size(); j++) {
       AgentNeighbor VV;

@@ -139,5 +139,5 @@ void Node<T,BBOX>::buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::un
     buildBVHBottomUp(bvh,edgeMapRoot,true);
   }
 }
-template struct Node<std::shared_ptr<Obstacle>,BBox>;
+template struct Node<int,BBox>;
 }

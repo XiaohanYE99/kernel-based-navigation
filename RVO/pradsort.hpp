@@ -47,9 +47,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <string.h>
 #include <algorithm>
 #define NOMINMAX
-#include <windows/AllowWindowsPlatformAtomics.h>
+//#include <windows/AllowWindowsPlatformAtomics.h>
 #include <windows.h>
-#include <windows/HideWindowsPlatformAtomics.h>
+//#include <windows/HideWindowsPlatformAtomics.h>
 #endif
 
 

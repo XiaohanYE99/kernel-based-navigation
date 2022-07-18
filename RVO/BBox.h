@@ -2,6 +2,7 @@
 #define BBOX_H
 
 #include "Pragma.h"
+#include "Epsilon.h"
 #include <Eigen/Dense>
 
 namespace RVO {

@@ -10,6 +10,8 @@ class BoundingVolumeHierarchy {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
   void clearObstacle();
+  int getNrObstacle() const;
+  std::vector<Vec2T> getObstacle(int i) const;
   void addObstacle(const std::vector<Vec2T>& vss);
   const std::vector<std::shared_ptr<Obstacle>>& getObstacles() const;
   const std::vector<Node<int,BBox>>& getNodes() const;

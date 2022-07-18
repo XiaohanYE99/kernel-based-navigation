@@ -1,6 +1,8 @@
 #include "Obstacle.h"
 
 namespace RVO {
+Obstacle::Obstacle():_id(-1) {}
+Obstacle::Obstacle(const Vec2T& pos,int id):_pos(pos),_id(id) {}
 bool AgentObstacleNeighbor::operator<(const AgentObstacleNeighbor& other) const {
   if(_v<other._v)
     return true;

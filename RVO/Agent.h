@@ -2,6 +2,7 @@
 #define AGENT_H
 
 #include "Pragma.h"
+#include "Epsilon.h"
 #include <Eigen/Dense>
 #include <memory>
 

@@ -8,10 +8,11 @@ class Obstacle {
  public:
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  Obstacle() {}
-  Obstacle(const Vec2T& pos):_pos(pos) {}
+  Obstacle();
+  Obstacle(const Vec2T& pos,int id);
   std::shared_ptr<Obstacle> _next;
   Vec2T _pos;
+  int _id;
 };
 class AgentObstacleNeighbor {
  public:

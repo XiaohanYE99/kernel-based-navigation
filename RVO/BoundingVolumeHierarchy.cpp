@@ -5,10 +5,29 @@ void BoundingVolumeHierarchy::clearObstacle() {
   _obs.clear();
   _bvh.clear();
 }
+int BoundingVolumeHierarchy::getNrObstacle() const {
+  int nr=0;
+  for(int id=0; id<(int)_obs.size(); id++)
+    if(_obs[id]->_next->_id<id)
+      nr++;
+  return nr;
+}
+std::vector<BoundingVolumeHierarchy::Vec2T> BoundingVolumeHierarchy::getObstacle(int i) const {
+  int nr=0;
+  std::vector<Vec2T> pos;
+  for(int id=0; id<(int)_obs.size(); id++)
+    if(_obs[id]->_next->_id<id) {
+      if(nr==i)
+        for(int idBeg=_obs[id]->_next->_id; idBeg<=id; idBeg++)
+          pos.push_back(_obs[idBeg]->_pos);
+      nr++;
+    }
+  return pos;
+}
 void BoundingVolumeHierarchy::addObstacle(const std::vector<Vec2T>& vss) {
   int offset=(int)_obs.size();
   for(int i=0; i<(int)vss.size(); i++)
-    _obs.push_back(std::shared_ptr<Obstacle>(new Obstacle(vss[i])));
+    _obs.push_back(std::shared_ptr<Obstacle>(new Obstacle(vss[i],(int)_obs.size())));
   for(int i=0; i<(int)vss.size(); i++)
     _obs[offset+i]->_next=_obs[offset+(i+1)%(int)vss.size()];
   assemble();

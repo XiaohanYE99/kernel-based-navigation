@@ -15,6 +15,9 @@ class BoundingVolumeHierarchy {
   void addObstacle(const std::vector<Vec2T>& vss);
   const std::vector<std::shared_ptr<Obstacle>>& getObstacles() const;
   const std::vector<Node<int,BBox>>& getNodes() const;
+  bool visible(const Vec2T& a,const Vec2T& b,std::shared_ptr<Obstacle> obs=NULL) const;
+  bool visible(const Vec2T& a,std::shared_ptr<Obstacle> o) const;
+  static bool intersect(const Vec2T edgeA[2],const Vec2T edgeB[2]);
  private:
   void assemble();
   std::vector<std::shared_ptr<Obstacle>> _obs;

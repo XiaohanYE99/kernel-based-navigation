@@ -1,4 +1,5 @@
 #include <RVO/RVO.h>
+#include <RVO/CoverageEnergy.h>
 #include <thread>
 
 using namespace RVO;
@@ -15,6 +16,8 @@ int main() {
         Vec2T(-60,-60),Vec2T(40,-60),Vec2T(40,40),Vec2T(-60,40)
       })
     rvo.addObstacle({off,off+Vec2T(20,0),off+Vec2T(20,20),off+Vec2T(0,20)});
+  CoverageEnergy(rvo,50,true).debugCoverage(scale);
+  CoverageEnergy(rvo,50,false).debugCoverage(scale);
   rvo.debugNeighbor(scale);
   rvo.debugEnergy(scale);
   return 0;

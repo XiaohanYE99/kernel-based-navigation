@@ -1,4 +1,5 @@
 #include "BoundingVolumeHierarchy.h"
+#include <stack>
 
 namespace RVO {
 void BoundingVolumeHierarchy::clearObstacle() {
@@ -38,6 +39,53 @@ const std::vector<std::shared_ptr<Obstacle>>& BoundingVolumeHierarchy::getObstac
 const std::vector<Node<int,BBox>>& BoundingVolumeHierarchy::getNodes() const {
   return _bvh;
 }
+bool BoundingVolumeHierarchy::visible(const Vec2T& a,const Vec2T& b,std::shared_ptr<Obstacle> obs) const {
+  BBox bb;
+  bb.setUnion(a);
+  bb.setUnion(b);
+  Vec2T edgeA[2]= {a,b};
+  //stack
+  std::stack<int> ss;
+  ss.push((int)_bvh.size()-1);
+  while(!ss.empty()) {
+    int curr=ss.top();
+    ss.pop();
+    if(!_bvh[curr]._bb.intersect(bb))
+      continue;
+    else if(_bvh[curr]._cell>=0) {
+      if(_obs[_bvh[curr]._cell]==obs || _obs[_bvh[curr]._cell]->_next==obs)
+        continue;
+      Vec2T edgeB[2]= {_obs[_bvh[curr]._cell]->_pos,_obs[_bvh[curr]._cell]->_next->_pos};
+      if(intersect(edgeA,edgeB))
+        return false;
+    } else {
+      ss.push(_bvh[curr]._l);
+      ss.push(_bvh[curr]._r);
+    }
+  }
+  return true;
+}
+bool BoundingVolumeHierarchy::visible(const Vec2T& a,std::shared_ptr<Obstacle> obs) const {
+  Vec2T o[2]= {obs->_pos,obs->_next->_pos};
+  Vec2T obsVec=o[1]-o[0],relPos0=o[0]-a;
+  T lenSq=obsVec.squaredNorm(),s=(-relPos0.dot(obsVec))/lenSq;
+  Vec2T b=o[0]*(1-s)+o[1]*s;
+  return visible(a,b,obs);
+}
+bool BoundingVolumeHierarchy::intersect(const Vec2T edgeA[2],const Vec2T edgeB[2]) {
+  //edgeA[0]+s*(edgeA[1]-edgeA[0])=edgeB[0]+t*(edgeB[1]-edgeB[0])
+  Mat2T LHS;
+  Vec2T RHS=edgeB[0]-edgeA[0];
+  LHS.col(0)= (edgeA[1]-edgeA[0]);
+  LHS.col(1)=-(edgeB[1]-edgeB[0]);
+  if(LHS.determinant()<Epsilon<T>::defaultEps()) {
+    return false;   //parallel line segment, doesn't matter
+  } else {
+    Vec2T st=LHS.inverse()*RHS;
+    return st[0]>=0 && st[0]<=1 && st[1]>=0 && st[1]<=1;
+  }
+}
+//helper
 void BoundingVolumeHierarchy::assemble() {
   _bvh.clear();
   std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash<int>> edgeMap;

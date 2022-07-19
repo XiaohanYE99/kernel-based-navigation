@@ -162,7 +162,6 @@ void SpatialHashRadixSort::detectSphereBroadBF(std::function<bool(AgentNeighbor)
       VV._v[1]=_vss[j];
       if(!selfCollision || VV._v[0]<VV._v[1])
         if((other._nodes[i]._ctr-_nodes[j]._ctr).norm()<other._nodes[i]._radius+_nodes[j]._radius+margin)
-          OMP_CRITICAL_
           _VVCheckList.push_back(VV);
     }
   //make unique

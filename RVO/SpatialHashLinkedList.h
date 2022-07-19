@@ -2,6 +2,7 @@
 #define SPATIAL_HASH_LINKED_LIST_H
 
 #include "SpatialHash.h"
+#include "ParallelVector.h"
 
 namespace RVO {
 class SpatialHashLinkedList : public SpatialHash {
@@ -38,7 +39,7 @@ class SpatialHashLinkedList : public SpatialHash {
   std::vector<int> _heads;
   //temporary data, not serialized
   std::vector<AgentNeighbor> _VVUniqueCheckList;
-  std::vector<AgentNeighbor> _VVCheckList;
+  ParallelVector<AgentNeighbor> _VVCheckList;
 };
 }
 

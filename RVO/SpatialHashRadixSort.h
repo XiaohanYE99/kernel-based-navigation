@@ -2,6 +2,7 @@
 #define SPATIAL_HASH_RADIX_SORT_H
 
 #include "SpatialHash.h"
+#include "ParallelVector.h"
 
 namespace RVO {
 class SpatialHashRadixSort : public SpatialHash {
@@ -36,7 +37,7 @@ class SpatialHashRadixSort : public SpatialHash {
   std::vector<int> _indices,_offsetsInv,_offsets,_starts,_ends;
   //temporary data, not serialized
   std::vector<AgentNeighbor> _VVUniqueCheckList;
-  std::vector<AgentNeighbor> _VVCheckList;
+  ParallelVector<AgentNeighbor> _VVCheckList;
 };
 }
 extern void radixSort(int* val,int* key,int N);

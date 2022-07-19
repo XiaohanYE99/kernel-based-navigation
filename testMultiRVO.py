@@ -6,6 +6,7 @@ import numpy as np
 #you can change this to be very large
 maxVelocity=1
 batchSize=15
+scale=100.
 
 #add obstacle
 rvo=pyrvo.MultiRVOSimulator(batchSize,2)
@@ -57,6 +58,17 @@ for x in range(80,120,10):
             tar.append(-pos[-1])
         id=rvo.addAgent(pos,vel)
         rvo.setAgentTarget(id,tar,maxVelocity)
+        
+#MultiCoverageEnergy
+C=pyrvo.MultiCoverageEnergy(rvo,50.,True)
+poss=[]
+for i in range(batchSize):
+    pos=np.zeros((rvo.getNrAgent()*2),dtype=float)
+    for i in range(rvo.getNrAgent()*2):
+        pos[i]=random.randrange(-scale,scale)
+    poss.append(pos)
+loss=C.loss(poss)
+grad=C.grad()
         
 #simulate
 pyrvo.drawRVOApp(100,rvo)

@@ -2,6 +2,7 @@
 #define RVO_H
 
 #include "BoundingVolumeHierarchy.h"
+#include "ParallelVector.h"
 #include <unordered_map>
 #include <Eigen/Sparse>
 
@@ -14,12 +15,13 @@ class RVOSimulator {
 #ifndef SWIG
   DECL_MAP_FUNCS
   typedef Eigen::Triplet<T,int> STrip;
-  typedef std::vector<STrip> STrips;
+  typedef ParallelVector<STrip> STrips;
   typedef Eigen::SparseMatrix<T,0,int> SMatT;
 #endif
   RVOSimulator(const RVOSimulator& other);
   RVOSimulator& operator=(const RVOSimulator& other);
   RVOSimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
+  bool getUseHash() const;
   T getRadius() const;
   void clearAgent();
   void clearObstacle();
@@ -58,6 +60,16 @@ class RVOSimulator {
   void debugNeighbor(T scale);
   void debugEnergy(T scale,T dscale=1);
 #ifndef SWIG
+  std::shared_ptr<SpatialHash> getHash() const;
+  const BoundingVolumeHierarchy& getBVH() const;
+  static void addBlock(Vec& g,int r,const Vec2T& blk);
+  template <typename MAT>
+  static void addBlock(STrips& trips,int r,int c,const MAT& blk) {
+    for(int R=0; R<blk.rows(); R++)
+      for(int C=0; C<blk.cols(); C++)
+        trips.push_back(STrip(r+R,c+C,blk(R,C)));
+  }
+  static T absMax(const SMatT& h);
  private:
   static T clog(T d,T* D,T* DD,T d0,T coef);
   bool lineSearch(T E,const Vec& g,const Vec& d,T& alpha,Vec& newX,
@@ -65,11 +77,6 @@ class RVOSimulator {
   bool energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Matrix<int,4,1>& nBarrier);
   bool energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
   bool energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
-  bool intersect(const Vec2T edgeA[2],const Vec2T edgeB[2]) const;
-  static void addBlock(Vec& g,int r,const Vec2T& blk);
-  template <typename MAT>
-  static void addBlock(STrips& trips,int r,int c,const MAT& blk);
-  static T absMax(const SMatT& h);
   std::shared_ptr<SpatialHash> _hash;
   BoundingVolumeHierarchy _bvh;
   Mat2XT _perfVelocities;

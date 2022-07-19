@@ -38,6 +38,9 @@ RVOSimulator::RVOSimulator(T rad,T d0,T gTol,T coef,T timestep,int maxIter,bool 
   _useHash=useHash;
   _rad=rad;
 }
+bool RVOSimulator::getUseHash() const {
+  return _useHash;
+}
 RVOSimulator::T RVOSimulator::getRadius() const {
   return _rad;
 }
@@ -237,6 +240,7 @@ RVOSimulator::MatT RVOSimulator::getDXDV() const {
   return _DXDV;
 }
 void RVOSimulator::debugNeighbor(T scale) {
+  std::cout << __FUNCTION__ << std::endl;
   while(true) {
     Vec prevPos=Vec::Random(_agentPositions.size())*scale;
     Vec pos=Vec::Random(_agentPositions.size())*scale;
@@ -288,6 +292,7 @@ void RVOSimulator::debugNeighbor(T scale) {
   }
 }
 void RVOSimulator::debugEnergy(T scale,T dscale) {
+  std::cout << __FUNCTION__ << std::endl;
   DEFINE_NUMERIC_DELTA_T(T)
   while(true) {
     Vec prevPos=Vec::Random(_agentPositions.size())*scale;
@@ -307,6 +312,33 @@ void RVOSimulator::debugEnergy(T scale,T dscale) {
     DEBUG_GRADIENT("h",(h*dx).norm(),(h*dx-(g2-g)/Delta).norm())
     break;
   }
+}
+std::shared_ptr<SpatialHash> RVOSimulator::getHash() const {
+  return _hash;
+}
+const BoundingVolumeHierarchy& RVOSimulator::getBVH() const {
+  return _bvh;
+}
+void RVOSimulator::addBlock(Vec& g,int r,const Vec2T& blk) {
+#ifdef FORCE_ADD_DOUBLE_PRECISION
+  OMP_CRITICAL_
+#else
+  OMP_ATOMIC_
+#endif
+  g[r+0]+=blk[0];
+#ifdef FORCE_ADD_DOUBLE_PRECISION
+  OMP_CRITICAL_
+#else
+  OMP_ATOMIC_
+#endif
+  g[r+1]+=blk[1];
+}
+RVOSimulator::T RVOSimulator::absMax(const SMatT& h) {
+  T val=0;
+  for(int k=0; k<h.outerSize(); ++k)
+    for(typename SMatT::InnerIterator it(h,k); it; ++it)
+      val=fmax(val,fabs(it.value()));
+  return val;
 }
 //helper
 RVOSimulator::T RVOSimulator::clog(T d,T* D,T* DD,T d0,T coef) {
@@ -355,9 +387,6 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
 #define CURRA(A) pos.template segment<2>(A->_id*2)
 #define PREVO(O) O->_pos
 #define CURRO(O) O->_next->_pos
-  //update hash
-  nBarrier.setZero();
-  _hash->buildSpatialHash(prevPos,pos,_rad,_useHash);
   //initialize
   STrips trips;
   bool succ=true;
@@ -370,6 +399,9 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
   if(h)
     for(int i=0; i<x.size(); i++)
       trips.push_back(STrip(i,i,1/(_timestep*_timestep)));
+  //update hash
+  nBarrier.setZero();
+  _hash->buildSpatialHash(prevPos,pos,_rad,_useHash);
   //inter-agent query
   T margin=sqrt(_rad*_rad*4+_d0)-_rad*2;
   auto computeEnergyAA=[&](AgentNeighbor n)->bool{
@@ -378,7 +410,7 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
     //CCD check
     const Vec2T edgeA[2]= {PREVA(n._v[0]),CURRA(n._v[0])};
     const Vec2T edgeB[2]= {PREVA(n._v[1]),CURRA(n._v[1])};
-    if(prevPos.data() && intersect(edgeA,edgeB))
+    if(prevPos.data() && BoundingVolumeHierarchy::intersect(edgeA,edgeB))
       succ=false;
     else if(!energyAA(n._v[0]->_id,n._v[1]->_id,edgeA[1],edgeB[1],f,g,h?&trips:NULL,nBarrier))
       succ=false;
@@ -395,7 +427,7 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
     //CCD check
     const Vec2T edgeA[2]= {PREVA(n._v),CURRA(n._v)};
     const Vec2T edgeB[2]= {PREVO(n._o),CURRO(n._o)};
-    if(prevPos.data() && intersect(edgeA,edgeB))
+    if(prevPos.data() && BoundingVolumeHierarchy::intersect(edgeA,edgeB))
       succ=false;
     else if(!energyAO(n._v->_id,edgeA[1],edgeB,f,g,h?&trips:NULL,nBarrier))
       succ=false;
@@ -509,46 +541,5 @@ bool RVOSimulator::energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,
     }
   }
   return true;
-}
-bool RVOSimulator::intersect(const Vec2T edgeA[2],const Vec2T edgeB[2]) const {
-  //edgeA[0]+s*(edgeA[1]-edgeA[0])=edgeB[0]+t*(edgeB[1]-edgeB[0])
-  Mat2T LHS;
-  Vec2T RHS=edgeB[0]-edgeA[0];
-  LHS.col(0)= (edgeA[1]-edgeA[0]);
-  LHS.col(1)=-(edgeB[1]-edgeB[0]);
-  if(LHS.determinant()<Epsilon<T>::defaultEps()) {
-    return false;   //parallel line segment, doesn't matter
-  } else {
-    Vec2T st=LHS.inverse()*RHS;
-    return st[0]>=0 && st[0]<=1 && st[1]>=0 && st[1]<=1;
-  }
-}
-void RVOSimulator::addBlock(Vec& g,int r,const Vec2T& blk) {
-#ifdef FORCE_ADD_DOUBLE_PRECISION
-  OMP_CRITICAL_
-#else
-  OMP_ATOMIC_
-#endif
-  g[r+0]+=blk[0];
-#ifdef FORCE_ADD_DOUBLE_PRECISION
-  OMP_CRITICAL_
-#else
-  OMP_ATOMIC_
-#endif
-  g[r+1]+=blk[1];
-}
-template <typename MAT>
-void RVOSimulator::addBlock(STrips& trips,int r,int c,const MAT& blk) {
-  for(int R=0; R<blk.rows(); R++)
-    for(int C=0; C<blk.cols(); C++)
-      OMP_CRITICAL_
-      trips.push_back(STrip(r+R,c+C,blk(R,C)));
-}
-RVOSimulator::T RVOSimulator::absMax(const SMatT& h) {
-  T val=0;
-  for(int k=0; k<h.outerSize(); ++k)
-    for(typename SMatT::InnerIterator it(h,k); it; ++it)
-      val=fmax(val,fabs(it.value()));
-  return val;
 }
 }

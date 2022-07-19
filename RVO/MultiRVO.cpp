@@ -75,16 +75,23 @@ void MultiRVOSimulator::setTimestep(T timestep) {
 MultiRVOSimulator::T MultiRVOSimulator::timestep() const {
   return _sims[0].timestep();
 }
+int MultiRVOSimulator::getBatchSize() const {
+  return (int)_sims.size();
+}
+const RVOSimulator& MultiRVOSimulator::getSubSimulator(int id) const {
+  return _sims[id];
+}
 std::vector<char> MultiRVOSimulator::optimize(bool requireGrad,bool output) {
-  std::vector<char> succ;
+  std::vector<char> succ(_sims.size());
   OMP_PARALLEL_FOR_
   for(int id=0; id<(int)_sims.size(); id++)
-    succ.push_back(_sims[id].optimize(requireGrad,output));
+    succ[id]=_sims[id].optimize(requireGrad,output);
   return succ;
 }
 void MultiRVOSimulator::updateAgentTargets() {
-  for(auto& sim:_sims)
-    sim.updateAgentTargets();
+  OMP_PARALLEL_FOR_
+  for(int id=0; id<(int)_sims.size(); id++)
+    _sims[id].updateAgentTargets();
 }
 std::vector<MultiRVOSimulator::MatT> MultiRVOSimulator::getDXDX() const {
   std::vector<MatT> ret;

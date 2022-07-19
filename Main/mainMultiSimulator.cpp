@@ -7,10 +7,10 @@
 #define BLOCK
 using namespace RVO;
 
-int main() {
+int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  MultiRVOSimulator rvo(5,4,1,1e-4,1,1,1000,false,true);
+  MultiRVOSimulator rvo(5,2,1,1e-4,1,1,1000,false,true);
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)
@@ -32,40 +32,57 @@ int main() {
     rvo.getObstacle(id);
   }
 #endif
+  T randRange=3;
   //bottom left
   for(int x=-120; x<=-80; x+=10)
     for(int y=-120; y<=-80; y+=10) {
-      int id=rvo.addAgent({Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y)},
+      int id=rvo.addAgent({Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange},
       {Vec2T( 1, 1),Vec2T( 1, 1),Vec2T( 1, 1),Vec2T( 1, 1),Vec2T( 1, 1)});
       rvo.setAgentTarget(id, {-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y)},maxV);
     }
   //top left
   for(int x=-120; x<=-80; x+=10)
     for(int y=80; y<=120; y+=10) {
-      int id=rvo.addAgent({Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y)},
+      int id=rvo.addAgent({Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange},
       {Vec2T( 1,-1),Vec2T( 1,-1),Vec2T( 1,-1),Vec2T( 1,-1),Vec2T( 1,-1)});
       rvo.setAgentTarget(id, {-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y)},maxV);
     }
   //bottom right
   for(int x=80; x<=120; x+=10)
     for(int y=-120; y<=-80; y+=10) {
-      int id=rvo.addAgent({Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y)},
+      int id=rvo.addAgent({Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange},
       {Vec2T(-1, 1),Vec2T(-1, 1),Vec2T(-1, 1),Vec2T(-1, 1),Vec2T(-1, 1)});
       rvo.setAgentTarget(id, {-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y)},maxV);
     }
   //top right
   for(int x=80; x<=120; x+=10)
     for(int y=80; y<=120; y+=10) {
-      int id=rvo.addAgent({Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y),Vec2T(x,y)},
+      int id=rvo.addAgent({Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange,
+                           Vec2T(x,y)+Vec2T::Random()*randRange},
       {Vec2T(-1,-1),Vec2T(-1,-1),Vec2T(-1,-1),Vec2T(-1,-1),Vec2T(-1,-1)});
       rvo.setAgentTarget(id, {-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y)},maxV);
     }
   //run
-  while(true) {
+  drawRVOApp(argc,argv,150,rvo,[&]() {
     rvo.updateAgentTargets();
-    rvo.optimize(true,false);
+    rvo.optimize(true,true);
     rvo.getDXDV();
     rvo.getDXDX();
-  }
+  });
   return 0;
 }

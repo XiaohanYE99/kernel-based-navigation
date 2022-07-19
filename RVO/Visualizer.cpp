@@ -66,7 +66,46 @@ void drawRVOApp(int argc,char** argv,GLfloat ext,const RVOSimulator& sim,std::fu
   });
   drawer.mainLoop();
 }
+void drawRVOApp(int argc,char** argv,GLfloat ext,const MultiRVOSimulator& sim,std::function<void()> frm) {
+  using namespace DRAWER;
+  Drawer drawer(argc,argv);
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
+  std::shared_ptr<CompositeShape> shape=drawRVO(sim.getSubSimulator(0));
+  drawer.addShape(shape);
+  drawer.addCamera2D(ext);
+  drawer.clearLight();
+  bool step=false;
+  int id=0;
+  drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
+    if(captured)
+      return;
+    else if(key==GLFW_KEY_R && action==GLFW_PRESS)
+      step=!step;
+    else if(key==GLFW_KEY_D && action==GLFW_PRESS) {
+      id=(id+1)%sim.getBatchSize();
+      drawRVO(sim.getSubSimulator(id),shape);
+    } else if(key==GLFW_KEY_A && action==GLFW_PRESS) {
+      id=(id+sim.getBatchSize()-1)%sim.getBatchSize();
+      drawRVO(sim.getSubSimulator(id),shape);
+    }
+  });
+  drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
+    if(step) {
+      frm();
+      drawRVO(sim.getSubSimulator(id),shape);
+    }
+  });
+  drawer.mainLoop();
+}
 void drawRVOApp(float ext,RVOSimulator& sim) {
+  using namespace DRAWER;
+  drawRVOApp(0,NULL,ext,sim,[&]() {
+    sim.updateAgentTargets();
+    sim.optimize(false,false);
+  });
+}
+void drawRVOApp(float ext,MultiRVOSimulator& sim) {
   using namespace DRAWER;
   drawRVOApp(0,NULL,ext,sim,[&]() {
     sim.updateAgentTargets();

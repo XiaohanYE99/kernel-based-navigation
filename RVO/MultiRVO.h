@@ -16,17 +16,23 @@ class MultiRVOSimulator {
   void clearAgent();
   void clearObstacle();
   int getNrObstacle() const;
-  std::vector<Vec2T> getObstacle(int i) const;
-  int getNrAgent() const;
-  std::vector<Vec2T> getAgentPosition(int i) const;
-  std::vector<Vec2T> getAgentVelocity(int i) const;
 #ifdef SWIG
+  std::vector<Eigen::Matrix<double,2,1>> getObstacle(int i) const;
+#else
+  std::vector<Vec2T> getObstacle(int i) const;
+#endif
+  int getNrAgent() const;
+#ifdef SWIG
+  std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
+  std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
   int addAgent(std::vector<Eigen::Matrix<double,2,1>> pos,std::vector<Eigen::Matrix<double,2,1>> vel);
   void setAgentPosition(int i,std::vector<Eigen::Matrix<double,2,1>> pos);
   void setAgentVelocity(int i,std::vector<Eigen::Matrix<double,2,1>> vel);
   void setAgentTarget(int i,std::vector<Eigen::Matrix<double,2,1>> target,T maxVelocity);
   int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
 #else
+  std::vector<Vec2T> getAgentPosition(int i) const;
+  std::vector<Vec2T> getAgentVelocity(int i) const;
   int addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel);
   void setAgentPosition(int i,std::vector<Vec2T> pos);
   void setAgentVelocity(int i,std::vector<Vec2T> vel);
@@ -37,6 +43,8 @@ class MultiRVOSimulator {
   void setAgentRadius(T radius);
   void setTimestep(T timestep);
   T timestep() const;
+  int getBatchSize() const;
+  const RVOSimulator& getSubSimulator(int id) const;
   std::vector<char> optimize(bool requireGrad,bool output);
   void updateAgentTargets();
   std::vector<MatT> getDXDX() const;

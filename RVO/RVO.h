@@ -17,6 +17,8 @@ class RVOSimulator {
   typedef std::vector<STrip> STrips;
   typedef Eigen::SparseMatrix<T,0,int> SMatT;
 #endif
+  RVOSimulator(const RVOSimulator& other);
+  RVOSimulator& operator=(const RVOSimulator& other);
   RVOSimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   T getRadius() const;
   void clearAgent();
@@ -72,6 +74,7 @@ class RVOSimulator {
   BoundingVolumeHierarchy _bvh;
   Mat2XT _perfVelocities;
   Mat2XT _agentPositions;
+  Eigen::SimplicialLDLT<SMatT> _sol;
   std::unordered_map<int,Vec3T> _agentTargets;
   T _timestep,_gTol,_d0,_coef,_rad;
   bool _useHash;

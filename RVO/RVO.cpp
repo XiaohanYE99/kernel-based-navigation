@@ -5,6 +5,30 @@
 #include <iostream>
 
 namespace RVO {
+RVOSimulator::RVOSimulator(const RVOSimulator& other) {
+  operator=(other);
+}
+RVOSimulator& RVOSimulator::operator=(const RVOSimulator& other) {
+  _timestep=other._timestep;
+  _gTol=other._gTol;
+  _d0=other._d0;
+  _coef=other._coef;
+  _rad=other._rad;
+  _useHash=other._useHash;
+  _maxIter=other._maxIter;
+  //clone agents
+  if(std::dynamic_pointer_cast<SpatialHashRadixSort>(other._hash))
+    _hash.reset(new SpatialHashRadixSort());
+  else _hash.reset(new SpatialHashLinkedList());
+  clearAgent();
+  for(int i=0; i<other.getNrAgent(); i++)
+    addAgent(other.getAgentPosition(i),other.getAgentVelocity(i));
+  //clone obstacle
+  clearObstacle();
+  for(int i=0; i<other.getNrObstacle(); i++)
+    addObstacle(other.getObstacle(i));
+  return *this;
+}
 RVOSimulator::RVOSimulator(T rad,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash) {
   if(radixSort)
     _hash.reset(new SpatialHashRadixSort());
@@ -112,6 +136,7 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
   SMatT h;
   T E;
   int iter;
+  T lastAlpha;
   T maxPerturbation=1e2;
   T minPerturbation=1e-6;
   T perturbation=1e0;
@@ -119,8 +144,6 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
   T perturbationInc=10.0;
   T alpha=1,alphaMin=1e-10;
   Eigen::Matrix<int,4,1> nBarrier;
-  Eigen::SimplicialLDLT<SMatT> sol;
-  T lastAlpha;
   for(iter=0; iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++) {
     //always use spatial hash to compute obstacle neighbors, but only use spatial hash to compute agent neighbors
     bool succ=energy(mapCV<Vec>(NULL),mapCV(newX),&E,&g,&h,nBarrier);
@@ -148,8 +171,8 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
     while(true) {
       //ensure hessian factorization is successful
       while(perturbation<maxPerturbation) {
-        sol.compute(_id*perturbation+h);
-        if(sol.info()==Eigen::Success) {
+        _sol.compute(_id*perturbation+h);
+        if(_sol.info()==Eigen::Success) {
           perturbation=std::max(perturbation*perturbationDec,minPerturbation);
           break;
         } else {
@@ -163,7 +186,7 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
       }
       //line search
       lastAlpha=alpha;
-      succ=lineSearch(E,g,-sol.solve(g),alpha,newX,[&](const Vec& evalPt,T& E2)->bool {
+      succ=lineSearch(E,g,-_sol.solve(g),alpha,newX,[&](const Vec& evalPt,T& E2)->bool {
         return energy(mapCV(X),mapCV(evalPt),&E2,NULL,NULL,nBarrier);
       },alphaMin);
       if(succ) {
@@ -181,8 +204,8 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
   if(requireGrad) {
     perturbation=0;
     while(true) {
-      sol.compute(h+_id*perturbation);
-      if(sol.info()==Eigen::Success)
+      _sol.compute(h+_id*perturbation);
+      if(_sol.info()==Eigen::Success)
         break;
       else {
         perturbation=std::max(minPerturbation,perturbation*perturbationInc);
@@ -190,8 +213,8 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
           std::cout << "Singular configuration during backward pass!" << std::endl;
       }
     }
-    _DXDX=sol.solve(_id.toDense()*(1/(_timestep*_timestep)));
-    _DXDV=sol.solve(_id.toDense()*(1/_timestep));
+    _DXDX=_sol.solve(_id.toDense()*(1/(_timestep*_timestep)));
+    _DXDV=_sol.solve(_id.toDense()*(1/_timestep));
   } else {
     _DXDX.setZero(0,0);
     _DXDV.setZero(0,0);

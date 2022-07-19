@@ -1,11 +1,11 @@
-import sys
+import sys,random
 sys.path.append('../kernel-based-navigation-build')
 import pyRVO as pyrvo
 import numpy as np
 
 #you can change this to be very large
 maxVelocity=1
-batchSize=5
+batchSize=15
 
 #add obstacle
 rvo=pyrvo.MultiRVOSimulator(batchSize,2)
@@ -25,7 +25,7 @@ for x in range(-120,-80,10):
     for y in range(-120,-80,10):
         pos,vel,tar=[],[],[]
         for i in range(batchSize):
-            pos.append(np.array([x,y],dtype=float))
+            pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
         id=rvo.addAgent(pos,vel)
@@ -34,7 +34,7 @@ for x in range(-120,-80,10):
     for y in range(80,120,10):
         pos,vel,tar=[],[],[]
         for i in range(batchSize):
-            pos.append(np.array([x,y],dtype=float))
+            pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
         id=rvo.addAgent(pos,vel)
@@ -43,7 +43,7 @@ for x in range(80,120,10):
     for y in range(-120,-80,10):
         pos,vel,tar=[],[],[]
         for i in range(batchSize):
-            pos.append(np.array([x,y],dtype=float))
+            pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
         id=rvo.addAgent(pos,vel)
@@ -52,13 +52,11 @@ for x in range(80,120,10):
     for y in range(80,120,10):
         pos,vel,tar=[],[],[]
         for i in range(batchSize):
-            pos.append(np.array([x,y],dtype=float))
+            pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
         id=rvo.addAgent(pos,vel)
         rvo.setAgentTarget(id,tar,maxVelocity)
         
 #simulate
-while True:
-    rvo.updateAgentTargets()
-    rvo.optimize(False,True)
+pyrvo.drawRVOApp(100,rvo)

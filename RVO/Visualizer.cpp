@@ -42,6 +42,34 @@ std::shared_ptr<DRAWER::CompositeShape> drawRVO(const RVOSimulator& sim,std::sha
     setLocalTranslate(Eigen::Matrix<GLfloat,3,1>((GLfloat)sim.getAgentPosition(i)[0],(GLfloat)sim.getAgentPosition(i)[1],0));
   return shapes;
 }
+std::shared_ptr<DRAWER::MeshShape> drawLines(const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const Eigen::Matrix<GLfloat,3,1>& color) {
+  using namespace DRAWER;
+  std::shared_ptr<DRAWER::MeshShape> mesh(new MeshShape);
+  for(int i=0; i<(int)vss.size(); i++) {
+    mesh->addVertex(Eigen::Matrix<GLfloat,3,1>((GLfloat)vss[i][0],(GLfloat)vss[i][1],0));
+    mesh->addIndexSingle(i);
+  }
+  mesh->setMode(GL_LINES);
+  mesh->setColor(GL_LINES,color[0],color[1],color[2]);
+  mesh->setLineWidth(5);
+  return mesh;
+}
+void drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
+                    const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,
+                    const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss) {
+  using namespace DRAWER;
+  Drawer drawer(argc,argv);
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
+  drawer.addShape(drawRVO(sim));
+  if(!vss.empty())
+    drawer.addShape(drawLines(vss,Eigen::Matrix<GLfloat,3,1>(.7,.2,.2)));
+  if(!nvss.empty())
+    drawer.addShape(drawLines(nvss,Eigen::Matrix<GLfloat,3,1>(.2,.7,.7)));
+  drawer.addCamera2D(ext);
+  drawer.clearLight();
+  drawer.mainLoop();
+}
 void drawRVOApp(int argc,char** argv,GLfloat ext,const RVOSimulator& sim,std::function<void()> frm) {
   using namespace DRAWER;
   Drawer drawer(argc,argv);

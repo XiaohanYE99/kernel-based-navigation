@@ -78,7 +78,7 @@ bool BoundingVolumeHierarchy::intersect(const Vec2T edgeA[2],const Vec2T edgeB[2
   Vec2T RHS=edgeB[0]-edgeA[0];
   LHS.col(0)= (edgeA[1]-edgeA[0]);
   LHS.col(1)=-(edgeB[1]-edgeB[0]);
-  if(LHS.determinant()<Epsilon<T>::defaultEps()) {
+  if(fabs(LHS.determinant())<Epsilon<T>::defaultEps()) {
     return false;   //parallel line segment, doesn't matter
   } else {
     Vec2T st=LHS.inverse()*RHS;

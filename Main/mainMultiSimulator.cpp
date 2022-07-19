@@ -1,6 +1,5 @@
 #include <RVO/MultiRVO.h>
 #include <RVO/Visualizer.h>
-#include <thread>
 
 #define maxV 0.5
 //#define CIRCLE

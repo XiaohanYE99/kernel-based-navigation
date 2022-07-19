@@ -16,7 +16,7 @@ void SpatialHashRadixSort::lock() {
 void SpatialHashRadixSort::unlock() {
   _locked=false;
 }
-void SpatialHashRadixSort::buildSpatialHash(VecCM pos0,VecCM pos1,T R) {
+void SpatialHashRadixSort::buildSpatialHash(VecCM pos0,VecCM pos1,T R,bool useHash) {
   if(_locked)
     return;
   //compute bounds
@@ -32,6 +32,8 @@ void SpatialHashRadixSort::buildSpatialHash(VecCM pos0,VecCM pos1,T R) {
     _nodes[i]._ctr=(_nodes[i]._bb._minC+_nodes[i]._bb._maxC)/2;
     _nodes[i]._next=-1;
   }
+  if(!useHash)
+    return;
   //find range
   _nodesBkg=_nodes;
   reduce([&](SpatialHashNode& a,SpatialHashNode& b) {
@@ -160,6 +162,7 @@ void SpatialHashRadixSort::detectSphereBroadBF(std::function<bool(AgentNeighbor)
       VV._v[1]=_vss[j];
       if(!selfCollision || VV._v[0]<VV._v[1])
         if((other._nodes[i]._ctr-_nodes[j]._ctr).norm()<other._nodes[i]._radius+_nodes[j]._radius+margin)
+          OMP_CRITICAL_
           _VVCheckList.push_back(VV);
     }
   //make unique

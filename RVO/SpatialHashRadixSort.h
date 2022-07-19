@@ -2,7 +2,6 @@
 #define SPATIAL_HASH_RADIX_SORT_H
 
 #include "SpatialHash.h"
-#include "ParallelVector.h"
 
 namespace RVO {
 class SpatialHashRadixSort : public SpatialHash {
@@ -19,7 +18,7 @@ class SpatialHashRadixSort : public SpatialHash {
   SpatialHashRadixSort();
   void lock() override;
   void unlock() override;
-  void buildSpatialHash(VecCM pos0,VecCM pos1,T R) override;
+  void buildSpatialHash(VecCM pos0,VecCM pos1,T R,bool useHash=true) override;
   void detectImplicitShape(std::function<bool(AgentObstacleNeighbor)> VVss,const BoundingVolumeHierarchy& bvh,T margin) override;
   void detectImplicitShapeBF(std::function<bool(AgentObstacleNeighbor)> VVss,const BoundingVolumeHierarchy& bvh,T margin) override;
   void detectSphereBroad(std::function<bool(AgentNeighbor)> VVss,const SpatialHash& other,T margin) override;
@@ -37,7 +36,7 @@ class SpatialHashRadixSort : public SpatialHash {
   std::vector<int> _indices,_offsetsInv,_offsets,_starts,_ends;
   //temporary data, not serialized
   std::vector<AgentNeighbor> _VVUniqueCheckList;
-  ParallelVector<AgentNeighbor> _VVCheckList;
+  std::vector<AgentNeighbor> _VVCheckList;
 };
 }
 extern void radixSort(int* val,int* key,int N);

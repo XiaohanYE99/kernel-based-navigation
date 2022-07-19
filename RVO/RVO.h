@@ -1,44 +1,62 @@
 #ifndef RVO_H
 #define RVO_H
 
-#include "SpatialHash.h"
 #include "BoundingVolumeHierarchy.h"
-#include "ParallelVector.h"
 #include <unordered_map>
 #include <Eigen/Sparse>
 
 namespace RVO {
+class SpatialHash;
 class RVOSimulator {
  public:
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
+#ifndef SWIG
   DECL_MAP_FUNCS
   typedef Eigen::Triplet<T,int> STrip;
-  typedef ParallelVector<STrip> STrips;
+  typedef std::vector<STrip> STrips;
   typedef Eigen::SparseMatrix<T,0,int> SMatT;
+#endif
   RVOSimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   T getRadius() const;
   void clearAgent();
   void clearObstacle();
   int getNrObstacle() const;
+#ifdef SWIG
+  std::vector<Eigen::Matrix<double,2,1>> getObstacle(int i) const;
+#else
   std::vector<Vec2T> getObstacle(int i) const;
+#endif
   int getNrAgent() const;
+#ifndef SWIG
+  Mat2XT& getAgentPositions();
+  Mat2XT& getAgentVelocities();
+#endif
+  Mat2XT getAgentPositions() const;
+  Mat2XT getAgentVelocities() const;
   Vec2T getAgentPosition(int i) const;
   Vec2T getAgentVelocity(int i) const;
   int addAgent(const Vec2T& pos,const Vec2T& vel);
   void setAgentPosition(int i,const Vec2T& pos);
   void setAgentVelocity(int i,const Vec2T& vel);
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
-  void addObstacle(const std::vector<Vec2T>& vss);
+#ifdef SWIG
+  int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
+#else
+  int addObstacle(std::vector<Vec2T> vss);
+#endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
   void setAgentRadius(T radius);
   void setTimestep(T timestep);
   T timestep() const;
-  bool optimize(MatT* DXDV,MatT* DXDX,bool output);
+  bool optimize(bool requireGrad,bool output);
+  void updateAgentTargets();
+  MatT getDXDX() const;
+  MatT getDXDV() const;
   void debugNeighbor(T scale);
   void debugEnergy(T scale,T dscale=1);
+#ifndef SWIG
  private:
-  void updateAgents();
   static T clog(T d,T* D,T* DD,T d0,T coef);
   bool lineSearch(T E,const Vec& g,const Vec& d,T& alpha,Vec& newX,
                   std::function<bool(const Vec&,T&)> eval,T alphaMin) const;
@@ -58,7 +76,10 @@ class RVOSimulator {
   T _timestep,_gTol,_d0,_coef,_rad;
   bool _useHash;
   int _maxIter;
+  //data
+  MatT _DXDX,_DXDV;
   SMatT _id;
+#endif
 };
 }
 

@@ -2,15 +2,15 @@
 #include <RVO/Visualizer.h>
 #include <thread>
 
-#define maxV 0.1
-#define CIRCLE
-//#define BLOCK
+#define maxV 0.5
+//#define CIRCLE
+#define BLOCK
 using namespace RVO;
 
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  RVOSimulator rvo(2);
+  RVOSimulator rvo(4,1,1e-4,1,1,1000,false,true);
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)
@@ -55,7 +55,41 @@ int main(int argc,char** argv) {
     }
   //run
   drawRVOApp(argc,argv,150,rvo,[&]() {
-    rvo.optimize(NULL,NULL,true);
+    rvo.updateAgentTargets();
+#ifdef DEBUG_BACKWARD
+    Mat2XT pos=rvo.getAgentPositions();
+    Mat2XT vel=rvo.getAgentVelocities();
+#endif
+    clock_t beg=clock();
+    rvo.optimize(true,false);
+    std::cout << "cost=" << (double)(clock()-beg)/CLOCKS_PER_SEC << "s" << std::endl;
+#ifdef DEBUG_BACKWARD
+    Mat2XT newPos=rvo.getAgentPositions();
+    MatT DXDX=rvo.getDXDX(),DXDV=rvo.getDXDV();
+    Mat2XT dx=Mat2XT::Random(pos.rows(),pos.cols());
+    {
+      T Delta=1e-4;
+      rvo.getAgentPositions()=pos+dx*Delta;
+      rvo.getAgentVelocities()=vel;
+      rvo.optimize(false,true);
+      Mat2XT newPos2=rvo.getAgentPositions();
+      Eigen::Map<const Vec> dxM(dx.data(),dx.size());
+      Eigen::Map<const Vec> newPosM(newPos.data(),newPos.size());
+      Eigen::Map<const Vec> newPos2M(newPos2.data(),newPos2.size());
+      DEBUG_GRADIENT("DXDX",(DXDX*dxM).norm(),(DXDX*dxM-(newPos2M-newPosM)/Delta).norm())
+    }
+    {
+      T Delta=1e-4;
+      rvo.getAgentPositions()=pos;
+      rvo.getAgentVelocities()=vel+dx*Delta;
+      rvo.optimize(false,true);
+      Mat2XT newPos2=rvo.getAgentPositions();
+      Eigen::Map<const Vec> dxM(dx.data(),dx.size());
+      Eigen::Map<const Vec> newPosM(newPos.data(),newPos.size());
+      Eigen::Map<const Vec> newPos2M(newPos2.data(),newPos2.size());
+      DEBUG_GRADIENT("DXDV",(DXDV*dxM).norm(),(DXDV*dxM-(newPos2M-newPosM)/Delta).norm())
+    }
+#endif
   });
   return 0;
 }

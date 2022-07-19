@@ -8,7 +8,9 @@ class MultiRVOSimulator {
  public:
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
+#ifndef SWIG
   DECL_MAP_FUNCS
+#endif
   MultiRVOSimulator(int batchSize,T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   T getRadius() const;
   void clearAgent();
@@ -18,16 +20,27 @@ class MultiRVOSimulator {
   int getNrAgent() const;
   std::vector<Vec2T> getAgentPosition(int i) const;
   std::vector<Vec2T> getAgentVelocity(int i) const;
-  int addAgent(const std::vector<Vec2T>& pos,const std::vector<Vec2T>& vel);
-  void setAgentPosition(int i,const std::vector<Vec2T>& pos);
-  void setAgentVelocity(int i,const std::vector<Vec2T>& vel);
-  void setAgentTarget(int i,const std::vector<Vec2T>& target,T maxVelocity);
-  void addObstacle(const std::vector<Vec2T>& vss);
+#ifdef SWIG
+  int addAgent(std::vector<Eigen::Matrix<double,2,1>> pos,std::vector<Eigen::Matrix<double,2,1>> vel);
+  void setAgentPosition(int i,std::vector<Eigen::Matrix<double,2,1>> pos);
+  void setAgentVelocity(int i,std::vector<Eigen::Matrix<double,2,1>> vel);
+  void setAgentTarget(int i,std::vector<Eigen::Matrix<double,2,1>> target,T maxVelocity);
+  int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
+#else
+  int addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel);
+  void setAgentPosition(int i,std::vector<Vec2T> pos);
+  void setAgentVelocity(int i,std::vector<Vec2T> vel);
+  void setAgentTarget(int i,std::vector<Vec2T> target,T maxVelocity);
+  int addObstacle(std::vector<Vec2T> vss);
+#endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
   void setAgentRadius(T radius);
   void setTimestep(T timestep);
   T timestep() const;
-  std::vector<char> optimize(std::vector<MatT>* DXDV,std::vector<MatT>* DXDX,bool output);
+  std::vector<char> optimize(bool requireGrad,bool output);
+  void updateAgentTargets();
+  std::vector<MatT> getDXDX() const;
+  std::vector<MatT> getDXDV() const;
  private:
   std::vector<RVOSimulator> _sims;
 };

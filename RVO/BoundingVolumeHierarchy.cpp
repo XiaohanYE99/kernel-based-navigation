@@ -25,6 +25,12 @@ std::vector<BoundingVolumeHierarchy::Vec2T> BoundingVolumeHierarchy::getObstacle
     }
   return pos;
 }
+int BoundingVolumeHierarchy::getNrVertex() const {
+  return (int)_obs.size();
+}
+std::shared_ptr<Obstacle> BoundingVolumeHierarchy::getVertex(int i) const {
+  return _obs[i];
+}
 void BoundingVolumeHierarchy::addObstacle(const std::vector<Vec2T>& vss) {
   int offset=(int)_obs.size();
   for(int i=0; i<(int)vss.size(); i++)
@@ -65,11 +71,14 @@ bool BoundingVolumeHierarchy::visible(const Vec2T& a,const Vec2T& b,std::shared_
   }
   return true;
 }
-bool BoundingVolumeHierarchy::visible(const Vec2T& a,std::shared_ptr<Obstacle> obs) const {
+bool BoundingVolumeHierarchy::visible(const Vec2T& a,std::shared_ptr<Obstacle> obs,Vec2T* bRef) const {
   Vec2T o[2]= {obs->_pos,obs->_next->_pos};
   Vec2T obsVec=o[1]-o[0],relPos0=o[0]-a;
   T lenSq=obsVec.squaredNorm(),s=(-relPos0.dot(obsVec))/lenSq;
+  s=fmin((T)1.,fmax((T)0.,s));
   Vec2T b=o[0]*(1-s)+o[1]*s;
+  if(bRef)
+    *bRef=b;
   return visible(a,b,obs);
 }
 bool BoundingVolumeHierarchy::intersect(const Vec2T edgeA[2],const Vec2T edgeB[2]) {

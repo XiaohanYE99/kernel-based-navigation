@@ -176,7 +176,7 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
       while(perturbation<maxPerturbation) {
         _sol.compute(_id*perturbation+h);
         if(_sol.info()==Eigen::Success) {
-          perturbation=std::max(perturbation*perturbationDec,minPerturbation);
+          perturbation=fmax(perturbation*perturbationDec,minPerturbation);
           break;
         } else {
           perturbation*=perturbationInc;
@@ -194,7 +194,7 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
       },alphaMin);
       if(succ) {
         X=newX;
-        perturbation=std::max(perturbation*perturbationDec,minPerturbation);
+        perturbation=fmax(perturbation*perturbationDec,minPerturbation);
         break;
       }
       //probably we need more perturbation to h
@@ -211,7 +211,7 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
       if(_sol.info()==Eigen::Success)
         break;
       else {
-        perturbation=std::max(minPerturbation,perturbation*perturbationInc);
+        perturbation=fmax(minPerturbation,perturbation*perturbationInc);
         if(output)
           std::cout << "Singular configuration during backward pass!" << std::endl;
       }

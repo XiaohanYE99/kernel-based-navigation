@@ -59,8 +59,12 @@ bool BoundingVolumeHierarchy::visible(const Vec2T& a,const Vec2T& b,std::shared_
     if(!_bvh[curr]._bb.intersect(bb))
       continue;
     else if(_bvh[curr]._cell>=0) {
-      if(_obs[_bvh[curr]._cell]==obs || _obs[_bvh[curr]._cell]->_next==obs)
-        continue;
+      if(obs) {
+        if(_obs[_bvh[curr]._cell]==obs || _obs[_bvh[curr]._cell]->_next==obs)
+          continue;
+        if(_obs[_bvh[curr]._cell]==obs->_next || _obs[_bvh[curr]._cell]->_next==obs->_next)
+          continue;
+      }
       Vec2T edgeB[2]= {_obs[_bvh[curr]._cell]->_pos,_obs[_bvh[curr]._cell]->_next->_pos};
       if(intersect(edgeA,edgeB))
         return false;

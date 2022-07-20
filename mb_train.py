@@ -15,13 +15,13 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.8
-                 , horizon=512
+                 , horizon=128
                  , num_sample_steps=1
                  , num_pre_steps=1
-                 , num_train_steps=256
+                 , num_train_steps=128
                  , num_init_step=0
-                 , buffer_size=512
-                 , batch_size=256):
+                 , buffer_size=128
+                 , batch_size=128):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
         self.action_var = torch.full((100,), action_std_init * action_std_init).to(device)
@@ -56,17 +56,17 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(3, 8, 7, 2, 3), nn.BatchNorm2d(8), nn.ReLU(),  # [50,50,8]
-                nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12), nn.ReLU(),  # [25,25,16]
-                nn.Conv2d(12, 20, 5, 2, 2),nn.BatchNorm2d(20), nn.ReLU(), nn.Flatten(),  # [9,9,128]
-                nn.Linear(20 * 7 * 7, 128),nn.ReLU(),
+                nn.Conv2d(2, 8, 7, 2, 3), nn.BatchNorm2d(8), nn.Tanh(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12), nn.Tanh(),  # [25,25,16]
+                nn.Conv2d(12, 20, 5, 2, 2),nn.BatchNorm2d(20), nn.Tanh(), nn.Flatten(),  # [9,9,128]
+                nn.Linear(20 * 13 * 13, 128),nn.Tanh(),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
 
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
-                    nn.init.kaiming_uniform_(param, a=1e-3)
+                    nn.init.kaiming_uniform_(param, a=1e-2)
 
             self.lr = 1e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
@@ -78,13 +78,12 @@ class PolicyNet(nn.Module):
     def switch(self, v,state,target):
         x=state[:,::2]-target[0]
         y=state[:,1::2]-target[1]
-        r=torch.sqrt(x*x+y*y)+self.env.eps
-        alpha=-3*torch.pow((self.env.bound-r),2)/(r*r)+2*torch.pow((self.env.bound-r),3)/(r*r*r)+1.0
-        alpha=F.relu(alpha)
-        alpha=1.0-F.relu(1.0-alpha)
+        r=torch.sqrt(x*x+y*y+self.env.eps)
+        alpha=-3*torch.pow((2*self.env.bound-r),2)/(r*r)+2*torch.pow((2*self.env.bound-r),3)/(r*r*r)+1.0
+        alpha[r<self.env.bound]=0
+        alpha[r>2*self.env.bound]=1
         alpha=torch.cat((alpha,alpha),1)
-        #print(alpha)
-        return (1.0-alpha)*v+alpha*(-2*torch.cat((x/r,y/r),1))
+        return alpha*v+(1.0-alpha)*(-2*torch.cat((x/r,y/r),1))
 
 
     def implement(self, state, target,training):
@@ -190,17 +189,10 @@ class PolicyNet(nn.Module):
 
             loss+=self.env.MBLoss(state,s)
         return loss
-    def test(self):
-        for i in range(self.num_sample_steps):
-            state = self.env.reset_agent()
-            # state = self.reset_env()
-            state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
-            for step in range(self.horizon):
-                with torch.no_grad():
-                    state = policy.implement(state)
-                    self.env.MBStep(state)
+
     def reset(self,path='./robot_envs/mazes_g100w700h700/maze'):
-        idx=random.randint(0,400)
+        idx=random.randint(0,1000)
+        idx=108
         fn=path+str(idx)+'.dat'
         self.env.load_roadmap(fn)
 
@@ -211,19 +203,22 @@ if __name__ == '__main__':
     target_y = 0.5
     has_continuous_action_space = True  # continuous action space; else discrete
     device = torch.device('cpu')
+
     if (torch.cuda.is_available()):
         device = torch.device('cuda')
         torch.cuda.empty_cache()
         print("Device set to : " + str(torch.cuda.get_device_name(device)))
     else:
         print("Device set to : cpu")
+
     print("============================================================================================")
 
     use_kernel_loop = False  # calculating grid velocity with kernel loop
     use_sparse_FEM = False  # use sparse FEM solver
 
-    batch_size = 256
+    batch_size = 128
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
+
     sim = rvo2.PyRVOSimulator(400 / 400., 10, 100, 1.5, 2.0, 8, 2)
     multisim = rvo2.PyRVOMultiSimulator(batch_size,400 / 400., 10, 100, 1.5, 2.0, 8, 2)
 
@@ -233,16 +228,17 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
-    policy.actor = torch.load('model/model_30.pth')
+    #policy.actor = torch.load('model/model_100.pth')
     # init sample
     # policy.eval()
     #policy.init_sample()
     sumloss=0
+    policy.reset()
     for i in range(iter):
-        if i in [300, 1000]:
+        if i in [150, 450]:
             policy.lr *= 0.3
 
-        policy.reset()
+        policy.env.reset()
         #policy.eval()
         loss=policy.sample(False)
 

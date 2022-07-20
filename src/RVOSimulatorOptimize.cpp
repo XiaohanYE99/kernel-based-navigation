@@ -36,7 +36,7 @@
 #include "KdTree.h"
 #include "Obstacle.h"
 
-#include <experimental/filesystem>
+//#include <experimental/filesystem>
 #include <iostream>
 #include "time.h"
 #include <fstream>
@@ -202,7 +202,7 @@ double RVOSimulator::energy(const VectorXd& v, const VectorXd& x, const VectorXd
       const double distSq1 = relativePosition1.squaredNorm();
       const double distSq2 = relativePosition2.squaredNorm();
 
-      const double radiusSq = 2*R*R;
+      const double radiusSq = R*R;
       const Vector2d obstacleVector(obstacle2->point_.x() - obstacle1->point_.x(),obstacle2->point_.y() - obstacle1->point_.y());
       const double s = (-relativePosition1 .dot(obstacleVector)) / obstacleVector.squaredNorm();
       const double distSqLine = (-relativePosition1 - s * obstacleVector).squaredNorm();
@@ -357,7 +357,7 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     partialxStar_x=sol.solve(MatrixXd::Identity(x.size(),x.size())*(1.0/(timeStep_*timeStep_)));
   }
   succ=iter<maxIter && alpha>alphaMin && perturbation<maxPerturbation;
-#ifdef WRITE_ERROR
+/*#ifdef WRITE_ERROR
   if(!succ) {
     std::ofstream os("err.dat",std::ios::binary);
     size_t n=v.size();
@@ -367,13 +367,13 @@ bool RVOSimulator::optimize(const VectorXd& v, const VectorXd& x, VectorXd& newX
     os.write((char*)newX.data(),sizeof(double)*n);
     std::cout<<"Wrote error to err.dat"<<std::endl;
   }
-#endif
+#endif*/
   if(output)
     std::cout<<"status="<<succ<<std::endl;
   return succ;
 }
 void RVOSimulator::replayError() {
-  if(!std::experimental::filesystem::exists("err.dat"))
+  /*if(!std::experimental::filesystem::exists("err.dat"))
     return;
   std::ifstream is("err.dat",std::ios::binary);
   size_t n;
@@ -405,7 +405,8 @@ void RVOSimulator::replayError() {
   f2=energy(v,x,newX+dx*delta,nBarrier,&g2,NULL,false,false);
   std::cout << "Gradient=" << f << " FD error: " << g.dot(dx)-(f2-f)/delta << std::endl;
   std::cout << "Hessian =" << (h*dx).cwiseAbs().maxCoeff() << " FD error: " << (h*dx-(g2-g)/delta).cwiseAbs().maxCoeff() << std::endl;
-  exit(EXIT_SUCCESS);
+  exit(EXIT_SUCCESS);*/
+  return ;
 }
 void RVOSimulator::checkEnergyFD(double d0Tmp_, double vScale_, double xScale_) {
   //user typically wants a larger d0 to allow more barreirs

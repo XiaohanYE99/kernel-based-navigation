@@ -30,7 +30,7 @@ pi = np.pi
 
 
 def find_grid_index(pos, dx):
-    return int((pos[1]+0.1*dx) / dx) * 50 + int((pos[0]+0.1*dx) / dx)
+    return int((pos[1]+0.1*dx) / dx) * 100 + int((pos[0]+0.1*dx) / dx)
 
 
 def make_ccw(pts):
@@ -200,28 +200,29 @@ class NavigationEnvs():
         self.current_obs=[]
         self.viewer=None
 
-        self.sim.setNewtonParameters(1000, 1e-4, 100, 1e-3 ,1e-6)
-        self.multisim.setNewtonParameters(1000, 1e-4, 100, 1e-3, 1e-6)
+        self.sim.setNewtonParameters(100, 1e-2, 100, 5e-5 ,1e-6)
+        self.multisim.setNewtonParameters(100, 1e-2, 100, 5e-5, 1e-6)
 
-        self.N = 15  # kernel number
+        self.N = 10  # kernel number
         self.radius = 0.008  # robot radius
         self.n_robots = 50  # robot number
-        self.scale=1000
+        self.scale=200
 
         self.agent = []
         self.suc = 0
         self.arrive = 0
         self.over1 = 0
         self.device = torch.device("cuda:0")
+        #self.device = torch.device("cpu")
 
         self.state = np.zeros([self.n_robots * 2])
         self.oldstate = np.zeros([self.n_robots * 2])
         self.vel = np.zeros([self.n_robots * 2])
         self.oldvel = np.zeros([self.n_robots * 2])
         self.angle = np.zeros([self.n_robots])
-        self.size = 50
-        self.size_x = 50
-        self.size_y = 50
+        self.size = 100
+        self.size_x = 100
+        self.size_y = 100
         self.dx = 1.0 / self.size_x
         self.aim = [0.9, 0.5]
         self.goal = np.zeros([self.n_robots * 2])
@@ -276,13 +277,27 @@ class NavigationEnvs():
 
     def load_roadmap(self,fn):
         import pickle
-        obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
+        current_obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
 
-        obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0,0)))
-        obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(685, 0)))
-        obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0, 685)))
-        obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(0, 0)))
-        self.reset(current_obs=obs, wind_size=wind_size)
+        current_obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0,0)))
+        current_obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(685, 0)))
+        current_obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0, 685)))
+        current_obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(0, 0)))
+        self.wind_size = wind_size
+        if current_obs is not None:
+            self.sim.clearObstacle()
+            self.multisim.clearObstacle()
+            self.current_obs = []
+
+            for obs in current_obs:
+                self.current_obs.append(obs)
+                self.sim.addObstacle(
+                    make_ccw([tuple(p * np.array([self.scale, self.scale]) / np.array(wind_size)) for p in obs]))
+                self.multisim.addObstacle(
+                    make_ccw([tuple(p * np.array([self.scale, self.scale]) / np.array(wind_size)) for p in obs]))
+            self.sim.processObstacles()
+            self.multisim.processObstacles()
+        self.reset()
         self.FEM_init()
         torch.cuda.empty_cache()
 
@@ -355,25 +370,12 @@ class NavigationEnvs():
         else:
             self.aim=[0.9,p]
         #self.aim=[0.1,0.1]
-    def reset(self,current_obs=None,wind_size=(1,1)):
-        self.wind_size=wind_size
-        if current_obs is not None:
-            self.sim.clearObstacle()
-            self.multisim.clearObstacle()
-            self.current_obs=[]
-
-            for obs in current_obs:
-                self.current_obs.append(obs)
-                self.sim.addObstacle(make_ccw([tuple(p*np.array([self.scale,self.scale])/np.array(wind_size)) for p in obs]))
-                self.multisim.addObstacle(make_ccw([tuple(p*np.array([self.scale,self.scale]) / np.array(wind_size)) for p in obs]))
-            self.sim.processObstacles()
-            self.multisim.processObstacles()
-
-            self.obs_map=obstacleMap([self.size_x,self.size_y],self.dx,self.current_obs,np.array(self.wind_size))
-            self.reset_init_agent()
-            self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
-            self.dis[self.dis>100]=20
-            self.get_target_map()
+    def reset(self):
+        self.obs_map=obstacleMap([self.size_x,self.size_y],self.dx,self.current_obs,np.array(self.wind_size))
+        self.reset_init_agent()
+        self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
+        self.dis[self.dis>100]=20
+        self.get_target_map()
 
         if self.viewer is not None:
             self.viewer.reset_array()
@@ -389,6 +391,7 @@ class NavigationEnvs():
             for j in range(self.size_y):
                 self.target_map[i,j]=self.dis[int(j*self.size_y+i)]
     def FEM_init(self):
+
         mask = torch.zeros([self.size_x, self.size_y])
         GT = torch.zeros([self.size_x * self.size_y, self.size_x * (self.size_y + 1) + self.size_y * (self.size_x + 1)],
                          dtype=torch.float32)  # .to(self.device)
@@ -396,7 +399,7 @@ class NavigationEnvs():
         self.mask_y = torch.ones([self.size_x, self.size_y + 1], dtype=torch.float32).to(self.device)
         for i in range(self.size_x):
             for j in range(self.size_y):
-                if self.obs_map[i,j]==1:
+                if self.obs_map[i,j]>0:
                     mask[i, j] = 1
         for i in range(self.size_x):
             for j in range(self.size_y):
@@ -455,13 +458,14 @@ class NavigationEnvs():
         '''
         target_map=self.target_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
-        target_map[target_map>=20]=20
-        target_map/=20
-        '''
+        target_map[target_map.clone()>=20]=20
+        #target_map/=20
+        
         obs_map=self.obs_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
         add_map=torch.cat((target_map,obs_map),1)
-        add_map.requires_grad=True
+        '''
+        target_map.requires_grad=True
 
         for i in range(pos.size(0)):
             px = pos[i, ::2]/self.scale
@@ -479,14 +483,14 @@ class NavigationEnvs():
 
             # target[i,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
         # I+=target
-        input=torch.cat((I,add_map),1)
+        input=torch.cat((I,target_map),1)
         '''
         for i in range(3):
             print(torch.std(input[:,i,:,:]))
         '''
-        input[:,0,:,:]=input[:,0,:,:]/0.1#0.1008
-        input[:, 1, :, :] = input[:, 1, :, :] / 0.02
-        input[:, 2, :, :] = input[:, 2, :, :] / 0.4177
+        input[:,0,:,:]=input[:,0,:,:]/0.1#0.1
+        input[:, 1, :, :] = input[:, 1, :, :] / 0.02#7.0741
+        #input[:, 2, :, :] = input[:, 2, :, :] / 0.4177
         return input
 
 
@@ -511,14 +515,14 @@ class NavigationEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)+ self.eps)
 
-            velocity_x = (1*torch.sum((0.2*alpha+1)*phix  * torch.exp(-alpha * r) ,
+            velocity_x = (2*torch.sum((0.2*alpha+1)*phix  * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)+ self.eps)
-            velocity_y = (1*torch.sum((0.2*alpha+1)*phiy * torch.exp(-alpha * r) ,
+            velocity_y = (2*torch.sum((0.2*alpha+1)*phiy * torch.exp(-alpha * r) ,
                                     dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
@@ -541,8 +545,8 @@ class NavigationEnvs():
         velocity = torch.cat(
             (torch.flatten(velocity_x.transpose(1, 2), 1), torch.flatten(velocity_y.transpose(1, 2), 1)),
             1)  # .unsqueeze(2)
-        #velocity[velocity>2]=3
-        #velocity[velocity<-2]=-3
+        #velocity[velocity>2]=2
+        #velocity[velocity<-2]=-2
         if self.use_sparse_FEM == False:
             velocity = (velocity).T
             v1 = torch.matmul(self.GT, velocity)
@@ -595,7 +599,7 @@ class NavigationEnvs():
         vel_x = vel_x / energy
         vel_y = vel_y / energy
         '''
-        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ self.eps)
+        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ self.eps*self.eps)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
         return 2.0*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)

@@ -22,7 +22,7 @@ class MultiCollisionFreeLayer(Function):
             env.multisim.setAgentPrefVelocity(i, [(vx[j][i], vy[j][i]) for j in range(env.batch_size)])
             env.multisim.setAgentPosition(i, [(pos[j,i,0], pos[j,i,1]) for j in range(env.batch_size)])
 
-        env.multisim.doNewtonStep(True)
+        env.multisim.doNewtonStep(True,False,False)
 
         #env.sim.doStep()
         #pv=env.multisim.getGradV()
@@ -79,7 +79,7 @@ class CollisionFreeLayer(Function):
                 env.sim.setAgentPosition(env.agent[i], (pos[b][i][0], pos[b][i][1]))
                 env.deltap[i] = [dx, dy]
 
-            env.sim.doNewtonStep(True)
+            env.sim.doNewtonStep(True,False,False)
             # env.sim.doStep()
             p_v = env.sim.getGradV()
             p_x = env.sim.getGradX()

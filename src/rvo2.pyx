@@ -33,7 +33,7 @@ cdef extern from "RVOSimulator.h" namespace "RVO":
         size_t addObstacle(const vector[Vector2] & vertices)
         void clearObstacle()
         void doStep() nogil
-        void doNewtonStep(bool require_grad) nogil
+        void doNewtonStep(bool require_grad,bool useSpatialHash, bool output) nogil
         void computeAgents()
         void updateAgents()
 
@@ -191,9 +191,9 @@ cdef class PyRVOSimulator:
         with nogil:
             self.thisptr.doStep()
 
-    def doNewtonStep(self,bool require_grad):
+    def doNewtonStep(self,bool require_grad,bool useSpatialHash, bool output):
         with nogil:
-            self.thisptr.doNewtonStep(require_grad)
+            self.thisptr.doNewtonStep(require_grad, useSpatialHash, output)
 
     def computeAgents(self):
         self.thisptr.computeAgents()
@@ -368,9 +368,9 @@ cdef class PyRVOMultiSimulator:
         with nogil:
             self.thisptr.doStep()
 
-    def doNewtonStep(self,bool require_grad):
+    def doNewtonStep(self,bool require_grad,bool useSpatialHash, bool output):
         with nogil:
-            self.thisptr.doNewtonStep(require_grad)
+            self.thisptr.doNewtonStep(require_grad, useSpatialHash, output)
 
     def computeAgents(self):
         self.thisptr.computeAgents()

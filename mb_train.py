@@ -15,13 +15,13 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.8
-                 , horizon=128
+                 , horizon=32
                  , num_sample_steps=1
-                 , num_pre_steps=1
-                 , num_train_steps=128
+                 , num_pre_steps=16
+                 , num_train_steps=32
                  , num_init_step=0
-                 , buffer_size=128
-                 , batch_size=128):
+                 , buffer_size=32
+                 , batch_size=32):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
         self.action_var = torch.full((100,), action_std_init * action_std_init).to(device)
@@ -63,11 +63,11 @@ class PolicyNet(nn.Module):
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
-
+            '''
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
                     nn.init.kaiming_uniform_(param, a=1e-2)
-
+            '''
             self.lr = 1e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
@@ -102,7 +102,7 @@ class PolicyNet(nn.Module):
         v = self.env.get_velocity(state/self.env.scale, velocity)
 
         v = self.switch(v, state/self.env.scale, target)
-
+        #print(v)
         if training:
             xNew = self.MultiCFLayer(self.env, state, v)
         else:
@@ -150,15 +150,15 @@ class PolicyNet(nn.Module):
 
             for step in range(self.num_pre_steps):
                 xNew = policy.implement(s, self.env.aim,training=True)
-                loss += self.env.MBLoss(xNew, s)
-                s=xNew
 
+                s=xNew
+            loss += self.env.MBLoss(s, state)
             self.opt.zero_grad()
             #with torch.autograd.detect_anomaly():
             loss.backward()
-            #print(state.grad)
+            print(state.grad)
             self.opt.step()
-            nn.utils.clip_grad_norm_(self.actor.parameters(), 40)
+            nn.utils.clip_grad_value_(self.actor.parameters(), 2)
             # print(loss.item())
             loss_sum += loss
         return loss_sum / self.num_train_steps
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     use_kernel_loop = False  # calculating grid velocity with kernel loop
     use_sparse_FEM = False  # use sparse FEM solver
 
-    batch_size = 128
+    batch_size = 32
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
 
     sim = rvo2.PyRVOSimulator(400 / 400., 10, 100, 1.5, 2.0, 8, 2)

@@ -30,7 +30,8 @@ pi = np.pi
 
 
 def find_grid_index(pos, dx):
-    return int((pos[1]+0.1*dx) / dx) * 100 + int((pos[0]+0.1*dx) / dx)
+    sz=int(1.0/dx)
+    return int((pos[1]+0.1*dx) / dx) * sz + int((pos[0]+0.1*dx) / dx)
 
 
 def make_ccw(pts):
@@ -220,9 +221,9 @@ class NavigationEnvs():
         self.vel = np.zeros([self.n_robots * 2])
         self.oldvel = np.zeros([self.n_robots * 2])
         self.angle = np.zeros([self.n_robots])
-        self.size = 100
-        self.size_x = 100
-        self.size_y = 100
+        self.size = 50
+        self.size_x = 50
+        self.size_y = 50
         self.dx = 1.0 / self.size_x
         self.aim = [0.9, 0.5]
         self.goal = np.zeros([self.n_robots * 2])
@@ -278,7 +279,7 @@ class NavigationEnvs():
     def load_roadmap(self,fn):
         import pickle
         current_obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
-
+        current_obs=[]
         current_obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0,0)))
         current_obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(685, 0)))
         current_obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0, 685)))
@@ -341,10 +342,10 @@ class NavigationEnvs():
         unit=1.0
         grid=7.0
         self.init_state=[]
-        x=2*unit/grid
-        end=5*unit/grid
+        x=0.5*unit/grid
+        end=6.5*unit/grid
         while x<end:
-            y = 2 * unit / grid
+            y = 0.5 * unit / grid
             while y<end:
                 idx,idy=int(x/self.dx),int(y/self.dx)
                 if self.obs_map[idx,idy]==0 and self.obs_map[idx,idy+1]==0 and self.obs_map[idx+1,idy+1]==0 and self.obs_map[idx+1,idy]==0 and self.obs_map[idx+1,idy-1]==0\
@@ -454,14 +455,15 @@ class NavigationEnvs():
 
     def P2G(self, pos, target):
         I = torch.zeros((pos.size(0), 1, self.size_x, self.size_y)).to(self.device)
-        target_map = torch.zeros_like(I).to(self.device)
-        target_map[:,0,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=1
-        '''
+        #target_map = torch.zeros_like(I).to(self.device)
+        #target_map[:,0,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=1
+
         target_map=self.target_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
         target_map[target_map.clone()>=20]=20
         #target_map/=20
-        
+
+        '''
         obs_map=self.obs_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
         add_map=torch.cat((target_map,obs_map),1)
@@ -484,17 +486,47 @@ class NavigationEnvs():
 
             # target[i,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
         # I+=target
+
         input=torch.cat((I,target_map),1)
         '''
-        for i in range(3):
+        for i in range(2):
             print(torch.std(input[:,i,:,:]))
         '''
         input[:,0,:,:]=input[:,0,:,:]/0.1#0.1
-        input[:, 1, :, :] = input[:, 1, :, :] / 0.02#7.0741
+        input[:, 1, :, :] = input[:, 1, :, :] / 1.3575#0.02
         #input[:, 2, :, :] = input[:, 2, :, :] / 0.4177
+        #print(torch.mean(input))
         return input
 
+    def apply(self,pos,action):
+        t0 = time.time()
+        k = action.size(0)
+        x0 = action[:, ::5].unsqueeze(2)
+        y0 = action[:, 1::5].unsqueeze(2)
+        phix = (action[:, 2::5].unsqueeze(2) - 0.5) * 0.2
+        phiy = (action[:, 3::5].unsqueeze(2) - 0.5) * 0.2
+        alpha = (action[:, 4::5].unsqueeze(2)) * 0.0 + 1.0
+        #alpha[alpha <= 1] = 1
 
+
+        # print(torch.max(torch.abs(phix)))
+        # print(action.grad)
+        # alpha[alpha<=1]=1
+
+        if self.use_kernel_loop == False:
+            ux = pos[:,::2].unsqueeze(1)
+            uy = pos[:,1::2].unsqueeze(1)
+
+            r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2) + self.eps)
+
+            vel_x = (20 * torch.sum((0.1 * alpha + 1) * phix * torch.exp(-alpha * r),
+                                         dim=1))
+            vel_y = (20 * torch.sum((0.1 * alpha + 1) * phiy * torch.exp(-alpha * r),
+                                         dim=1))
+            v=1.0 * torch.cat((vel_x, vel_y), 1)
+            v[v>2]=2
+            v[v<-2]=-2
+        return v
     def projection(self, action):
         # print(action.requires_grad)
         t0 = time.time()
@@ -503,7 +535,7 @@ class NavigationEnvs():
         y0 = action[:, 1::5].unsqueeze(2).unsqueeze(3)
         phix=(action[:, 2::5].unsqueeze(2).unsqueeze(3) -0.5)*0.2
         phiy = (action[:, 3::5].unsqueeze(2).unsqueeze(3) - 0.5) * 0.2
-        alpha = (action[:, 4::5].unsqueeze(2).unsqueeze(3)) * 29.0 + 1.0
+        alpha = (action[:, 4::5].unsqueeze(2).unsqueeze(3)) * 9.0 + 1.0
         alpha[alpha<=1]=1
 
         #print(torch.max(torch.abs(phix)))
@@ -516,14 +548,14 @@ class NavigationEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)+ self.eps)
 
-            velocity_x = (20*torch.sum((0.2*alpha+1)*phix  * torch.exp(-alpha * r) ,
+            velocity_x = (10*torch.sum((0.1*alpha+1)*phix  * torch.exp(-F.relu(alpha*r-0.05)-0.05) ,
                                     dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)+ self.eps)
-            velocity_y = (20*torch.sum((0.2*alpha+1)*phiy * torch.exp(-alpha * r) ,
+            velocity_y = (10*torch.sum((0.1*alpha+1)*phiy * torch.exp(-F.relu(alpha*r-0.05)-0.05) ,
                                     dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
@@ -546,8 +578,10 @@ class NavigationEnvs():
         velocity = torch.cat(
             (torch.flatten(velocity_x.transpose(1, 2), 1), torch.flatten(velocity_y.transpose(1, 2), 1)),
             1)  # .unsqueeze(2)
-        velocity[velocity>2]=8
-        velocity[velocity<-2]=-8
+
+        #velocity[velocity>2]=4
+        #velocity[velocity<-2]=-4
+
         if self.use_sparse_FEM == False:
             velocity = (velocity).T
             v1 = torch.matmul(self.GT, velocity)

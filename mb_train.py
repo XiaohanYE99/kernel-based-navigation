@@ -15,12 +15,12 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.8
-                 , horizon=32
+                 , horizon=128
                  , num_sample_steps=1
-                 , num_pre_steps=16
-                 , num_train_steps=32
+                 , num_pre_steps=1
+                 , num_train_steps=128
                  , num_init_step=0
-                 , buffer_size=32
+                 , buffer_size=128
                  , batch_size=32):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
@@ -56,19 +56,19 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(2, 8, 7, 2, 3), nn.BatchNorm2d(8), nn.Tanh(),  # [50,50,8]
-                nn.Conv2d(8, 12, 5, 2, 2), nn.BatchNorm2d(12), nn.Tanh(),  # [25,25,16]
-                nn.Conv2d(12, 20, 5, 2, 2),nn.BatchNorm2d(20), nn.Tanh(), nn.Flatten(),  # [9,9,128]
-                nn.Linear(20 * 13 * 13, 128),nn.Tanh(),
+                nn.Conv2d(2, 8, 7, 2, 3),  nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 2, 2),  nn.ReLU(),  # [25,25,16]
+                nn.Conv2d(12, 20, 5, 2, 2), nn.ReLU(), nn.Flatten(),  # [9,9,128]
+                nn.Linear(20 * 7 * 7, 128),nn.ReLU(),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
             '''
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
-                    nn.init.kaiming_uniform_(param, a=1e-2)
+                    nn.init.kaiming_uniform_(param, a=1e-3)
             '''
-            self.lr = 1e-4
+            self.lr = 3e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
 
@@ -90,9 +90,9 @@ class PolicyNet(nn.Module):
         I = self.env.P2G(state, target)
         I = I.to(device)
         # action = self.controller(I)
-
+        #print(torch.mean(I))
         action = torch.squeeze(self.actor(I), 1)#+0.5
-
+        #print(action)
         for i in range(self.env.N):
             self.env.x0[i] = action[0][5 * i]
             self.env.y0[i] = action[0][5 * i + 1]
@@ -100,8 +100,10 @@ class PolicyNet(nn.Module):
         velocity = self.env.projection(action)
 
         v = self.env.get_velocity(state/self.env.scale, velocity)
-
+        
         v = self.switch(v, state/self.env.scale, target)
+
+        #v=self.env.apply(state/self.env.scale, action)
         #print(v)
         if training:
             xNew = self.MultiCFLayer(self.env, state, v)
@@ -132,9 +134,10 @@ class PolicyNet(nn.Module):
     def update(self):
 
         loss_sum = 0
-        init_state =self.buffer# random.sample(self.buffer, self.num_train_steps)
+        init_state =random.sample(self.buffer, self.num_train_steps)
 
         init_target = random.sample(self.target_buffer, self.num_train_steps)
+
         t = int(self.num_train_steps / self.batch_size)
         for i in range(t):
 
@@ -156,11 +159,12 @@ class PolicyNet(nn.Module):
             self.opt.zero_grad()
             #with torch.autograd.detect_anomaly():
             loss.backward()
-            print(state.grad)
+            #print(state.grad)
             self.opt.step()
-            nn.utils.clip_grad_value_(self.actor.parameters(), 2)
+            nn.utils.clip_grad_value_(self.actor.parameters(), 1)
             # print(loss.item())
             loss_sum += loss
+            #print(self.actor.state_dict())
         return loss_sum / self.num_train_steps
 
     def init_sample(self):
@@ -176,6 +180,7 @@ class PolicyNet(nn.Module):
             state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
             s=state
             for step in range(self.horizon):
+
                 with torch.no_grad():
                     #print(state, state.tolist())
                     if use_random_policy:
@@ -235,7 +240,7 @@ if __name__ == '__main__':
     sumloss=0
     policy.reset()
     for i in range(iter):
-        if i in [150, 450]:
+        if i in [1000, 4000]:
             policy.lr *= 0.3
 
         policy.env.reset()

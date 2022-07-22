@@ -56,18 +56,18 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(2, 8, 7, 2, 3),  nn.ReLU(),  # [50,50,8]
-                nn.Conv2d(8, 12, 5, 2, 2),  nn.ReLU(),  # [25,25,16]
-                nn.Conv2d(12, 20, 5, 2, 2), nn.ReLU(), nn.Flatten(),  # [9,9,128]
-                nn.Linear(20 * 7 * 7, 128),nn.ReLU(),
-                nn.Linear(128, action_dim), nn.Sigmoid()
+                nn.Conv2d(2, 8, 3, 1, 0), nn.MaxPool2d(2), nn.BatchNorm2d(8),nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(8, 12, 3, 1, 0), nn.MaxPool2d(2), nn.BatchNorm2d(12),nn.ReLU(),  # [25,25,16]
+                nn.Conv2d(12, 20, 3, 1, 0),nn.MaxPool2d(2), nn.BatchNorm2d(20),nn.ReLU(), nn.Flatten(),  # [9,9,128]
+                nn.Linear(20 * 4 * 4, 128),nn.Dropout(0.2),nn.ReLU(),
+                nn.Linear(128, action_dim)#, nn.Sigmoid()
             )
 
-            '''
+
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
-                    nn.init.kaiming_uniform_(param, a=1e-3)
-            '''
+                    nn.init.kaiming_uniform_(param, a=1e1)
+
             self.lr = 3e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
@@ -76,13 +76,16 @@ class PolicyNet(nn.Module):
         self.MultiCFLayer = MultiCollisionFreeLayer.apply
 
     def switch(self, v,state,target):
-        x=state[:,::2]-target[0]
-        y=state[:,1::2]-target[1]
-        r=torch.sqrt(x*x+y*y+self.env.eps)
+        x=state[:,:self.env.n_robots]-target[0]
+        y=state[:,self.env.n_robots:]-target[1]
+
+        r=torch.sqrt(torch.square(x)+torch.square(y)+self.env.eps*self.env.eps)
         alpha=-3*torch.pow((2*self.env.bound-r),2)/(r*r)+2*torch.pow((2*self.env.bound-r),3)/(r*r*r)+1.0
+
         alpha[r<self.env.bound]=0
         alpha[r>2*self.env.bound]=1
         alpha=torch.cat((alpha,alpha),1)
+        #print(alpha.size())
         return alpha*v+(1.0-alpha)*(-2*torch.cat((x/r,y/r),1))
 
 
@@ -91,7 +94,7 @@ class PolicyNet(nn.Module):
         I = I.to(device)
         # action = self.controller(I)
         #print(torch.mean(I))
-        action = torch.squeeze(self.actor(I), 1)#+0.5
+        action = torch.squeeze(self.actor(I), 1)+0.5
         #print(action)
         for i in range(self.env.N):
             self.env.x0[i] = action[0][5 * i]
@@ -100,16 +103,29 @@ class PolicyNet(nn.Module):
         velocity = self.env.projection(action)
 
         v = self.env.get_velocity(state/self.env.scale, velocity)
-        
+        '''
+        v=action
+        k=v.clone()
+        v[k>2]=2
+        v[k<-2]=-2
+        '''
         v = self.switch(v, state/self.env.scale, target)
 
         #v=self.env.apply(state/self.env.scale, action)
         #print(v)
+
+
         if training:
             xNew = self.MultiCFLayer(self.env, state, v)
         else:
             xNew = self.CFLayer(self.env, state, v)
+        '''
 
+        xNew=state+2*v
+        p=xNew.clone()
+        xNew[p>200*0.94]=200*0.94
+        xNew[p < 0.06*200] = 0.06*200
+        '''
         return xNew
 
     def act(self, state):
@@ -152,19 +168,21 @@ class PolicyNet(nn.Module):
             loss = 0
 
             for step in range(self.num_pre_steps):
-                xNew = policy.implement(s, self.env.aim,training=True)
+                s = policy.implement(s, self.env.aim,training=True)
 
-                s=xNew
-            loss += self.env.MBLoss(s, state)
+                #s=xNew
+            loss = self.env.MBLoss(s, state)
             self.opt.zero_grad()
             #with torch.autograd.detect_anomaly():
+
             loss.backward()
-            #print(state.grad)
+            #print(torch.max(torch.abs(state.grad)))
+            #nn.utils.clip_grad_value_(self.actor.parameters(), 0)
             self.opt.step()
-            nn.utils.clip_grad_value_(self.actor.parameters(), 1)
             # print(loss.item())
             loss_sum += loss
-            #print(self.actor.state_dict())
+        #print(torch.sum(torch.square(self.actor.state_dict()['0.weight'])))
+        #print(self.env.aim)
         return loss_sum / self.num_train_steps
 
     def init_sample(self):
@@ -233,7 +251,7 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
-    #policy.actor = torch.load('model/model_100.pth')
+    #policy.actor = torch.load('model/model_30.pth')
     # init sample
     # policy.eval()
     #policy.init_sample()

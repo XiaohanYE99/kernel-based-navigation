@@ -7,5 +7,8 @@ src/__pycache__/
 __pycache__/
 robot_envs/mazes_g100w700h700_Var10
 robot_envs/mazes_g100w700h700
+robot_envs/mazes_g75w675h675_Var10
+robot_envs/mazes_g75w675h675
+model/
 *.user
 

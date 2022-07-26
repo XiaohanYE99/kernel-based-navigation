@@ -14,18 +14,19 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 
 class PolicyNet(nn.Module):
-    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.8
-                 , horizon=128
+    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.6
+                 , horizon=384
                  , num_sample_steps=1
-                 , num_pre_steps=1
-                 , num_train_steps=128
+                 , num_pre_steps=10
+                 , num_train_steps=256
                  , num_init_step=0
-                 , buffer_size=128
-                 , batch_size=32):
+                 , buffer_size=384
+                 , batch_size=128):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
-        self.action_var = torch.full((100,), action_std_init * action_std_init).to(device)
+
         self.env = env
+        self.action_var = torch.full((2 * self.env.n_robots,), action_std_init * action_std_init).to(device)
         self.buffer = []
         self.target_buffer = []
         self.buffer_size = buffer_size
@@ -56,19 +57,19 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(2, 8, 3, 1, 0), nn.MaxPool2d(2), nn.BatchNorm2d(8),nn.ReLU(),  # [50,50,8]
-                nn.Conv2d(8, 12, 3, 1, 0), nn.MaxPool2d(2), nn.BatchNorm2d(12),nn.ReLU(),  # [25,25,16]
-                nn.Conv2d(12, 20, 3, 1, 0),nn.MaxPool2d(2), nn.BatchNorm2d(20),nn.ReLU(), nn.Flatten(),  # [9,9,128]
-                nn.Linear(20 * 4 * 4, 128),nn.Dropout(0.2),nn.ReLU(),
-                nn.Linear(128, action_dim)#, nn.Sigmoid()
+                nn.Conv2d(2, 8, 5, 1, 0), nn.MaxPool2d(2),nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(8, 12, 3, 1, 0), nn.MaxPool2d(2),nn.ReLU(),  # [25,25,16]
+                nn.Conv2d(12, 20, 3, 1, 0),nn.MaxPool2d(2),nn.ReLU(), nn.Flatten(),  # [9,9,128]
+                nn.Linear(20 * 10 * 10, 128),nn.ReLU(),
+                nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
 
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
-                    nn.init.kaiming_uniform_(param, a=1e1)
+                    nn.init.kaiming_uniform_(param, a=1e-0)
 
-            self.lr = 3e-4
+            self.lr = 1e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
 
 
@@ -79,22 +80,22 @@ class PolicyNet(nn.Module):
         x=state[:,:self.env.n_robots]-target[0]
         y=state[:,self.env.n_robots:]-target[1]
 
-        r=torch.sqrt(torch.square(x)+torch.square(y)+self.env.eps*self.env.eps)
+        r=torch.sqrt(torch.square(x)+torch.square(y)+self.env.eps)
         alpha=-3*torch.pow((2*self.env.bound-r),2)/(r*r)+2*torch.pow((2*self.env.bound-r),3)/(r*r*r)+1.0
 
         alpha[r<self.env.bound]=0
         alpha[r>2*self.env.bound]=1
         alpha=torch.cat((alpha,alpha),1)
         #print(alpha.size())
-        return alpha*v+(1.0-alpha)*(-2*torch.cat((x/r,y/r),1))
+        return alpha*v+(1.0-alpha)*(-1.5*torch.cat((x/r,y/r),1))
 
 
     def implement(self, state, target,training):
         I = self.env.P2G(state, target)
         I = I.to(device)
         # action = self.controller(I)
-        #print(torch.mean(I))
-        action = torch.squeeze(self.actor(I), 1)+0.5
+        action = torch.squeeze(self.actor(I), 1)#+0.5
+
         #print(action)
         for i in range(self.env.N):
             self.env.x0[i] = action[0][5 * i]
@@ -104,10 +105,9 @@ class PolicyNet(nn.Module):
 
         v = self.env.get_velocity(state/self.env.scale, velocity)
         '''
-        v=action
-        k=v.clone()
-        v[k>2]=2
-        v[k<-2]=-2
+        cov_mat=torch.diag(self.action_var).unsqueeze(0)
+        dist=MultivariateNormal(torch.zeros(v.size()).to(device),cov_mat)
+        v=v+dist.sample()
         '''
         v = self.switch(v, state/self.env.scale, target)
 
@@ -161,6 +161,7 @@ class PolicyNet(nn.Module):
                                    dtype=np.float32).squeeze()
             target = np.array(init_target[i * self.batch_size:(i + 1) * self.batch_size],
                               dtype=np.float32).squeeze()
+
             state = torch.from_numpy(state_batch).to(device)
             #print(torch.sum(state))
             state.requires_grad = True
@@ -168,20 +169,20 @@ class PolicyNet(nn.Module):
             loss = 0
 
             for step in range(self.num_pre_steps):
-                s = policy.implement(s, self.env.aim,training=True)
+                xNew = policy.implement(s, self.env.aim,training=True)
+                loss = self.env.MBLoss(xNew, s)
+                s=xNew
 
-                #s=xNew
-            loss = self.env.MBLoss(s, state)
             self.opt.zero_grad()
             #with torch.autograd.detect_anomaly():
 
             loss.backward()
             #print(torch.max(torch.abs(state.grad)))
-            #nn.utils.clip_grad_value_(self.actor.parameters(), 0)
+            #nn.utils.clip_grad_value_(self.actor.parameters(), 20)
             self.opt.step()
             # print(loss.item())
             loss_sum += loss
-        #print(torch.sum(torch.square(self.actor.state_dict()['0.weight'])))
+        #print(self.actor.state_dict())
         #print(self.env.aim)
         return loss_sum / self.num_train_steps
 
@@ -211,11 +212,11 @@ class PolicyNet(nn.Module):
                 self.target_buffer.append(self.env.target)
 
             loss+=self.env.MBLoss(state,s)
-        return loss
+        return loss/100
 
-    def reset(self,path='./robot_envs/mazes_g100w700h700/maze'):
-        idx=random.randint(0,1000)
-        idx=108
+    def reset(self,path='./robot_envs/mazes_g75w675h675/maze'):
+        idx=random.randint(0,500)
+        idx=78
         fn=path+str(idx)+'.dat'
         self.env.load_roadmap(fn)
 
@@ -258,7 +259,7 @@ if __name__ == '__main__':
     sumloss=0
     policy.reset()
     for i in range(iter):
-        if i in [1000, 4000]:
+        if i in [30, 100,300]:
             policy.lr *= 0.3
 
         policy.env.reset()

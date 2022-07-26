@@ -1,126 +1,52 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-PROJECT(RVO VERSION 1.0.0)
+#
+# CMakeLists.txt
+# RVO2 Library
+#
+# Copyright 2008 University of North Carolina at Chapel Hill
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Please send all bug reports to <geom@cs.unc.edu>.
+#
+# The authors may be contacted via:
+#
+# Jur van den Berg, Stephen J. Guy, Jamie Snape, Ming C. Lin, Dinesh Manocha
+# Dept. of Computer Science
+# 201 S. Columbia St.
+# Frederick P. Brooks, Jr. Computer Science Bldg.
+# Chapel Hill, N.C. 27599-3175
+# United States of America
+#
+# <http://gamma.cs.unc.edu/RVO2/>
+#
 
-#COMPILE SETTINGS
-SET(CMAKE_BUILD_TYPE Release CACHE STRING "Compiler optimization level")
-SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release)
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/ ${PROJECT_SOURCE_DIR}/extern/eigen/cmake ${PROJECT_SOURCE_DIR}/extern/TinyVisualizer/cmake)
-#SET(CMAKE_BUILD_TYPE Debug)
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  MESSAGE(STATUS "Build type: Debug")
-  IF(MSVC)
-    SET(CMAKE_CXX_FLAGS "/bigobj -Wall -std=c++14 ${CMAKE_CXX_FLAGS}")
-  ELSE(MSVC)
-    SET(CMAKE_CXX_FLAGS "-O0 -Wall -fPIC -std=c++14 -Wno-unused-function -Wno-unused-local-typedefs ${CMAKE_CXX_FLAGS}")
-  ENDIF(MSVC)
-ELSE()
-  MESSAGE(STATUS "Build type: Release")
-  IF(MSVC)
-    SET(CMAKE_CXX_FLAGS "/bigobj -Wall -std=c++14 ${CMAKE_CXX_FLAGS}")
-  ELSE(MSVC)
-    SET(CMAKE_CXX_FLAGS "-O3 -Wall -fPIC -std=c++14 -Wno-unused-function -Wno-unused-local-typedefs ${CMAKE_CXX_FLAGS}")
-  ENDIF(MSVC)
-ENDIF()
-SET(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE})
+cmake_minimum_required(VERSION 2.8)
+project(RVO)
 
-#LIBRARY SETTINGS
-SET(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
-OPTION(USE_BOOST "Enable boost multi-precision" ON)
-INCLUDE("${PROJECT_SOURCE_DIR}/cmake/LoadLibs.cmake")
-ADD_DEFINITIONS(-DDATA_PATH="${PROJECT_SOURCE_DIR}/data")
-#let user choose the floating point precision
-SET(FLOAT_PRECISION double CACHE STRING "Multi-precision setting")
-IF(QUADMATH_FOUND AND MPFR_FOUND AND USE_BOOST)
-  SET_PROPERTY(CACHE FLOAT_PRECISION PROPERTY STRINGS double float128 mpfr_float)
-ELSEIF(QUADMATH_FOUND AND USE_BOOST)
-  SET_PROPERTY(CACHE FLOAT_PRECISION PROPERTY STRINGS double float128)
-ELSEIF(MPFR_FOUND AND USE_BOOST)
-  SET_PROPERTY(CACHE FLOAT_PRECISION PROPERTY STRINGS double mpfr_float)
-ELSE()
-  SET(FLOAT_PRECISION double)
-ENDIF()
-ADD_DEFINITIONS(-DLSCALAR=${FLOAT_PRECISION})
-IF(${FLOAT_PRECISION} STREQUAL "double")
-ELSE()
-  ADD_DEFINITIONS(-DFORCE_ADD_DOUBLE_PRECISION)
-ENDIF()
+set(CMAKE_BUILD_TYPE “Release”)
+set(CMAKE_CXX_FLAGS " -fopenmp -fPIC -g  -std=c++17 -lstdc++fs  -O3")
+message(STATUS "Using compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
-#THIRD PARTY HEADERS
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
-MACRO(SEARCH_SOURCE NAME DIRPRJ)
-  FILE(GLOB_RECURSE header${NAME} ${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.h ${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.hpp ${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.hh)
-  FILE(GLOB_RECURSE source${NAME} ${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.cpp ${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.cc ${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.c)
-ENDMACRO(SEARCH_SOURCE)
-SEARCH_SOURCE(RVO RVO)
+include(CTest)
 
-#BUILD LIBRARY
-ADD_LIBRARY(RVO STATIC ${sourceRVO} ${headerRVO})
-IF(MSVC)
-  TARGET_LINK_LIBRARIES(RVO ${ALL_LIBRARIES})
-ELSE(MSVC)
-  TARGET_LINK_LIBRARIES(RVO stdc++fs ${ALL_LIBRARIES})
-ENDIF(MSVC)
+add_subdirectory(src)
 
-#SWIG-Python
-IF(${FLOAT_PRECISION} STREQUAL "double")    #Python interface is supported by the double version
-  SET(PYTHON_BINDING Python3 CACHE STRING "Build SWIG-Python interface")
-  SET_PROPERTY(CACHE PYTHON_BINDING PROPERTY STRINGS None Python2 Python3)
-  IF(PYTHON_BINDING STREQUAL "Python2")
-    FIND_PACKAGE(Python2 REQUIRED COMPONENTS Interpreter Development NumPy)
-    SET(Python_INCLUDE_DIRS ${Python2_INCLUDE_DIRS})
-    SET(Python_LIBRARIES ${Python2_LIBRARIES})
-    FIND_PACKAGE(SWIG COMPONENTS python)
-    IF(Python2_FOUND)
-      MESSAGE(STATUS "Found Python${Python2_VERSION}")
-    ELSE()
-      MESSAGE(WARNING "Cannot find Python2!")
-      SET(PYTHON_BINDING "None")
-    ENDIF()
-    IF(SWIG_FOUND)
-      MESSAGE(STATUS "Found swig${SWIG_VERSION}")
-    ELSE()
-      MESSAGE(WARNING "Cannot find swig!")
-      SET(PYTHON_BINDING "None")
-    ENDIF()
-  ELSEIF(PYTHON_BINDING STREQUAL "Python3")
-    FIND_PACKAGE(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
-    SET(Python_INCLUDE_DIRS ${Python3_INCLUDE_DIRS})
-    SET(Python_LIBRARIES ${Python3_LIBRARIES})
-    MESSAGE(STATUS "Python Include${Python3_LIBRARIES}")
-    FIND_PACKAGE(SWIG COMPONENTS python)
-    IF(Python3_FOUND)
-      MESSAGE(STATUS "Found Python${Python3_VERSION}")
-    ELSE()
-      MESSAGE(WARNING "Cannot find Python3!")
-      SET(PYTHON_BINDING "None")
-    ENDIF()
-    IF(SWIG_FOUND)
-      MESSAGE(STATUS "Found swig${SWIG_VERSION}")
-    ELSE()
-      MESSAGE(WARNING "Cannot find swig!")
-      SET(PYTHON_BINDING "None")
-    ENDIF()
-  ENDIF()
-  IF(NOT (PYTHON_BINDING STREQUAL "None"))
-    MESSAGE(STATUS "Can not found python")
-    CMAKE_POLICY(SET CMP0078 NEW)
-    CMAKE_POLICY(SET CMP0086 NEW)
-    INCLUDE(UseSWIG)
-    INCLUDE_DIRECTORIES(${Python_INCLUDE_DIRS} "/usr/local/lib64/python3.8/site-packages/numpy/core/include")
-    SET(sourceSWIG "${PROJECT_SOURCE_DIR}/Swig/module.i")
-    SET_SOURCE_FILES_PROPERTIES(${sourceSWIG} PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME pyRVO)
-    SWIG_ADD_LIBRARY(pyRVO LANGUAGE python SOURCES ${sourceSWIG})
-    SWIG_LINK_LIBRARIES(pyRVO ${Python_LIBRARIES} RVO ${ALL_STATIC_LIBRARIES})
-  ENDIF()
-ENDIF()
+include(CPack)
 
-#EXE
-MACRO(ADD_EXE NAME)
-  ADD_EXECUTABLE(${NAME} Main/${NAME}.cpp)
-  TARGET_LINK_LIBRARIES(${NAME} RVO ${ALL_STATIC_LIBRARIES})
-ENDMACRO(ADD_EXE)
-ADD_EXE(mainDebug)
-ADD_EXE(mainVisibility)
-ADD_EXE(mainVisibilityObstacle)
-ADD_EXE(mainSimulator)
-ADD_EXE(mainMultiSimulator)
+FIND_PACKAGE( OpenMP REQUIRED)
+if(OPENMP_FOUND)
+message("OPENMP FOUND")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()

@@ -202,8 +202,8 @@ class NavigationEnvs():
         self.current_obs=[]
         self.viewer=None
 
-        self.sim.setNewtonParameters(1000, 1e-4, 100, 5e-5 ,1e-6)
-        self.multisim.setNewtonParameters(1000, 1e-4, 100, 5e-5, 1e-6)
+        self.sim.setNewtonParameters(300, 1e-4, 100, 5e-5 ,1e-6)
+        self.multisim.setNewtonParameters(300, 1e-4, 100, 5e-5, 1e-6)
 
         self.N = 10  # kernel number
         self.radius = 0.008  # robot radius
@@ -222,9 +222,9 @@ class NavigationEnvs():
         self.vel = np.zeros([self.n_robots * 2])
         self.oldvel = np.zeros([self.n_robots * 2])
         self.angle = np.zeros([self.n_robots])
-        self.size = 50
-        self.size_x = 50
-        self.size_y = 50
+        self.size = 100
+        self.size_x = 100
+        self.size_y = 100
         self.dx = 1.0 / self.size_x
         self.aim = [0.9, 0.5]
         self.goal = np.zeros([self.n_robots * 2])
@@ -281,11 +281,11 @@ class NavigationEnvs():
         import pickle
         current_obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
         #current_obs=[]
-        current_obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0,0)))
-        current_obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(685, 0)))
-        current_obs.append(Viewer.get_box_ll(x=700, y=15, lowerleft=(0, 685)))
-        current_obs.append(Viewer.get_box_ll(x=15, y=700, lowerleft=(0, 0)))
-
+        current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0,0)))
+        current_obs.append(Viewer.get_box_ll(x=12, y=675, lowerleft=(663, 0)))
+        current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0, 663)))
+        current_obs.append(Viewer.get_box_ll(x=12, y=675, lowerleft=(0, 0)))
+        #print(current_obs)
         self.wind_size = wind_size
         if current_obs is not None:
             self.sim.clearObstacle()
@@ -329,7 +329,7 @@ class NavigationEnvs():
         '''
 
         if self.viewer is None:
-            self.viewer = Viewer(wind_size=(700,700))
+            self.viewer = Viewer(wind_size=(675,675))
             self.viewer.env = self
             self.reset_viewer()
 
@@ -343,10 +343,10 @@ class NavigationEnvs():
         unit=1.0
         grid=7.0
         self.init_state=[]
-        x=2*unit/grid
-        end=5*unit/grid
+        x=0.5*unit/grid
+        end=6.5*unit/grid
         while x<end:
-            y = 2 * unit / grid
+            y = 0.5 * unit / grid
             while y<end:
                 idx,idy=int(x/self.dx),int(y/self.dx)
                 if self.obs_map[idx,idy]==0 and self.obs_map[idx,idy+1]==0 and self.obs_map[idx+1,idy+1]==0 and self.obs_map[idx+1,idy]==0 and self.obs_map[idx+1,idy-1]==0\
@@ -367,14 +367,14 @@ class NavigationEnvs():
         self.a=(self.a+1)%4
         a=self.a
         if a==0:
-            self.aim=[p,0.1]
+            self.aim=[p,0.05]
         elif a==1:
-            self.aim=[1.0-p,0.9]
+            self.aim=[1.0-p,0.95]
         elif a==2:
-            self.aim=[0.1,1.0-p]
+            self.aim=[0.05,1.0-p]
         else:
-            self.aim=[0.9,p]
-        #self.aim=[0.3,0.5]
+            self.aim=[0.95,p]
+        #self.aim=[0.05,0.05]
     def reset(self):
         self.reset_init_agent()
         self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
@@ -494,8 +494,8 @@ class NavigationEnvs():
         for i in range(2):
             print(torch.std(input[:,i,:,:]))
         '''
-        input[:,0,:,:]=input[:,0,:,:]/0.1#0.1
-        input[:, 1, :, :] = input[:, 1, :, :] / 1.45#0.02
+        input[:,0,:,:]=input[:,0,:,:]/0.05#0.1
+        input[:, 1, :, :] = input[:, 1, :, :] / 6#0.02
         #input[:, 2, :, :] = input[:, 2, :, :] / 0.4177
         #print(torch.mean(input))
         return input
@@ -581,8 +581,8 @@ class NavigationEnvs():
             (torch.flatten(velocity_x.transpose(1, 2), 1), torch.flatten(velocity_y.transpose(1, 2), 1)),
             1)  # .unsqueeze(2)
 
-        velocity[velocity>2]=2
-        velocity[velocity<-2]=-2
+        #velocity[velocity>2]=2
+        #velocity[velocity<-2]=-2
 
         if self.use_sparse_FEM == False:
             velocity = (velocity).T
@@ -639,7 +639,7 @@ class NavigationEnvs():
         #rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ self.eps*self.eps)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
-        return 1.0*torch.cat((vel_x , vel_y ), 1)  # .squeeze(2)
+        return 1.5*torch.cat((vel_x , vel_y ), 1)  # .squeeze(2)
 
         #return torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
 
@@ -764,7 +764,7 @@ class NavigationEnvs():
             loss += torch.sum(distnew - distold)
             #loss+=torch.sum(xNew-x)
 
-        return loss/xNew.size(0)
+        return 100*loss/xNew.size(0)
         '''
         xNew=xNew/self.scale
         #return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))

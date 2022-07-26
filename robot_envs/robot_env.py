@@ -764,7 +764,7 @@ class NavigationEnvs():
             loss += torch.sum(distnew - distold)
             #loss+=torch.sum(xNew-x)
 
-        return 100*loss/xNew.size(0)
+        return 10*loss/xNew.size(0)
         '''
         xNew=xNew/self.scale
         #return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))

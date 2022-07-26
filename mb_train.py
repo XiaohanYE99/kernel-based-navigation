@@ -15,12 +15,12 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.6
-                 , horizon=384
+                 , horizon=256
                  , num_sample_steps=1
                  , num_pre_steps=10
-                 , num_train_steps=256
+                 , num_train_steps=64
                  , num_init_step=0
-                 , buffer_size=384
+                 , buffer_size=256
                  , batch_size=128):
         super(PolicyNet, self).__init__()
         self.has_continuous_action_space = has_continuous_action_space
@@ -177,7 +177,7 @@ class PolicyNet(nn.Module):
             #with torch.autograd.detect_anomaly():
 
             loss.backward()
-            #print(torch.max(torch.abs(state.grad)))
+            print(torch.max(torch.abs(state.grad)))
             #nn.utils.clip_grad_value_(self.actor.parameters(), 20)
             self.opt.step()
             # print(loss.item())
@@ -212,7 +212,7 @@ class PolicyNet(nn.Module):
                 self.target_buffer.append(self.env.target)
 
             loss+=self.env.MBLoss(state,s)
-        return loss/100
+        return loss/10
 
     def reset(self,path='./robot_envs/mazes_g75w675h675/maze'):
         idx=random.randint(0,500)

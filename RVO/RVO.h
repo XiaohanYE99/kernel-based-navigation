@@ -40,13 +40,17 @@ class RVOSimulator {
   Mat2XT getAgentVelocities() const;
   Vec2T getAgentPosition(int i) const;
   Vec2T getAgentVelocity(int i) const;
+#ifdef SWIG
+  int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel);
+  void setAgentPosition(int i,const Eigen::Matrix<double,2,1>& pos);
+  void setAgentVelocity(int i,const Eigen::Matrix<double,2,1>& vel);
+  void setAgentTarget(int i,const Eigen::Matrix<double,2,1>& target,T maxVelocity);
+  int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
+#else
   int addAgent(const Vec2T& pos,const Vec2T& vel);
   void setAgentPosition(int i,const Vec2T& pos);
   void setAgentVelocity(int i,const Vec2T& vel);
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
-#ifdef SWIG
-  int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
-#else
   int addObstacle(std::vector<Vec2T> vss);
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);

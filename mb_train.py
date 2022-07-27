@@ -14,11 +14,11 @@ from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 
 class PolicyNet(nn.Module):
-    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.6
+    def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.2
                  , horizon=256
                  , num_sample_steps=1
-                 , num_pre_steps=10
-                 , num_train_steps=64
+                 , num_pre_steps=1
+                 , num_train_steps=128
                  , num_init_step=0
                  , buffer_size=256
                  , batch_size=128):
@@ -26,7 +26,7 @@ class PolicyNet(nn.Module):
         self.has_continuous_action_space = has_continuous_action_space
 
         self.env = env
-        self.action_var = torch.full((2 * self.env.n_robots,), action_std_init * action_std_init).to(device)
+        self.action_var = torch.full((75,), action_std_init * action_std_init).to(device)
         self.buffer = []
         self.target_buffer = []
         self.buffer_size = buffer_size
@@ -57,9 +57,9 @@ class PolicyNet(nn.Module):
             )
             '''
             self.actor = nn.Sequential(
-                nn.Conv2d(2, 8, 5, 1, 0), nn.MaxPool2d(2),nn.ReLU(),  # [50,50,8]
-                nn.Conv2d(8, 12, 3, 1, 0), nn.MaxPool2d(2),nn.ReLU(),  # [25,25,16]
-                nn.Conv2d(12, 20, 3, 1, 0),nn.MaxPool2d(2),nn.ReLU(), nn.Flatten(),  # [9,9,128]
+                nn.Conv2d(2, 8, 5, 1, 0), nn.MaxPool2d(2),nn.BatchNorm2d(8),nn.ReLU(),  # [50,50,8]
+                nn.Conv2d(8, 12, 3, 1, 0), nn.MaxPool2d(2),nn.BatchNorm2d(12),nn.ReLU(),  # [25,25,16]
+                nn.Conv2d(12, 20, 3, 1, 0),nn.MaxPool2d(2),nn.BatchNorm2d(20),nn.ReLU(), nn.Flatten(),  # [9,9,128]
                 nn.Linear(20 * 10 * 10, 128),nn.ReLU(),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
@@ -67,10 +67,10 @@ class PolicyNet(nn.Module):
 
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
-                    nn.init.kaiming_uniform_(param, a=1e-0)
+                    nn.init.kaiming_uniform_(param, a=2e-0)
 
-            self.lr = 1e-4
-            self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr}])
+            self.lr = 1e-3
+            self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr,'weight_decay':1e-2}])
 
 
         self.CFLayer = CollisionFreeLayer.apply
@@ -94,7 +94,7 @@ class PolicyNet(nn.Module):
         I = self.env.P2G(state, target)
         I = I.to(device)
         # action = self.controller(I)
-        action = torch.squeeze(self.actor(I), 1)#+0.5
+        action = torch.squeeze(self.actor(I), 1)
 
         #print(action)
         for i in range(self.env.N):
@@ -105,9 +105,9 @@ class PolicyNet(nn.Module):
 
         v = self.env.get_velocity(state/self.env.scale, velocity)
         '''
-        cov_mat=torch.diag(self.action_var).unsqueeze(0)
-        dist=MultivariateNormal(torch.zeros(v.size()).to(device),cov_mat)
-        v=v+dist.sample()
+        cov_mat = torch.diag(self.action_var).unsqueeze(0)
+        dist = MultivariateNormal(torch.zeros(action.size()).to(device), cov_mat)
+        action = action + dist.sample()
         '''
         v = self.switch(v, state/self.env.scale, target)
 
@@ -212,7 +212,7 @@ class PolicyNet(nn.Module):
                 self.target_buffer.append(self.env.target)
 
             loss+=self.env.MBLoss(state,s)
-        return loss/10
+        return loss
 
     def reset(self,path='./robot_envs/mazes_g75w675h675/maze'):
         idx=random.randint(0,500)
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     use_kernel_loop = False  # calculating grid velocity with kernel loop
     use_sparse_FEM = False  # use sparse FEM solver
 
-    batch_size = 32
+    batch_size = 64
     gui = ti.GUI("DiffRVO", res=(500, 500), background_color=0x112F41)
 
     sim = rvo2.PyRVOSimulator(400 / 400., 10, 100, 1.5, 2.0, 8, 2)
@@ -259,8 +259,8 @@ if __name__ == '__main__':
     sumloss=0
     policy.reset()
     for i in range(iter):
-        if i in [30, 100,300]:
-            policy.lr *= 0.3
+        if i in [30, 80,200]:
+            policy.lr *= 0.5
 
         policy.env.reset()
         #policy.eval()
@@ -275,7 +275,7 @@ if __name__ == '__main__':
         sumloss+=loss
         if i % 10 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)
-        if i%50==0:
-            print('iter=',i,'sumloss= ',sumloss/50)
+        if i%20==0:
+            print('iter=',i,'sumloss= ',sumloss/20)
             sumloss=0
     pyglet.app.run()

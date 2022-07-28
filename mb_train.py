@@ -60,16 +60,16 @@ class PolicyNet(nn.Module):
                 nn.Conv2d(2, 8, 5, 1, 0), nn.MaxPool2d(2),nn.BatchNorm2d(8),nn.ReLU(),  # [50,50,8]
                 nn.Conv2d(8, 12, 3, 1, 0), nn.MaxPool2d(2),nn.BatchNorm2d(12),nn.ReLU(),  # [25,25,16]
                 nn.Conv2d(12, 20, 3, 1, 0),nn.MaxPool2d(2),nn.BatchNorm2d(20),nn.ReLU(), nn.Flatten(),  # [9,9,128]
-                nn.Linear(20 * 10 * 10, 128),nn.ReLU(),
+                nn.Linear(20 * 10 * 10, 128),nn.Dropout(0.25),nn.ReLU(),
                 nn.Linear(128, action_dim), nn.Sigmoid()
             )
 
 
             for name, param in self.actor.named_parameters():
                 if (len(param.size()) >= 2):
-                    nn.init.kaiming_uniform_(param, a=2e-0)
+                    nn.init.kaiming_uniform_(param, a=1e-0)
 
-            self.lr = 1e-3
+            self.lr = 1e-4
             self.opt = torch.optim.Adam([{'params': self.actor.parameters(), 'lr': self.lr,'weight_decay':1e-2}])
 
 
@@ -98,8 +98,8 @@ class PolicyNet(nn.Module):
 
         #print(action)
         for i in range(self.env.N):
-            self.env.x0[i] = action[0][5 * i]
-            self.env.y0[i] = action[0][5 * i + 1]
+            self.env.x0[i] = action[0][4 * i]
+            self.env.y0[i] = action[0][4 * i + 1]
 
         velocity = self.env.projection(action)
 
@@ -134,8 +134,8 @@ class PolicyNet(nn.Module):
         action = torch.squeeze(self.actor(state), 1)
 
         for i in range(self.env.N):
-            self.env.x0[i] = action[0][5 * i]
-            self.env.y0[i] = action[0][5 * i + 1]
+            self.env.x0[i] = action[0][4 * i]
+            self.env.y0[i] = action[0][4 * i + 1]
         velocity = self.env.projection(action)
 
         v = self.env.get_velocity(state.detach(), velocity)
@@ -252,18 +252,18 @@ if __name__ == '__main__':
     action_dim = env.action_space.shape[0]
 
     policy = PolicyNet(env, state_dim, action_dim, has_continuous_action_space,batch_size=batch_size).to(device)
-    #policy.actor = torch.load('model/model_30.pth')
+    #policy.actor = torch.load('model/model_10.pth')
     # init sample
     # policy.eval()
     #policy.init_sample()
     sumloss=0
     policy.reset()
     for i in range(iter):
-        if i in [30, 80,200]:
+        if i in [100, 200,500]:
             policy.lr *= 0.5
 
         policy.env.reset()
-        #policy.eval()
+        policy.eval()
         loss=policy.sample(False)
 
         # policy.test()
@@ -275,7 +275,7 @@ if __name__ == '__main__':
         sumloss+=loss
         if i % 10 == 0:
             torch.save(policy.actor, 'model/model_%d.pth' % i)
-        if i%20==0:
-            print('iter=',i,'sumloss= ',sumloss/20)
+        if i%40==0:
+            print('iter=',i,'sumloss= ',sumloss/40)
             sumloss=0
     pyglet.app.run()

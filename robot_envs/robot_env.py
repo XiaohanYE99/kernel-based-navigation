@@ -263,7 +263,7 @@ class NavigationEnvs():
         self.mask_y = torch.ones([self.size_x, self.size_y + 1], dtype=torch.float32).to(self.device)
 
         self.observation_space = np.zeros(2 * self.n_robots)
-        self.action_space = np.zeros(5 * self.N)  # (4*self.N)
+        self.action_space = np.zeros(4 * self.N)  # (4*self.N)
 
         for i in range(self.n_robots):
             self.agent.append(
@@ -298,6 +298,7 @@ class NavigationEnvs():
                     make_ccw([tuple(p * np.array([self.scale, self.scale]) / np.array(wind_size)) for p in obs]))
                 self.multisim.addObstacle(
                     make_ccw([tuple(p * np.array([self.scale, self.scale]) / np.array(wind_size)) for p in obs]))
+
             self.sim.processObstacles()
             self.multisim.processObstacles()
         self.obs_map = obstacleMap([self.size_x, self.size_y], self.dx, self.current_obs, np.array(self.wind_size))
@@ -533,32 +534,25 @@ class NavigationEnvs():
         # print(action.requires_grad)
         t0 = time.time()
         k = action.size(0)
-        x0 = action[:, ::5].unsqueeze(2).unsqueeze(3)*3-1
-        y0 = action[:, 1::5].unsqueeze(2).unsqueeze(3)*3-1
-        phix=(action[:, 2::5].unsqueeze(2).unsqueeze(3) -0.5)*0.2
-        phiy = (action[:, 3::5].unsqueeze(2).unsqueeze(3) - 0.5) * 0.2
-        alpha = (action[:, 4::5].unsqueeze(2).unsqueeze(3)) * 9.0 + 1.0
+        x0 = action[:, ::4].unsqueeze(2).unsqueeze(3)*2-0.5
+        y0 = action[:, 1::4].unsqueeze(2).unsqueeze(3)*2-0.5
+        alpha = (action[:, 2::4].unsqueeze(2).unsqueeze(3)) * 19.0 + 1.0
+        omega = action[:, 3::4].unsqueeze(2).unsqueeze(3)
         alpha[alpha<=1]=1
-
-        #print(torch.max(torch.abs(phix)))
-        # print(action.grad)
-        # alpha[alpha<=1]=1
-
         if self.use_kernel_loop == False:
             ux = self.grid_ux.unsqueeze(0).unsqueeze(0)
             uy = self.grid_uy.unsqueeze(0).unsqueeze(0)
 
-            r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)+ self.eps)
+            r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2)+1e-8)
 
-            velocity_x = (10*torch.sum((0.1*alpha+1)*phix  * torch.exp(-alpha*r) ,
+            velocity_x = (torch.sum(-10*(2 * omega - 1) * (0.2*alpha+1)*torch.exp(-alpha * r) * (uy - y0) / r,
                                     dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
-            r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)+ self.eps)
-            velocity_y = (10*torch.sum((0.1*alpha+1)*phiy * torch.exp(-alpha*r) ,
-                                    dim=1)) * self.mask_y
+            r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2)+1e-8)
+            velocity_y = (torch.sum(10*(2 * omega - 1)* (0.2*alpha+1) * torch.exp(-alpha * r) * (vx - x0) / r, dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
             uy = self.grid_uy.unsqueeze(0)
@@ -636,7 +630,7 @@ class NavigationEnvs():
         vel_x = vel_x / energy
         vel_y = vel_y / energy
         '''
-        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ 1e-2)
+        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ 1e-8)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
         return 1.5*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)
@@ -760,8 +754,8 @@ class NavigationEnvs():
                     1.0 - alphax) * alphay \
                       + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
                               1.0 - alphax) * (1.0 - alphay)
-            #loss += torch.sum(torch.square(distnew) - torch.square(distold))
-            loss += torch.sum(distnew - distold)
+            loss += torch.sum(torch.square(distnew) - torch.square(distold))
+            #loss += torch.sum(distnew - distold)
             #loss+=torch.sum(xNew-x)
 
         return loss/xNew.size(0)

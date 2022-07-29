@@ -26,16 +26,24 @@ class RVOSimulator {
   void clearAgent();
   void clearObstacle();
   int getNrObstacle() const;
-#ifdef SWIG
-  std::vector<Eigen::Matrix<double,2,1>> getObstacle(int i) const;
-#else
-  std::vector<Vec2T> getObstacle(int i) const;
-#endif
   int getNrAgent() const;
 #ifndef SWIG
   Mat2XT& getAgentPositions();
   Mat2XT& getAgentVelocities();
 #endif
+#ifdef SWIG
+  std::vector<Eigen::Matrix<double,2,1>> getObstacle(int i) const;
+  Eigen::Matrix<double,2,-1> getAgentPositions() const;
+  Eigen::Matrix<double,2,-1> getAgentVelocities() const;
+  Eigen::Matrix<double,2,1> getAgentPosition(int i) const;
+  Eigen::Matrix<double,2,1> getAgentVelocity(int i) const;
+  int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel);
+  void setAgentPosition(int i,const Eigen::Matrix<double,2,1>& pos);
+  void setAgentVelocity(int i,const Eigen::Matrix<double,2,1>& vel);
+  void setAgentTarget(int i,const Eigen::Matrix<double,2,1>& target,T maxVelocity);
+  int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
+#else
+  std::vector<Vec2T> getObstacle(int i) const;
   Mat2XT getAgentPositions() const;
   Mat2XT getAgentVelocities() const;
   Vec2T getAgentPosition(int i) const;
@@ -44,9 +52,6 @@ class RVOSimulator {
   void setAgentPosition(int i,const Vec2T& pos);
   void setAgentVelocity(int i,const Vec2T& vel);
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
-#ifdef SWIG
-  int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
-#else
   int addObstacle(std::vector<Vec2T> vss);
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);

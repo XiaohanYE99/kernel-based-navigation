@@ -23,7 +23,6 @@ import torch.nn.functional as F
 
 from robot_envs.sparse_solver import SparseSolve
 from robot_envs.viewer import Viewer
-import pyRVO
 
 # extract some functions for easy calling
 
@@ -31,8 +30,7 @@ pi = np.pi
 
 
 def find_grid_index(pos, dx):
-    sz=int(1.0/dx)
-    return int((pos[1]+0.1*dx) / dx) * sz + int((pos[0]+0.1*dx) / dx)
+    return int((pos[1]+0.1*dx) / dx) * 100 + int((pos[0]+0.1*dx) / dx)
 
 
 def make_ccw(pts):
@@ -202,13 +200,10 @@ class NavigationEnvs():
         self.current_obs=[]
         self.viewer=None
 
-        self.sim.setNewtonParameters(300, 1e-4, 100, 2e-5 ,1e-6)
-        self.multisim.setNewtonParameters(300, 1e-4, 100, 2e-5, 1e-6)
-
         self.N = 15  # kernel number
         self.radius = 0.008  # robot radius
         self.n_robots = 50  # robot number
-        self.scale=200
+        self.scale=250
 
         self.agent = []
         self.suc = 0
@@ -267,11 +262,14 @@ class NavigationEnvs():
 
         for i in range(self.n_robots):
             self.agent.append(
-                self.sim.addAgent((random.uniform(-1, 1), random.uniform(-1, 1)), 10, 100, 1.5, 2.0, self.radius*self.scale, 1,
-                                 (0, 0)))
-        for i in range(self.n_robots):
-            multisim.addAgent([(random.uniform(-1, 1), random.uniform(-1, 1)) for j in range(batch_size)], 10, 100, 1.5, 2.0, self.radius*self.scale, 1,
-                                 (0, 0))
+                self.sim.addAgent(np.array([0.,0.],dtype=float),np.array([0.,0.])))
+
+        for j in range(self.n_robots):
+            pos, vel = [], []
+            for i in range(self.batch_size):
+                pos.append(np.array([random.randrange(-self.n_robots, self.n_robots), random.randrange(-self.n_robots, self.n_robots)], dtype=float))
+                vel.append(np.array([0., 0.]))
+            self.multisim.addAgent(pos,vel)
 
         self.sparsesolve = SparseSolve.apply
         self.a=0
@@ -280,27 +278,25 @@ class NavigationEnvs():
     def load_roadmap(self,fn):
         import pickle
         current_obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
-        #current_obs=[]
-        current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0,0)))
+
+        current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0, 0)))
         current_obs.append(Viewer.get_box_ll(x=12, y=675, lowerleft=(663, 0)))
         current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0, 663)))
         current_obs.append(Viewer.get_box_ll(x=12, y=675, lowerleft=(0, 0)))
-        #print(current_obs)
         self.wind_size = wind_size
         if current_obs is not None:
             self.sim.clearObstacle()
             self.multisim.clearObstacle()
             self.current_obs = []
-
             for obs in current_obs:
                 self.current_obs.append(obs)
-                self.sim.addObstacle(
-                    make_ccw([tuple(p * np.array([self.scale, self.scale]) / np.array(wind_size)) for p in obs]))
-                self.multisim.addObstacle(
-                    make_ccw([tuple(p * np.array([self.scale, self.scale]) / np.array(wind_size)) for p in obs]))
+                obb = []
+                for p in obs:
+                    obb.append(np.array(p * np.array([self.scale, self.scale]) / np.array(wind_size),dtype=float))
 
-            self.sim.processObstacles()
-            self.multisim.processObstacles()
+                self.sim.addObstacle(obb)
+                self.multisim.addObstacle(obb)
+
         self.obs_map = obstacleMap([self.size_x, self.size_y], self.dx, self.current_obs, np.array(self.wind_size))
         self.reset()
         self.FEM_init()
@@ -364,7 +360,7 @@ class NavigationEnvs():
             self.state[i + self.n_robots] = agent_no[i][1]
         return self.state*self.scale
     def reset_aim(self):
-        p=np.random.rand()*0.4+0.1
+        p=np.random.rand()*0.8+0.1
         self.a=(self.a+1)%4
         a=self.a
         if a==0:
@@ -380,6 +376,7 @@ class NavigationEnvs():
         self.reset_init_agent()
         self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
         self.dis[self.dis>100]=20
+
         self.get_target_map()
 
         if self.viewer is not None:
@@ -637,10 +634,10 @@ class NavigationEnvs():
         vel_x = vel_x / energy
         vel_y = vel_y / energy
         '''
-        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ 1e-1)
-        #rr = F.relu(rr / 2.0 - 1.0) + 1.0
+        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ 1e-2)
+        #rr = F.relu(rr / 4.0 - 1.0) + 1.0
 
-        return 1.5*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)
+        return 1*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)
 
         #return torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
 
@@ -748,6 +745,7 @@ class NavigationEnvs():
                     1.0 - alphax) * alphay \
                       + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
                               1.0 - alphax) * (1.0 - alphay)
+
             #if self.dis[id + self.size_y + 1].item()>15 or self.dis[id + self.size_y].item()>15 or self.dis[id + 1].item()>15 or self.dis[id].item()>15:
             #print(self.dis[id + self.size_y + 1], self.dis[id + self.size_y], self.dis[id + 1], self.dis[id])
             #loss+=torch.sum(distnew)
@@ -765,7 +763,7 @@ class NavigationEnvs():
             #loss += torch.sum(distnew - distold)
             #loss+=torch.sum(xNew-x)
 
-        return loss/xNew.size(0)
+        return 0.1*loss/xNew.size(0)
         '''
         xNew=xNew/self.scale
         #return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))

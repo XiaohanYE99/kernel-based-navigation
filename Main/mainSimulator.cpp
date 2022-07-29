@@ -1,16 +1,15 @@
 #include <RVO/RVO.h>
 #include <RVO/Visualizer.h>
-#include <iostream>
 
 #define maxV 0.5
-#define CIRCLE
-//#define BLOCK
+//#define CIRCLE
+#define BLOCK
 using namespace RVO;
 
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  RVOSimulator rvo(4,1,1e-4,1,1,1000,false,true);
+  RVOSimulator rvo(4,100,1e-4,1,1,1000,false,true);
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)

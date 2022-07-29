@@ -8,7 +8,6 @@ FIND_PATH(TinyVisualizer_INCLUDE_DIR TinyVisualizer/Drawer.h
   /usr/include
   /usr/local/include
   C:/TinyVisualizer/include
-  /home/yxhan/yxh/TinyVisualizer
   )
 
 FIND_PATH(ImGui_INCLUDE_DIR imgui/imgui.h
@@ -19,7 +18,6 @@ FIND_PATH(ImGui_INCLUDE_DIR imgui/imgui.h
   /usr/include
   /usr/local/include
   C:/TinyVisualizer/include
-  /home/yxhan/yxh/TinyVisualizer/extern
   )
 
 FIND_LIBRARY(TinyVisualizer_LIBRARIES NAMES TinyVisualizer glfw3 PATHS 
@@ -30,9 +28,8 @@ FIND_LIBRARY(TinyVisualizer_LIBRARIES NAMES TinyVisualizer glfw3 PATHS
   /usr/lib
   /usr/local/lib
   C:/TinyVisualizer/lib
-  /home/yxhan/yxh/TinyVisualizer
   )
-link_directories(${PROJECT_BINARY_DIR})
+
 IF(TinyVisualizer_INCLUDE_DIR AND TinyVisualizer_LIBRARIES)
   set(TinyVisualizer_FOUND TRUE)
   set(TinyVisualizer_INCLUDE_DIRS ${TinyVisualizer_INCLUDE_DIR} ${ImGui_INCLUDE_DIR})

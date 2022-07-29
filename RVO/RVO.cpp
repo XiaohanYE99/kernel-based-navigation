@@ -59,9 +59,6 @@ void RVOSimulator::clearObstacle() {
 int RVOSimulator::getNrObstacle() const {
   return _bvh.getNrObstacle();
 }
-std::vector<RVOSimulator::Vec2T> RVOSimulator::getObstacle(int i) const {
-  return _bvh.getObstacle(i);
-}
 int RVOSimulator::getNrAgent() const {
   return _agentPositions.cols();
 }
@@ -70,6 +67,9 @@ RVOSimulator::Mat2XT& RVOSimulator::getAgentPositions() {
 }
 RVOSimulator::Mat2XT& RVOSimulator::getAgentVelocities() {
   return _perfVelocities;
+}
+std::vector<RVOSimulator::Vec2T> RVOSimulator::getObstacle(int i) const {
+  return _bvh.getObstacle(i);
 }
 RVOSimulator::Mat2XT RVOSimulator::getAgentPositions() const {
   return _agentPositions;

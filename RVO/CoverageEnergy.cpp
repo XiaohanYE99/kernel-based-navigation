@@ -1,7 +1,6 @@
 #include "CoverageEnergy.h"
 #include "SpatialHashLinkedList.h"
 #include "SpatialHashRadixSort.h"
-#include <iostream>
 
 namespace RVO {
 CoverageEnergy::CoverageEnergy(const RVOSimulator& sim,T range,bool visibleOnly)

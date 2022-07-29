@@ -1,6 +1,6 @@
 #ifndef EPSILON_H
 #define EPSILON_H
-
+#include <iostream>
 #include <float.h>
 #ifdef WITH_QUADMATH
 #include <boost/multiprecision/float128.hpp>

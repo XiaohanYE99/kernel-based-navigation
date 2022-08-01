@@ -45,7 +45,7 @@ class MultiCollisionFreeLayer(Function):
     @staticmethod
     def backward(ctx, grad_output):
         dx,dv=ctx.saved_tensors
-        print(torch.max(torch.abs(dx)))
+
         '''
         for i in range(dx.size(0)):
             if torch.max(torch.abs(dx[i]))>10:

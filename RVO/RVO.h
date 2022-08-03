@@ -21,6 +21,7 @@ class RVOSimulator {
   RVOSimulator(const RVOSimulator& other);
   RVOSimulator& operator=(const RVOSimulator& other);
   RVOSimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
+  virtual ~RVOSimulator() {}
   bool getUseHash() const;
   T getRadius() const;
   void clearAgent();
@@ -53,7 +54,7 @@ class RVOSimulator {
   void setAgentRadius(T radius);
   void setTimestep(T timestep);
   T timestep() const;
-  bool optimize(bool requireGrad,bool output);
+  virtual bool optimize(bool requireGrad,bool output);
   void updateAgentTargets();
   MatT getDXDX() const;
   MatT getDXDV() const;
@@ -70,7 +71,7 @@ class RVOSimulator {
         trips.push_back(STrip(r+R,c+C,blk(R,C)));
   }
   static T absMax(const SMatT& h);
- private:
+ protected:
   static T clog(T d,T* D,T* DD,T d0,T coef);
   bool lineSearch(T E,const Vec& g,const Vec& d,T& alpha,Vec& newX,
                   std::function<bool(const Vec&,T&)> eval,T alphaMin) const;

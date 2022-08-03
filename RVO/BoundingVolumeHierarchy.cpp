@@ -98,6 +98,45 @@ bool BoundingVolumeHierarchy::intersect(const Vec2T edgeA[2],const Vec2T edgeB[2
     return st[0]>=0 && st[0]<=1 && st[1]>=0 && st[1]<=1;
   }
 }
+BoundingVolumeHierarchy::T BoundingVolumeHierarchy::distanceAgentObstacle(const Vec2T edgeA[2],const Vec2T edgeB[2]) {
+  if(intersect(edgeA,edgeB))
+    return 0;
+  else {
+    T d0=distance(edgeA[0],edgeB);
+    T d1=distance(edgeA[1],edgeB);
+    T d2=distance(edgeB[0],edgeA);
+    T d3=distance(edgeB[1],edgeA);
+    return fmin(fmin(d0,d1),fmin(d2,d3));
+  }
+}
+BoundingVolumeHierarchy::T BoundingVolumeHierarchy::distanceAgentAgent(const Vec2T edgeA[2],const Vec2T edgeB[2]) {
+  //f=|A+B*t|^2=a*t^2+b*t+c
+  Vec2T A=edgeA[0]-edgeB[0],B=(edgeA[1]-edgeA[0])-(edgeB[1]-edgeB[0]);
+  T a=B.squaredNorm(),b=A.dot(B)*2,c=A.squaredNorm();
+  T minT=-b/2/a;
+  if(minT>=0 && minT<=1)
+    return sqrt(a*minT*minT+b*minT+c);
+  else if(minT<0)
+    return sqrt(c);
+  else return sqrt(a+b+c);
+}
+BoundingVolumeHierarchy::T BoundingVolumeHierarchy::distance(const Vec2T& pt,const Vec2T edgeB[2]) {
+  //f=|A+B*t|^2=a*t^2+b*t+c
+  Vec2T A=edgeB[0]-pt,B=edgeB[1]-edgeB[0];
+  T a=B.squaredNorm(),b=A.dot(B)*2,c=A.squaredNorm();
+  T minT=-b/2/a;
+  if(minT>=0 && minT<=1)
+    return sqrt(a*minT*minT+b*minT+c);
+  else if(minT<0)
+    return sqrt(c);
+  else return sqrt(a+b+c);
+}
+BoundingVolumeHierarchy::T BoundingVolumeHierarchy::closestT(const Vec2T& pt,const Vec2T edgeB[2]) {
+  //f=|A+B*t|^2=a*t^2+b*t+c
+  Vec2T A=edgeB[0]-pt,B=edgeB[1]-edgeB[0];
+  T a=B.squaredNorm(),b=A.dot(B)*2;
+  return fmax((T)0,fmin((T)1,-b/2/a));
+}
 //helper
 void BoundingVolumeHierarchy::assemble() {
   _bvh.clear();

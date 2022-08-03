@@ -20,6 +20,10 @@ class BoundingVolumeHierarchy {
   bool visible(const Vec2T& a,const Vec2T& b,std::shared_ptr<Obstacle> obs=NULL) const;
   bool visible(const Vec2T& a,std::shared_ptr<Obstacle> o,Vec2T* b=NULL) const;
   static bool intersect(const Vec2T edgeA[2],const Vec2T edgeB[2]);
+  static T distanceAgentObstacle(const Vec2T edgeA[2],const Vec2T edgeB[2]);
+  static T distanceAgentAgent(const Vec2T edgeA[2],const Vec2T edgeB[2]);
+  static T distance(const Vec2T& pt,const Vec2T edgeB[2]);
+  static T closestT(const Vec2T& pt,const Vec2T edgeB[2]);
  private:
   void assemble();
   std::vector<std::shared_ptr<Obstacle>> _obs;

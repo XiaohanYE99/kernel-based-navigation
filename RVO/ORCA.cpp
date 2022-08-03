@@ -268,21 +268,21 @@ ORCASimulator::VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,i
   if(cosThetaTip.value()>cosTheta.value()) {
     //in the tip
     Vec2TAD newVba=(vba-rabInvT)/distToTip*_rad*2/_timestep+rabInvT;
-    ret._pos=_perfVelocities.col(ret._aid)-(newVba-vba)/2;
+    ret._pos=va-(newVba-vba)/2;
     ret._nor=-(vba-rabInvT)/distToTip;
     ret._case=0;
   } else if(cross2D(rab,vba)>0) {
     //left side
     ret._nor=rot2D(_rad*2,lenRab)*rab/lenRab;
     Vec2TAD newVba=vba.dot(ret._nor)*ret._nor;
-    ret._pos=_perfVelocities.col(ret._aid)-(newVba-vba)/2;
+    ret._pos=va-(newVba-vba)/2;
     ret._nor=Vec2TAD(ret._nor[1],-ret._nor[0]);
     ret._case=1;
   } else {
     //right side
     ret._nor=rot2D(_rad*2,lenRab).transpose()*rab/lenRab;
     Vec2TAD newVba=vba.dot(ret._nor)*ret._nor;
-    ret._pos=_perfVelocities.col(ret._aid)-(newVba-vba)/2;
+    ret._pos=va-(newVba-vba)/2;
     ret._nor=Vec2TAD(-ret._nor[1],ret._nor[0]);
     ret._case=2;
   }

@@ -48,7 +48,9 @@ class ORCASimulator : public RVOSimulator {
   typedef Eigen::Matrix<AD,2,1> Vec2TAD;
 #endif
   ORCASimulator(const ORCASimulator& other);
+#ifndef SWIG
   ORCASimulator& operator=(const ORCASimulator& other);
+#endif
   ORCASimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   virtual bool optimize(bool requireGrad,bool output) override;
 #ifndef SWIG

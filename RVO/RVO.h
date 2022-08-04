@@ -19,7 +19,9 @@ class RVOSimulator {
   typedef Eigen::SparseMatrix<T,0,int> SMatT;
 #endif
   RVOSimulator(const RVOSimulator& other);
+#ifndef SWIG
   RVOSimulator& operator=(const RVOSimulator& other);
+#endif
   RVOSimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   virtual ~RVOSimulator() {}
   bool getUseHash() const;

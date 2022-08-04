@@ -110,7 +110,10 @@ bool ORCASimulator::optimize(bool requireGrad,bool output) {
   Eigen::Map<Mat2XT>(nextPositions.data(),2,_agentPositions.cols())=_agentPositions+_perfVelocities*_timestep;
   _hash->buildSpatialHash(mapCV(prevPositions),mapCV(nextPositions),_rad);
   Mat2XT tmpPerfVelocity=_perfVelocities;
+#define ZERO_INITIAL_VELOCITY
+#ifdef ZERO_INITIAL_VELOCITY
   _perfVelocities.setZero();    //we need to set perfered velocity to zero, ensuring feasibility
+#endif
   //Stage 2: compute velocity obstacles between all pairs of agents
   if(output)
     std::cout << "Computing agent velocity obstacles!" << std::endl;
@@ -575,10 +578,14 @@ void ORCASimulator::buildGrad(int id,MatT& DVDX,MatT& DVDV,const LPSolution& sol
     DvOutDn.row(1)=vOut[1].derivatives().template segment<2>(4);
     DVDV.template block<2,2>(id*2,id*2)+=DvOutDv;
     DVDX.template block<2,2>(id*2,vo._aid*2)+=DvOutDp*vo.DposDpa()+DvOutDn*vo.DnorDpa();
-    //DVDV.template block<2,2>(id*2,vo._aid*2)+=DvOutDp*vo.DposDva()+DvOutDn*vo.DnorDva();  //we already set velocity to be zero
+#ifndef ZERO_INITIAL_VELOCITY
+    DVDV.template block<2,2>(id*2,vo._aid*2)+=DvOutDp*vo.DposDva()+DvOutDn*vo.DnorDva();  //we already set velocity to be zero
+#endif
     if(vo._bid>=0) {
       DVDX.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDpb()+DvOutDn*vo.DnorDpb();
-      //DVDV.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDvb()+DvOutDn*vo.DnorDvb();  //we already set velocity to be zero
+#ifndef ZERO_INITIAL_VELOCITY
+      DVDV.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDvb()+DvOutDn*vo.DnorDvb();  //we already set velocity to be zero
+#endif
     }
   } else {
     //two active constraints
@@ -618,16 +625,24 @@ void ORCASimulator::buildGrad(int id,MatT& DVDX,MatT& DVDV,const LPSolution& sol
     DvOutDnJ.row(1)=vOut[1].derivatives().template segment<2>(8);
     DVDV.template block<2,2>(id*2,id*2)+=DvOutDv;
     DVDX.template block<2,2>(id*2,voI._aid*2)+=DvOutDpI*voI.DposDpa()+DvOutDnI*voI.DnorDpa();
-    //DVDV.template block<2,2>(id*2,voI._aid*2)+=DvOutDpI*voI.DposDva()+DvOutDnI*voI.DnorDva();  //we already set velocity to be zero
+#ifndef ZERO_INITIAL_VELOCITY
+    DVDV.template block<2,2>(id*2,voI._aid*2)+=DvOutDpI*voI.DposDva()+DvOutDnI*voI.DnorDva();  //we already set velocity to be zero
+#endif
     if(voI._bid>=0) {
       DVDX.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDpb()+DvOutDnI*voI.DnorDpb();
-      //DVDV.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDvb()+DvOutDnI*voI.DnorDvb();  //we already set velocity to be zero
+#ifndef ZERO_INITIAL_VELOCITY
+      DVDV.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDvb()+DvOutDnI*voI.DnorDvb();  //we already set velocity to be zero
+#endif
     }
     DVDX.template block<2,2>(id*2,voJ._aid*2)+=DvOutDpJ*voJ.DposDpa()+DvOutDnJ*voJ.DnorDpa();
-    //DVDV.template block<2,2>(id*2,voJ._aid*2)+=DvOutDpJ*voJ.DposDva()+DvOutDnJ*voJ.DnorDva();  //we already set velocity to be zero
+#ifndef ZERO_INITIAL_VELOCITY
+    DVDV.template block<2,2>(id*2,voJ._aid*2)+=DvOutDpJ*voJ.DposDva()+DvOutDnJ*voJ.DnorDva();  //we already set velocity to be zero
+#endif
     if(voJ._bid>=0) {
       DVDX.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDpb()+DvOutDnJ*voJ.DnorDpb();
-      //DVDV.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDvb()+DvOutDnJ*voJ.DnorDvb();  //we already set velocity to be zero
+#ifndef ZERO_INITIAL_VELOCITY
+      DVDV.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDvb()+DvOutDnJ*voJ.DnorDvb();  //we already set velocity to be zero
+#endif
     }
   }
 }

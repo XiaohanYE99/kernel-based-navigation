@@ -3,9 +3,9 @@
 #include <RVO/Visualizer.h>
 
 #define maxV 0.5
-#define CIRCLE
+//#define CIRCLE
 //#define BLOCK
-//#define USE_ORCA
+#define USE_ORCA
 using namespace RVO;
 
 int main(int argc,char** argv) {

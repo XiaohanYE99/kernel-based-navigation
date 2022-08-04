@@ -90,6 +90,19 @@ ORCASimulator& ORCASimulator::operator=(const ORCASimulator& other) {
 ORCASimulator::ORCASimulator(T rad,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash)
   :RVOSimulator(rad,d0,gTol,coef,timestep,maxIter,radixSort,useHash) {}
 bool ORCASimulator::optimize(bool requireGrad,bool output) {
+  //initialize
+  _LPs.assign(_agentPositions.cols(), {});
+  Mat2XT tmpPerfVelocity=_perfVelocities;
+  //we need to set perfered velocity to zero, ensuring feasibility
+  _perfVelocities.setZero();
+  if(requireGrad) {
+    _DXDX.setZero(_agentPositions.size(),_agentPositions.size());
+    _DXDV.setZero(_agentPositions.size(),_agentPositions.size());
+  }
+  std::vector<omp_lock_t> locks(_agentPositions.cols());
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<_agentPositions.cols(); i++)
+    omp_init_lock(&locks[i]);
   //Stage 1: build hash
   //we need to build a hash spanning the largest influence range: v*dt+r
   if(output)
@@ -99,14 +112,6 @@ bool ORCASimulator::optimize(bool requireGrad,bool output) {
   Eigen::Map<Mat2XT>(prevPositions.data(),2,_agentPositions.cols())=_agentPositions-_perfVelocities*_timestep;
   Eigen::Map<Mat2XT>(nextPositions.data(),2,_agentPositions.cols())=_agentPositions+_perfVelocities*_timestep;
   _hash->buildSpatialHash(mapCV(prevPositions),mapCV(nextPositions),_rad);
-  //linear programming
-  Mat2XT tmpPerfVelocity=_perfVelocities;
-  _perfVelocities.setZero();    //we need to set perfered velocity to zero, ensuring feasibility
-  _LPs.assign(_agentPositions.cols(), {});
-  std::vector<omp_lock_t> locks(_agentPositions.cols());
-  OMP_PARALLEL_FOR_
-  for(int i=0; i<_agentPositions.cols(); i++)
-    omp_init_lock(&locks[i]);
   //Stage 2: compute velocity obstacles between all pairs of agents
   if(output)
     std::cout << "Computing agent velocity obstacles!" << std::endl;
@@ -146,9 +151,18 @@ bool ORCASimulator::optimize(bool requireGrad,bool output) {
     _LPSolutions[i]=solveLP(tmpPerfVelocity.col(i),_LPs[i],_gTol);
     _perfVelocities.col(i)=_LPSolutions[i]._vOut;
     _agentPositions.col(i)+=_perfVelocities.col(i)*_timestep;
-    if(!_LPSolutions[i]._succ || violation(_LPSolutions[i]._vOut,_LPs[i])>0)
+    if(!_LPSolutions[i]._succ)
       succ=false;
+    //Stage 5: compute DVDX, DVDV
+    if(requireGrad)
+      buildGrad(i,_DXDX,_DXDV,_LPSolutions[i],_LPs[i],_gTol);
     omp_destroy_lock(&locks[i]);
+  }
+  //Stage 6: compute DXDX, DXDV
+  if(requireGrad) {
+    _DXDX*=_timestep;
+    _DXDV*=_timestep;
+    _DXDX+=MatT::Identity(_DXDX.rows(),_DXDX.cols());
   }
   return succ;
 }
@@ -535,6 +549,83 @@ void ORCASimulator::computeVelocityObstacle(VelocityObstacle& ret,const Vec2TAD 
     }
   }
 }
+void ORCASimulator::buildGrad(int id,MatT& DVDX,MatT& DVDV,const LPSolution& sol,const std::vector<VelocityObstacle>& VO,T tol) {
+  if(sol._activeSet.first==-1) {
+    //no constraints active, set identity
+    DVDV.template block<2,2>(id*2,id*2).setIdentity();
+  } else if(sol._activeSet.second==-1) {
+    //single active constraint
+    const VelocityObstacle& vo=VO[sol._activeSet.first];
+    ASSERT(id==vo._aid)
+    Vec2TAD v,p,n,vOut;
+    v[0]=AD(sol._vIn[0],Derivative::Unit(0));
+    v[1]=AD(sol._vIn[1],Derivative::Unit(1));
+    p[0]=AD(vo._pos[0].value(),Derivative::Unit(2));
+    p[1]=AD(vo._pos[1].value(),Derivative::Unit(3));
+    n[0]=AD(vo._nor[0].value(),Derivative::Unit(4));
+    n[1]=AD(vo._nor[1].value(),Derivative::Unit(5));
+    Mat2T DvOutDv,DvOutDp,DvOutDn;
+    //AD of single plane projection
+    vOut=v-((v-p).dot(n)-tol)*n;
+    //chain rule
+    DvOutDv.row(0)=vOut[0].derivatives().template segment<2>(0);
+    DvOutDv.row(1)=vOut[1].derivatives().template segment<2>(0);
+    DvOutDp.row(0)=vOut[0].derivatives().template segment<2>(2);
+    DvOutDp.row(1)=vOut[1].derivatives().template segment<2>(2);
+    DvOutDn.row(0)=vOut[0].derivatives().template segment<2>(4);
+    DvOutDn.row(1)=vOut[1].derivatives().template segment<2>(4);
+    DVDV.template block<2,2>(id*2,id*2)+=DvOutDv;
+    DVDX.template block<2,2>(id*2,vo._aid*2)+=DvOutDp*vo.DposDpa()+DvOutDn*vo.DnorDpa();
+    DVDX.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDpb()+DvOutDn*vo.DnorDpb();
+    DVDV.template block<2,2>(id*2,vo._aid*2)+=DvOutDp*vo.DposDva()+DvOutDn*vo.DnorDva();
+    DVDV.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDvb()+DvOutDn*vo.DnorDvb();
+  } else {
+    //two active constraints
+    const VelocityObstacle& voI=VO[sol._activeSet.first];
+    const VelocityObstacle& voJ=VO[sol._activeSet.second];
+    ASSERT(id==voI._aid && id==voJ._aid)
+    Vec2TAD v,pI,pJ,nI,nJ,vOut;
+    v[0]=AD(sol._vIn[0],Derivative::Unit(0));
+    v[1]=AD(sol._vIn[1],Derivative::Unit(1));
+    pI[0]=AD(voI._pos[0].value(),Derivative::Unit(2));
+    pI[1]=AD(voI._pos[1].value(),Derivative::Unit(3));
+    nI[0]=AD(voI._nor[0].value(),Derivative::Unit(4));
+    nI[1]=AD(voI._nor[1].value(),Derivative::Unit(5));
+    pJ[0]=AD(voJ._pos[0].value(),Derivative::Unit(6));
+    pJ[1]=AD(voJ._pos[1].value(),Derivative::Unit(7));
+    nJ[0]=AD(voJ._nor[0].value(),Derivative::Unit(8));
+    nJ[1]=AD(voJ._nor[1].value(),Derivative::Unit(9));
+    Mat2T DvOutDv,DvOutDpI,DvOutDpJ,DvOutDnI,DvOutDnJ;
+    //AD of single plane projection
+    Vec2TAD RHS,lambda;
+    Mat2TAD LHS=Mat2TAD::Identity();
+    LHS(0,1)=LHS(1,0)=nI.dot(nJ);
+    RHS[0]=nI.dot(voI.pos()-v)+tol;
+    RHS[1]=nJ.dot(voJ.pos()-v)+tol;
+    lambda=LHS.inverse()*RHS;
+    vOut=v+nI*lambda[0]+nJ*lambda[1];
+    //chain rule
+    DvOutDv.row(0)=vOut[0].derivatives().template segment<2>(0);
+    DvOutDv.row(1)=vOut[1].derivatives().template segment<2>(0);
+    DvOutDpI.row(0)=vOut[0].derivatives().template segment<2>(2);
+    DvOutDpI.row(1)=vOut[1].derivatives().template segment<2>(2);
+    DvOutDnI.row(0)=vOut[0].derivatives().template segment<2>(4);
+    DvOutDnI.row(1)=vOut[1].derivatives().template segment<2>(4);
+    DvOutDpJ.row(0)=vOut[0].derivatives().template segment<2>(6);
+    DvOutDpJ.row(1)=vOut[1].derivatives().template segment<2>(6);
+    DvOutDnJ.row(0)=vOut[0].derivatives().template segment<2>(8);
+    DvOutDnJ.row(1)=vOut[1].derivatives().template segment<2>(8);
+    DVDV.template block<2,2>(id*2,id*2)+=DvOutDv;
+    DVDX.template block<2,2>(id*2,voI._aid*2)+=DvOutDpI*voI.DposDpa()+DvOutDnI*voI.DnorDpa();
+    DVDX.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDpb()+DvOutDnI*voI.DnorDpb();
+    DVDV.template block<2,2>(id*2,voI._aid*2)+=DvOutDpI*voI.DposDva()+DvOutDnI*voI.DnorDva();
+    DVDV.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDvb()+DvOutDnI*voI.DnorDvb();
+    DVDX.template block<2,2>(id*2,voJ._aid*2)+=DvOutDpJ*voJ.DposDpa()+DvOutDnJ*voJ.DnorDpa();
+    DVDX.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDpb()+DvOutDnJ*voJ.DnorDpb();
+    DVDV.template block<2,2>(id*2,voJ._aid*2)+=DvOutDpJ*voJ.DposDva()+DvOutDnJ*voJ.DnorDva();
+    DVDV.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDvb()+DvOutDnJ*voJ.DnorDvb();
+  }
+}
 bool ORCASimulator::solveActiveSet(std::pair<int,int>& activeSetInOut,Vec2T& vInOut,const std::vector<VelocityObstacle>& VO,int i,int j,T tol) {
   sort2(i,j);
   Vec2T n0=VO[i].nor();
@@ -548,14 +639,16 @@ bool ORCASimulator::solveActiveSet(std::pair<int,int>& activeSetInOut,Vec2T& vIn
       //plane I is closer
       activeSetInOut=std::make_pair(i,-1);
       vInOut=VO[i].proj(vInOut,tol);
+      return true;
     } else if(I<J) {
       //plane J is closer
       activeSetInOut=std::make_pair(j,-1);
       vInOut=VO[j].proj(vInOut,tol);
+      return true;
     } else {
       //keep active set as is
+      return true;
     }
-    return true;
   } else if(n01<-1+Epsilon<T>::defaultEps()) {
     //inside two opposite planes, no solution
     return false;

@@ -8,7 +8,7 @@ namespace RVO {
 struct VelocityObstacle {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  typedef Eigen::Matrix<T,8,1> Derivative;
+  typedef Eigen::Matrix<T,10,1> Derivative;
   typedef Eigen::AutoDiffScalar<Derivative> AD;
   typedef Eigen::Matrix<AD,2,2> Mat2TAD;
   typedef Eigen::Matrix<AD,2,1> Vec2TAD;
@@ -39,7 +39,7 @@ struct LPSolution {
 };
 class ORCASimulator : public RVOSimulator {
  public:
-  typedef Eigen::Matrix<T,8,1> Derivative;
+  typedef Eigen::Matrix<T,10,1> Derivative;
   typedef Eigen::AutoDiffScalar<Derivative> AD;
   typedef Eigen::Matrix<AD,2,2> Mat2TAD;
   typedef Eigen::Matrix<AD,2,1> Vec2TAD;
@@ -56,6 +56,7 @@ class ORCASimulator : public RVOSimulator {
   VelocityObstacle computeVelocityObstacle(int aid,const Vec2T o[2]) const;
   void computeVelocityObstacle(VelocityObstacle& ret,const Vec2TAD& o,const Vec2TAD& a,const Vec2TAD& dL,const Vec2TAD& dR) const;
   void computeVelocityObstacle(VelocityObstacle& ret,const Vec2TAD o[2],const Vec2TAD a[2],const Vec2TAD& dL,const Vec2TAD& dR) const;
+  static void buildGrad(int id,MatT& DVDX,MatT& DVDV,const LPSolution& sol,const std::vector<VelocityObstacle>& VO,T tol);
   static bool solveActiveSet(std::pair<int,int>& activeSetInOut,Vec2T& vInOut,const std::vector<VelocityObstacle>& VO,int i,int j,T tol);
   static bool updateActiveSet(LPSolution& sol,const std::vector<VelocityObstacle>& VO,int i,T tol);
   static LPSolution solveLP(const Vec2T& v,const std::vector<VelocityObstacle>& VO,T tol);

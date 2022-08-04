@@ -1,15 +1,21 @@
 #include <RVO/RVO.h>
+#include <RVO/ORCA.h>
 #include <RVO/Visualizer.h>
 
 #define maxV 0.5
-//#define CIRCLE
-#define BLOCK
+#define CIRCLE
+//#define BLOCK
+//#define USE_ORCA
 using namespace RVO;
 
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
+#ifdef USE_ORCA
+  ORCASimulator rvo(4,1,1e-4,1,1,1000,false,true);
+#else
   RVOSimulator rvo(4,1,1e-4,1,1,1000,false,true);
+#endif
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)

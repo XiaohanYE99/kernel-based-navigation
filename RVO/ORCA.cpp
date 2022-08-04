@@ -6,6 +6,82 @@
 #include <iostream>
 
 namespace RVO {
+//VelocityObstacle
+VelocityObstacle::Vec2T VelocityObstacle::proj(const Vec2T& v,T tol) const {
+  return v-((v-pos()).dot(nor())-tol)*nor();
+}
+VelocityObstacle::Vec2T VelocityObstacle::proj(const Vec2T& v) const {
+  return v-(v-pos()).dot(nor())*nor();
+}
+VelocityObstacle::T VelocityObstacle::violation(const Vec2T& v) const {
+  return fmax((T)0,-(v-pos()).dot(nor()));
+}
+bool VelocityObstacle::outside(const Vec2T& v) const {
+  return (v-pos()).dot(nor())>0;
+}
+VelocityObstacle::Vec2T VelocityObstacle::pos() const {
+  return Vec2T(_pos[0].value(),_pos[1].value());
+}
+VelocityObstacle::Vec2T VelocityObstacle::nor() const {
+  return Vec2T(_nor[0].value(),_nor[1].value());
+}
+VelocityObstacle::Mat2T VelocityObstacle::DposDpa() const {
+  Mat2T ret;
+  ASSERT(_aid>=0)
+  ret.row(0)=_pos[0].derivatives().template segment<2>(0);
+  ret.row(1)=_pos[1].derivatives().template segment<2>(0);
+  return ret;
+}
+VelocityObstacle::Mat2T VelocityObstacle::DposDpb() const {
+  Mat2T ret;
+  ASSERT(_bid>=0)
+  ret.row(0)=_pos[0].derivatives().template segment<2>(2);
+  ret.row(1)=_pos[1].derivatives().template segment<2>(2);
+  return ret;
+}
+VelocityObstacle::Mat2T VelocityObstacle::DposDva() const {
+  Mat2T ret;
+  ASSERT(_aid>=0)
+  ret.row(0)=_pos[0].derivatives().template segment<2>(4);
+  ret.row(1)=_pos[1].derivatives().template segment<2>(4);
+  return ret;
+}
+VelocityObstacle::Mat2T VelocityObstacle::DposDvb() const {
+  Mat2T ret;
+  ASSERT(_bid>=0)
+  ret.row(0)=_pos[0].derivatives().template segment<2>(6);
+  ret.row(1)=_pos[1].derivatives().template segment<2>(6);
+  return ret;
+}
+VelocityObstacle::Mat2T VelocityObstacle::DnorDpa() const {
+  Mat2T ret;
+  ASSERT(_aid>=0)
+  ret.row(0)=_nor[0].derivatives().template segment<2>(0);
+  ret.row(1)=_nor[1].derivatives().template segment<2>(0);
+  return ret;
+}
+VelocityObstacle::Mat2T VelocityObstacle::DnorDpb() const {
+  Mat2T ret;
+  ASSERT(_bid>=0)
+  ret.row(0)=_nor[0].derivatives().template segment<2>(2);
+  ret.row(1)=_nor[1].derivatives().template segment<2>(2);
+  return ret;
+}
+VelocityObstacle::Mat2T VelocityObstacle::DnorDva() const {
+  Mat2T ret;
+  ASSERT(_aid>=0)
+  ret.row(0)=_nor[0].derivatives().template segment<2>(4);
+  ret.row(1)=_nor[1].derivatives().template segment<2>(4);
+  return ret;
+}
+VelocityObstacle::Mat2T VelocityObstacle::DnorDvb() const {
+  Mat2T ret;
+  ASSERT(_bid>=0)
+  ret.row(0)=_nor[0].derivatives().template segment<2>(6);
+  ret.row(1)=_nor[1].derivatives().template segment<2>(6);
+  return ret;
+}
+//ORCASimulator
 ORCASimulator::ORCASimulator(const ORCASimulator& other):RVOSimulator(other) {}
 ORCASimulator& ORCASimulator::operator=(const ORCASimulator& other) {
   RVOSimulator::operator=(other);
@@ -23,14 +99,24 @@ bool ORCASimulator::optimize(bool requireGrad,bool output) {
   Eigen::Map<Mat2XT>(prevPositions.data(),2,_agentPositions.cols())=_agentPositions-_perfVelocities*_timestep;
   Eigen::Map<Mat2XT>(nextPositions.data(),2,_agentPositions.cols())=_agentPositions+_perfVelocities*_timestep;
   _hash->buildSpatialHash(mapCV(prevPositions),mapCV(nextPositions),_rad);
+  //linear programming
+  Mat2XT tmpPerfVelocity=_perfVelocities;
+  _perfVelocities.setZero();    //we need to set perfered velocity to zero, ensuring feasibility
+  _LPs.assign(_agentPositions.cols(), {});
+  std::vector<omp_lock_t> locks(_agentPositions.cols());
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<_agentPositions.cols(); i++)
+    omp_init_lock(&locks[i]);
   //Stage 2: compute velocity obstacles between all pairs of agents
   if(output)
     std::cout << "Computing agent velocity obstacles!" << std::endl;
-  auto computeVAFunc=[&](AgentNeighbor n)->bool{
-    VelocityObstacle VO0=computeVelocityObstacle(n._v[0]->_id,n._v[1]->_id);
-    VelocityObstacle VO1=computeVelocityObstacle(n._v[1]->_id,n._v[0]->_id);
-    updateLP(VO0);
-    updateLP(VO1);
+  auto computeVAFunc=[&](AgentNeighbor n)->bool {
+    for(int i:{0,1}) {
+      VelocityObstacle VO=computeVelocityObstacle(n._v[i]->_id,n._v[1-i]->_id);
+      omp_set_lock(&locks[VO._aid]);
+      _LPs[VO._aid].push_back(VO);
+      omp_unset_lock(&locks[VO._aid]);
+    }
     return true;
   };
   if(_useHash)
@@ -40,18 +126,31 @@ bool ORCASimulator::optimize(bool requireGrad,bool output) {
   if(output)
     std::cout << "Computing agent-obstacle velocity obstacles!" << std::endl;
   auto computeVOFunc=[&](AgentObstacleNeighbor n)->bool {
-    Vec2T obs[2]={n._o->_pos,n._o->_next->_pos};
+    Vec2T obs[2]= {n._o->_pos,n._o->_next->_pos};
     VelocityObstacle VO=computeVelocityObstacle(n._v->_id,obs);
-    updateLP(VO);
+    omp_set_lock(&locks[VO._aid]);
+    _LPs[VO._aid].push_back(VO);
+    omp_unset_lock(&locks[VO._aid]);
     return true;
   };
   if(_useHash)
     _hash->detectImplicitShape(computeVOFunc,_bvh,0);
   else _hash->detectImplicitShapeBF(computeVOFunc,_bvh,0);
-  //Stage 4: adjust velocity
+  //Stage 4: solve linear programming
+  bool succ=true;
   if(output)
     std::cout << "Adjusting velocities!" << std::endl;
-  return true;
+  _LPSolutions.resize(_agentPositions.cols());
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<_agentPositions.cols(); i++) {
+    _LPSolutions[i]=solveLP(tmpPerfVelocity.col(i),_LPs[i],_gTol);
+    _perfVelocities.col(i)=_LPSolutions[i]._vOut;
+    _agentPositions.col(i)+=_perfVelocities.col(i)*_timestep;
+    if(!_LPSolutions[i]._succ || violation(_LPSolutions[i]._vOut,_LPs[i])>0)
+      succ=false;
+    omp_destroy_lock(&locks[i]);
+  }
+  return succ;
 }
 void ORCASimulator::debugVO(int aid,int bid,int testCase,T eps) {
   if(aid<0)
@@ -246,7 +345,7 @@ void ORCASimulator::debugDerivatives(const VelocityObstacle& VO,const Vec2T o[2]
   _perfVelocities.col(VO._aid)=old;
 }
 //helper
-ORCASimulator::VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,int bid) const {
+VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,int bid) const {
   VelocityObstacle ret;
   ret._aid=aid;
   ret._bid=bid;
@@ -265,7 +364,7 @@ ORCASimulator::VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,i
   AD cosTheta=_rad*2/lenRab;
   AD distToTip=(vba-rabInvT).norm();
   AD cosThetaTip=(vba-rabInvT).dot(-rabInvT)/distToTip/lenRabInvT;
-  if(cosThetaTip.value()>cosTheta.value()) {
+  if(cosThetaTip.value()>cosTheta.value() || lenRab.value()<_rad*2+_gTol) {
     //in the tip
     Vec2TAD newVba=(vba-rabInvT)/distToTip*_rad*2/_timestep+rabInvT;
     ret._pos=va-(newVba-vba)/2;
@@ -288,7 +387,7 @@ ORCASimulator::VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,i
   }
   return ret;
 }
-ORCASimulator::VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,const Vec2T o[2]) const {
+VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,const Vec2T o[2]) const {
   VelocityObstacle ret;
   ret._aid=aid;
   ret._bid=-1;
@@ -436,8 +535,127 @@ void ORCASimulator::computeVelocityObstacle(VelocityObstacle& ret,const Vec2TAD 
     }
   }
 }
-void ORCASimulator::updateLP(const VelocityObstacle& VO) const {
-
+bool ORCASimulator::solveActiveSet(std::pair<int,int>& activeSetInOut,Vec2T& vInOut,const std::vector<VelocityObstacle>& VO,int i,int j,T tol) {
+  sort2(i,j);
+  Vec2T n0=VO[i].nor();
+  Vec2T n1=VO[j].nor();
+  T n01=n0.dot(n1);
+  if(n01>1-Epsilon<T>::defaultEps()) {
+    //two planes are facing the same side
+    T I=VO[i].pos().dot(VO[i].nor());
+    T J=VO[j].pos().dot(VO[j].nor());
+    if(I>J) {
+      //plane I is closer
+      activeSetInOut=std::make_pair(i,-1);
+      vInOut=VO[i].proj(vInOut,tol);
+    } else if(I<J) {
+      //plane J is closer
+      activeSetInOut=std::make_pair(j,-1);
+      vInOut=VO[j].proj(vInOut,tol);
+    } else {
+      //keep active set as is
+    }
+    return true;
+  } else if(n01<-1+Epsilon<T>::defaultEps()) {
+    //inside two opposite planes, no solution
+    return false;
+  } else {
+    //solve equations simultaneously
+    Vec2T nI=VO[i].nor();
+    Vec2T nJ=VO[j].nor();
+    Vec2T RHS,lambda;
+    Mat2T LHS=Mat2T::Identity();
+    LHS(0,1)=LHS(1,0)=nI.dot(nJ);
+    RHS[0]=nI.dot(VO[i].pos()-vInOut)+tol;
+    RHS[1]=nJ.dot(VO[j].pos()-vInOut)+tol;
+    lambda=LHS.inverse()*RHS;
+    vInOut+=nI*lambda[0]+nJ*lambda[1];
+    activeSetInOut=std::make_pair(i,j);
+    return true;
+  }
+}
+bool ORCASimulator::updateActiveSet(LPSolution& sol,const std::vector<VelocityObstacle>& VO,int i,T tol) {
+  if(i==sol._activeSet.first || i==sol._activeSet.second) {
+    //no update needed
+    return false;
+  } else if(sol._activeSet.first==-1 && sol._activeSet.second==-1) {
+    //no active set, acquire this one
+    sol._vOut=VO[i].proj(sol._vIn,tol);
+    sol._activeSet.first=i;
+    return true;
+  } else if(sol._activeSet.second==-1) {
+    //one active set, acquire this one
+    Vec2T vInOut=sol._vIn;
+    std::pair<int,int> activeSet=sol._activeSet;
+    if(!solveActiveSet(activeSet,vInOut,VO,sol._activeSet.first,i,tol)) {
+      //failed, LP has no solution
+      sol._succ=false;
+      return false;
+    } else if(activeSet!=sol._activeSet) {
+      //active set updated
+      sol._activeSet=activeSet;
+      sol._vOut=vInOut;
+      return true;
+    } else {
+      //did not update solution
+      return false;
+    }
+  } else {
+    //two active set, update and check improvement
+    T vio=violation(sol._vOut,VO);
+    //try to replace the second index
+    Vec2T vInOutA=sol._vIn;
+    std::pair<int,int> activeSetA=sol._activeSet;
+    if(!solveActiveSet(activeSetA,vInOutA,VO,sol._activeSet.first,i,tol)) {
+      sol._succ=false;
+      return false;
+    } else if(violation(vInOutA,VO)<vio) {
+      //this implies smaller violation
+      sol._activeSet=activeSetA;
+      sol._vOut=vInOutA;
+      return true;
+    }
+    //try to replace the first index
+    Vec2T vInOutB=sol._vIn;
+    std::pair<int,int> activeSetB=sol._activeSet;
+    if(!solveActiveSet(activeSetB,vInOutB,VO,sol._activeSet.second,i,tol)) {
+      sol._succ=false;
+      return false;
+    } else if(violation(vInOutB,VO)<vio) {
+      //this implies smaller violation
+      sol._activeSet=activeSetB;
+      sol._vOut=vInOutB;
+      return true;
+    }
+    return false;
+  }
+}
+LPSolution ORCASimulator::solveLP(const Vec2T& v,const std::vector<VelocityObstacle>& VO,T tol) {
+  bool updated=true;
+  LPSolution sol;
+  sol._vIn=sol._vOut=v;
+  sol._activeSet=std::make_pair(-1,-1);
+  sol._succ=true;
+  int iter=0;
+  while(updated && sol._succ) {
+    updated=false;
+    //acquire new active set
+    for(int i=0; i<(int)VO.size(); i++)
+      if(!VO[i].outside(sol._vOut) && updateActiveSet(sol,VO,i,tol)) {
+        updated=true;
+        break;
+      }
+    iter++;
+  }
+  if(violation(sol._vOut,VO)>0)
+    sol._succ=false;
+  return sol;
+}
+ORCASimulator::T ORCASimulator::violation(const Vec2T& vOut,const std::vector<VelocityObstacle>& VO) {
+  T vio=0;
+  for(const auto& vo:VO)
+    vio=fmax(vio,vo.violation(vOut));
+  return vio;
 }
 ORCASimulator::T ORCASimulator::cross2D(const Vec2TAD& a,const Vec2TAD& b) {
   return (a[0]*b[1]-a[1]*b[0]).value();

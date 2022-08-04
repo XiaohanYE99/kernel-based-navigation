@@ -4,7 +4,7 @@
 
 #define maxV 0.5
 //#define CIRCLE
-//#define BLOCK
+#define BLOCK
 #define USE_ORCA
 using namespace RVO;
 

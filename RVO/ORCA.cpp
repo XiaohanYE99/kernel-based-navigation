@@ -576,9 +576,11 @@ void ORCASimulator::buildGrad(int id,MatT& DVDX,MatT& DVDV,const LPSolution& sol
     DvOutDn.row(1)=vOut[1].derivatives().template segment<2>(4);
     DVDV.template block<2,2>(id*2,id*2)+=DvOutDv;
     DVDX.template block<2,2>(id*2,vo._aid*2)+=DvOutDp*vo.DposDpa()+DvOutDn*vo.DnorDpa();
-    DVDX.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDpb()+DvOutDn*vo.DnorDpb();
     DVDV.template block<2,2>(id*2,vo._aid*2)+=DvOutDp*vo.DposDva()+DvOutDn*vo.DnorDva();
-    DVDV.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDvb()+DvOutDn*vo.DnorDvb();
+    if(vo._bid>=0) {
+      DVDX.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDpb()+DvOutDn*vo.DnorDpb();
+      DVDV.template block<2,2>(id*2,vo._bid*2)+=DvOutDp*vo.DposDvb()+DvOutDn*vo.DnorDvb();
+    }
   } else {
     //two active constraints
     const VelocityObstacle& voI=VO[sol._activeSet.first];
@@ -617,13 +619,17 @@ void ORCASimulator::buildGrad(int id,MatT& DVDX,MatT& DVDV,const LPSolution& sol
     DvOutDnJ.row(1)=vOut[1].derivatives().template segment<2>(8);
     DVDV.template block<2,2>(id*2,id*2)+=DvOutDv;
     DVDX.template block<2,2>(id*2,voI._aid*2)+=DvOutDpI*voI.DposDpa()+DvOutDnI*voI.DnorDpa();
-    DVDX.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDpb()+DvOutDnI*voI.DnorDpb();
     DVDV.template block<2,2>(id*2,voI._aid*2)+=DvOutDpI*voI.DposDva()+DvOutDnI*voI.DnorDva();
-    DVDV.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDvb()+DvOutDnI*voI.DnorDvb();
+    if(voI._bid>=0) {
+      DVDX.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDpb()+DvOutDnI*voI.DnorDpb();
+      DVDV.template block<2,2>(id*2,voI._bid*2)+=DvOutDpI*voI.DposDvb()+DvOutDnI*voI.DnorDvb();
+    }
     DVDX.template block<2,2>(id*2,voJ._aid*2)+=DvOutDpJ*voJ.DposDpa()+DvOutDnJ*voJ.DnorDpa();
-    DVDX.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDpb()+DvOutDnJ*voJ.DnorDpb();
     DVDV.template block<2,2>(id*2,voJ._aid*2)+=DvOutDpJ*voJ.DposDva()+DvOutDnJ*voJ.DnorDva();
-    DVDV.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDvb()+DvOutDnJ*voJ.DnorDvb();
+    if(voJ._bid>=0) {
+      DVDX.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDpb()+DvOutDnJ*voJ.DnorDpb();
+      DVDV.template block<2,2>(id*2,voJ._bid*2)+=DvOutDpJ*voJ.DposDvb()+DvOutDnJ*voJ.DnorDvb();
+    }
   }
 }
 bool ORCASimulator::solveActiveSet(std::pair<int,int>& activeSetInOut,Vec2T& vInOut,const std::vector<VelocityObstacle>& VO,int i,int j,T tol) {

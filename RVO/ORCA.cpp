@@ -372,14 +372,14 @@ VelocityObstacle ORCASimulator::computeVelocityObstacle(int aid,int bid) const {
     ret._case=0;
   } else if(cross2D(rab,vba)>0) {
     //left side
-    ret._nor=rot2D(_rad*2,lenRab)*rab/lenRab;
+    ret._nor=rot2D(AD(_rad*2),lenRab)*rab/lenRab;
     Vec2TAD newVba=vba.dot(ret._nor)*ret._nor;
     ret._pos=va-(newVba-vba)/2;
     ret._nor=Vec2TAD(ret._nor[1],-ret._nor[0]);
     ret._case=1;
   } else {
     //right side
-    ret._nor=rot2D(_rad*2,lenRab).transpose()*rab/lenRab;
+    ret._nor=rot2D(AD(_rad*2),lenRab).transpose()*rab/lenRab;
     Vec2TAD newVba=vba.dot(ret._nor)*ret._nor;
     ret._pos=va-(newVba-vba)/2;
     ret._nor=Vec2TAD(-ret._nor[1],ret._nor[0]);

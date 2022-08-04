@@ -92,9 +92,6 @@ ORCASimulator::ORCASimulator(T rad,T d0,T gTol,T coef,T timestep,int maxIter,boo
 bool ORCASimulator::optimize(bool requireGrad,bool output) {
   //initialize
   _LPs.assign(_agentPositions.cols(), {});
-  Mat2XT tmpPerfVelocity=_perfVelocities;
-  //we need to set perfered velocity to zero, ensuring feasibility
-  _perfVelocities.setZero();
   if(requireGrad) {
     _DXDX.setZero(_agentPositions.size(),_agentPositions.size());
     _DXDV.setZero(_agentPositions.size(),_agentPositions.size());
@@ -112,6 +109,8 @@ bool ORCASimulator::optimize(bool requireGrad,bool output) {
   Eigen::Map<Mat2XT>(prevPositions.data(),2,_agentPositions.cols())=_agentPositions-_perfVelocities*_timestep;
   Eigen::Map<Mat2XT>(nextPositions.data(),2,_agentPositions.cols())=_agentPositions+_perfVelocities*_timestep;
   _hash->buildSpatialHash(mapCV(prevPositions),mapCV(nextPositions),_rad);
+  Mat2XT tmpPerfVelocity=_perfVelocities;
+  _perfVelocities.setZero();    //we need to set perfered velocity to zero, ensuring feasibility
   //Stage 2: compute velocity obstacles between all pairs of agents
   if(output)
     std::cout << "Computing agent velocity obstacles!" << std::endl;

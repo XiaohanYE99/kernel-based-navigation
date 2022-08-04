@@ -5,6 +5,7 @@
 #include <unsupported/Eigen/AutoDiff>
 
 namespace RVO {
+#ifndef SWIG
 struct VelocityObstacle {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
@@ -37,16 +38,20 @@ struct LPSolution {
   Vec2T _vIn,_vOut;
   bool _succ;
 };
+#endif
 class ORCASimulator : public RVOSimulator {
  public:
+#ifndef SWIG
   typedef Eigen::Matrix<T,10,1> Derivative;
   typedef Eigen::AutoDiffScalar<Derivative> AD;
   typedef Eigen::Matrix<AD,2,2> Mat2TAD;
   typedef Eigen::Matrix<AD,2,1> Vec2TAD;
+#endif
   ORCASimulator(const ORCASimulator& other);
   ORCASimulator& operator=(const ORCASimulator& other);
   ORCASimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   virtual bool optimize(bool requireGrad,bool output) override;
+#ifndef SWIG
   void debugVO(int aid,int bid,int testCase,T eps=1e-4f);
   void debugVO(int aid,int testCase,bool mustInside,T eps=1e-4f);
   void debugDerivatives(const VelocityObstacle& VO);
@@ -67,6 +72,7 @@ class ORCASimulator : public RVOSimulator {
   //data
   std::vector<std::vector<VelocityObstacle>> _LPs;
   std::vector<LPSolution> _LPSolutions;
+#endif
 };
 }
 

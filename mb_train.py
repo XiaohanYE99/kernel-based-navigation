@@ -17,7 +17,7 @@ class PolicyNet(nn.Module):
     def __init__(self, env, state_dim, action_dim, has_continuous_action_space, action_std_init=0.2
                  , horizon=320
                  , num_sample_steps=1
-                 , num_pre_steps=10
+                 , num_pre_steps=1
                  , num_train_steps=128
                  , num_init_step=0
                  , buffer_size=320
@@ -95,7 +95,7 @@ class PolicyNet(nn.Module):
         I = I.to(device)
         # action = self.controller(I)
         action = torch.squeeze(self.actor(I), 1)
-
+        action = torch.Tensor([[0.3, 0.5, 0.0, 0.4, 0.8, 0.4, 0.8, 0.8, 0.1, 0.8, 0.35, 0.25, 0.4, 0.3, 0.8]]).to(self.env.device)
         #print(action)
         for i in range(self.env.N):
             self.env.x0[i] = action[0][5 * i]
@@ -216,9 +216,9 @@ class PolicyNet(nn.Module):
             loss+=self.env.MBLoss(state,s)
         return loss
 
-    def reset(self,path='./robot_envs/mazes_g75w675h675/maze'):
-        idx=random.randint(0,500)
-        idx=78
+    def reset(self,path='./robot_envs/mazes_g135w675h675_Var10/maze'):
+        #idx=random.randint(0,500)
+        idx=0#78
         fn=path+str(idx)+'.dat'
         self.env.load_roadmap(fn)
 

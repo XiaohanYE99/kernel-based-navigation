@@ -205,9 +205,9 @@ class NavigationEnvs():
         self.sim.setNewtonParameters(300, 1e-4, 100, 2e-5 ,1e-6)
         self.multisim.setNewtonParameters(300, 1e-4, 100, 2e-5, 1e-6)
 
-        self.N = 15  # kernel number
+        self.N = 3  # kernel number
         self.radius = 0.008  # robot radius
-        self.n_robots = 50  # robot number
+        self.n_robots = 10  # robot number
         self.scale=200
 
         self.agent = []
@@ -280,13 +280,15 @@ class NavigationEnvs():
     def load_roadmap(self,fn):
         import pickle
         current_obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
-        #current_obs=[]
-        current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0,0)))
-        current_obs.append(Viewer.get_box_ll(x=12, y=675, lowerleft=(663, 0)))
-        current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0, 663)))
-        current_obs.append(Viewer.get_box_ll(x=12, y=675, lowerleft=(0, 0)))
+        current_obs=[]
+        current_obs.append(Viewer.get_box_ll(x=600, y=12, lowerleft=(0,0)))
+        current_obs.append(Viewer.get_box_ll(x=12, y=600, lowerleft=(588, 0)))
+        current_obs.append(Viewer.get_box_ll(x=600, y=12, lowerleft=(0, 588)))
+        current_obs.append(Viewer.get_box_ll(x=12, y=600, lowerleft=(0, 0)))
         #print(current_obs)
-        self.wind_size = wind_size
+        current_obs.append([[120,180],[480,180],[480,240],[120,240]])
+        current_obs.append([[120, 360], [480, 360], [480, 420], [120, 420]])
+        self.wind_size = (600,600)#wind_size
         if current_obs is not None:
             self.sim.clearObstacle()
             self.multisim.clearObstacle()
@@ -294,6 +296,7 @@ class NavigationEnvs():
 
             for obs in current_obs:
                 self.current_obs.append(obs)
+                print(obs)
                 self.sim.addObstacle(
                     make_ccw([tuple(p * np.array([self.scale, self.scale]) / np.array(wind_size)) for p in obs]))
                 self.multisim.addObstacle(
@@ -330,7 +333,7 @@ class NavigationEnvs():
         '''
 
         if self.viewer is None:
-            self.viewer = Viewer(wind_size=(675,675))
+            self.viewer = Viewer(wind_size=(600,600))
             self.viewer.env = self
             self.reset_viewer()
 
@@ -345,7 +348,7 @@ class NavigationEnvs():
         grid=7.0
         self.init_state=[]
         x=0.5*unit/grid
-        end=6.5*unit/grid
+        end=3.5*unit/grid
         while x<end:
             y = 0.5 * unit / grid
             while y<end:
@@ -375,7 +378,7 @@ class NavigationEnvs():
             self.aim=[0.05,1.0-p]
         else:
             self.aim=[0.95,p]
-        #self.aim=[0.05,0.05]
+        self.aim=[0.8,0.8]
     def reset(self):
         self.reset_init_agent()
         self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
@@ -465,7 +468,11 @@ class NavigationEnvs():
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
         target_map[target_map.clone()>=20]=20
         #target_map/=20
-
+        #save target map
+        tmp=target_map.squeeze().detach().cpu().numpy()
+        print(tmp.shape)
+        np.save('DisMap.npy',tmp)
+        #####
         '''
         obs_map=self.obs_map.unsqueeze(0).unsqueeze(0).expand(
             [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
@@ -504,6 +511,7 @@ class NavigationEnvs():
     def apply(self,pos,action):
         t0 = time.time()
         k = action.size(0)
+
         x0 = action[:, ::5].unsqueeze(2)
         y0 = action[:, 1::5].unsqueeze(2)
         phix = (action[:, 2::5].unsqueeze(2) - 0.5) * 0.2
@@ -534,6 +542,7 @@ class NavigationEnvs():
         # print(action.requires_grad)
         t0 = time.time()
         k = action.size(0)
+
         x0 = action[:, ::5].unsqueeze(2).unsqueeze(3)*1.2-0.1
         y0 = action[:, 1::5].unsqueeze(2).unsqueeze(3)*1.2-0.1
         phix = (action[:, 2::5].unsqueeze(2).unsqueeze(3) - 0.5) * 0.2
@@ -551,14 +560,14 @@ class NavigationEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2) + self.eps)
 
-            velocity_x = (6 * torch.sum((0.1 * alpha + 1) * phix * torch.exp(-F.relu(alpha * r - 0.02) - 0.02),
+            velocity_x = (30 * torch.sum((0.1 * alpha + 1) * phix * torch.exp(-F.relu(alpha * r - 0.02) - 0.02),
                                          dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2) + self.eps)
-            velocity_y = (6 * torch.sum((0.1 * alpha + 1) * phiy * torch.exp(-F.relu(alpha * r - 0.02) - 0.02),
+            velocity_y = (30 * torch.sum((0.1 * alpha + 1) * phiy * torch.exp(-F.relu(alpha * r - 0.02) - 0.02),
                                          dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
@@ -581,9 +590,14 @@ class NavigationEnvs():
         velocity = torch.cat(
             (torch.flatten(velocity_x.transpose(1, 2), 1), torch.flatten(velocity_y.transpose(1, 2), 1)),
             1)  # .unsqueeze(2)
-
+        print(velocity_x.transpose(1, 2).size())
         #velocity[velocity>3]=3
         #velocity[velocity<-3]=-3
+        vv=velocity.squeeze().detach().cpu().numpy()
+        vx=vv[:10100].reshape([100,101])
+        vy=vv[10100:].reshape([101,100])
+        np.save('velocity_x.npy',vx)
+        np.save('velocity_y.npy',vy)
 
         if self.use_sparse_FEM == False:
             velocity = (velocity).T
@@ -603,7 +617,11 @@ class NavigationEnvs():
             v3 = torch.matmul(self.G, v2)
             velocity = velocity - v3
             velocity = (velocity.T).contiguous().view(k, -1)
-
+        vv = velocity.squeeze().detach().cpu().numpy()
+        vx = vv[:10100].reshape([100, 101])
+        vy = vv[10100:].reshape([101, 100])
+        np.save('divfreevelocity_x.npy', vx)
+        np.save('divfreevelocity_y.npy', vy)
         return velocity  # .squeeze(2)
 
     def get_velocity(self, pos, velocity):
@@ -637,10 +655,10 @@ class NavigationEnvs():
         vel_x = vel_x / energy
         vel_y = vel_y / energy
         '''
-        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ 1e-4)
+        #rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y)+ 1e-4)
         #rr = F.relu(rr / 2.0 - 1.0) + 1.0
 
-        return 1.0*torch.cat((vel_x /rr, vel_y /rr), 1)  # .squeeze(2)
+        return 1.0*torch.cat((vel_x , vel_y ), 1)  # .squeeze(2)
 
         #return torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
 

@@ -15,8 +15,9 @@ import torch
 import numpy as np
 import taichi as ti
 
-import rvo2
+import pyRVO as pyrvo
 from robot_envs.robot_env import *
+from robot_envs.RVO_Layer import CollisionFreeLayer,MultiCollisionFreeLayer
 
 from PPO import PPO
 
@@ -32,40 +33,41 @@ def train():
     
     has_continuous_action_space = True  # continuous action space; else discrete
 
-    max_ep_len = 100                   # max timesteps in one episode
-    max_training_timesteps = int(2e6)   # break training loop if timeteps > max_training_timesteps
+    max_ep_len = 128                   # max timesteps in one episode
+    max_training_timesteps = int(2.56e6)   # break training loop if timeteps > max_training_timesteps
 
     print_freq = max_ep_len * 40        # print avg reward in the interval (in num timesteps)
     log_freq = max_ep_len * 8           # log avg reward in the interval (in num timesteps)
-    save_model_freq = int(6e4)          # save model frequency (in num timesteps) 4
+    save_model_freq = int(6.4e4)          # save model frequency (in num timesteps) 4
 
-    action_std = 0.8*0.0001                    # starting std for action distribution (Multivariate Normal)
-    action_std_decay_rate = 0.06*0.0001         # linearly decay action_std (action_std = action_std - action_std_decay_rate)
+    action_std = 0.8                    # starting std for action distribution (Multivariate Normal)
+    action_std_decay_rate = 0.06         # linearly decay action_std (action_std = action_std - action_std_decay_rate)
     min_action_std = 0.3               # minimum action_std (stop decay after action_std <= min_action_std)
-    action_std_decay_freq = int(6e4)    # action_std decay frequency (in num timesteps)
+    action_std_decay_freq = int(6.4e4)    # action_std decay frequency (in num timesteps)
     #####################################################
 
     ## Note : print/log frequencies should be > than max_ep_len
 
     ################ PPO hyperparameters ################
-    update_timestep = max_ep_len * 1      # update policy every n timesteps
+    update_timestep = max_ep_len * 5      # update policy every n timesteps
     K_epochs = 80            # update policy for K epochs in one PPO update
 
     eps_clip = 0.2          # clip parameter for PPO
     gamma = 0.98            # discount factor
 
-    lr_actor = 0.0003*0.1       # learning rate for actor network
-    lr_critic = 0.001*0.1       # learning rate for critic network
+    lr_actor = 0.0003       # learning rate for actor network
+    lr_critic = 0.001       # learning rate for critic network
 
     random_seed = 0         # set random seed if required (0 = no random seed)
     
     gui = ti.GUI("DiffRVO", res=(500,500), background_color=0x112F41)
-    sim = rvo2.PyRVOSimulator(3/600., 0.03, 5, 0.04, 0.04, 0.01, 2)
+    sim = pyrvo.RVOSimulator(2,8,1e-0,1,1,100)
+    multisim = pyrvo.MultiRVOSimulator(1, 2, 8, 1e-4, 1, 1, 200)
     #####################################################
 
     print("training environment name : " + env_name)
 
-    env = NavigationEnvs(gui,sim,use_kernel_loop,use_sparse_FEM)
+    env = NavigationEnvs(1, gui, sim, multisim, use_kernel_loop, use_sparse_FEM)
 
     # state space dimension
     state_dim = env.observation_space.shape[0]
@@ -157,8 +159,9 @@ def train():
     ################# training procedure ################
 
     # initialize a PPO agent
-    ppo_agent = PPO(env,state_dim, action_dim, lr_actor, lr_critic, gamma, K_epochs, eps_clip, has_continuous_action_space, action_std)
-    ppo_agent.load(checkpoint_path)
+    ppo_agent = PPO(env,state_dim, action_dim, lr_actor, lr_critic, gamma, K_epochs, eps_clip, has_continuous_action_space,CollisionFreeLayer, action_std)
+    ppo_agent.reset()
+    #ppo_agent.load(checkpoint_path)
     # track total training time
     start_time = datetime.now().replace(microsecond=0)
     print("Started training at (GMT) : ", start_time)
@@ -182,17 +185,19 @@ def train():
     # training loop
     max_reward=-9999
     while time_step <= max_training_timesteps:
-
-        state = env.reset()
+        env.reset()
+        state = env.reset_agent()
+        state = torch.unsqueeze(torch.FloatTensor(state), 0).to(env.device)
         current_ep_reward = 0
 
         for t in range(1, max_ep_len+1):
             t0=time.time()
             # select action with policy
+
             action = ppo_agent.select_action(state)
             
             #print(action)
-            state, reward, done, _ = env.step(action)
+            state, reward, done, _ = ppo_agent.step(state,action,env.aim)
             #print(time.time()-t0)
             '''
             if t%100==0:

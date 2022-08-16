@@ -189,22 +189,21 @@ def dijkstra(dx, start, obs_map):
 
 
 class CoverEnvs():
-    def __init__(self, batch_size,gui, sim, multisim,Cover,MCover,use_kernel_loop, use_sparse_FEM):
+    def __init__(self, batch_size,gui, sim, multisim,use_kernel_loop, use_sparse_FEM):
 
         self.batch_size=batch_size
         self.sim = sim
         self.multisim=multisim
-        self.Cover=Cover
-        self.MCover=MCover
+
         self.gui = gui
         self.use_kernel_loop = use_kernel_loop
         self.use_sparse_FEM = use_sparse_FEM
         self.current_obs=[]
         self.viewer=None
 
-        self.N = 15  # kernel number
+        self.N = 25  # kernel number
         self.radius = 0.008  # robot radius
-        self.n_robots = 50  # robot number
+        self.n_robots = 100  # robot number
         self.scale=250
 
         self.agent = []
@@ -229,6 +228,7 @@ class CoverEnvs():
         self.bound=0.1
         self.obs_map=torch.zeros([self.size_x,self.size_y])
         self.target_map=torch.zeros([self.size_x,self.size_y])
+        self.gt = torch.zeros([self.size_x, self.size_y])
 
         self.tot_num = 0
         self.cnt = 0
@@ -280,7 +280,7 @@ class CoverEnvs():
     def load_roadmap(self,fn):
         import pickle
         current_obs, wind_size, _, _ = pickle.load(open(fn, 'rb'), encoding='iso-8859-1')
-
+        current_obs=[]
         current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0, 0)))
         current_obs.append(Viewer.get_box_ll(x=12, y=675, lowerleft=(663, 0)))
         current_obs.append(Viewer.get_box_ll(x=675, y=12, lowerleft=(0, 663)))
@@ -307,10 +307,10 @@ class CoverEnvs():
     def reset_viewer(self):
         for i in range(self.n_robots):
             self.viewer.add_agent((self.state[i]*self.wind_size[0]/self.scale, self.state[i+self.n_robots]*self.wind_size[1]/self.scale), self.radius*self.wind_size[0])
-        for i in range(self.N):
-            self.viewer.add_waypoint((self.x0[i]*self.wind_size[0],self.y0[i]*self.wind_size[0]),self.radius*self.wind_size[0])
+        #for i in range(self.N):
+        #    self.viewer.add_waypoint((self.x0[i]*self.wind_size[0],self.y0[i]*self.wind_size[0]),self.radius*self.wind_size[0])
         #for p in self.goal_positions:
-        self.viewer.add_goal((self.aim[0]*self.wind_size[0], self.aim[1]*self.wind_size[0]), 0.016*self.wind_size[0])
+        #self.viewer.add_goal((self.aim[0]*self.wind_size[0], self.aim[1]*self.wind_size[0]), 0.016*self.wind_size[0])
         for obs in self.current_obs:
             obs_toadd = []
             for points in obs:
@@ -334,46 +334,42 @@ class CoverEnvs():
 
         for i in range(self.n_robots):
             self.viewer.agent_pos_array[i] = (self.state[i]*self.wind_size[0]/self.scale, self.state[i+self.n_robots]*self.wind_size[1]/self.scale)
-        for i in range(self.N):
-            self.viewer.waypoint_pos_array[i]=(self.x0[i]*self.wind_size[0],self.y0[i]*self.wind_size[0])
-        self.viewer.goal_pos_array[0] = (self.aim[0]*self.wind_size[0], self.aim[1]*self.wind_size[0])
+        #for i in range(self.N):
+        #    self.viewer.waypoint_pos_array[i]=(self.x0[i]*self.wind_size[0],self.y0[i]*self.wind_size[0])
+        #self.viewer.goal_pos_array[0] = (self.aim[0]*self.wind_size[0], self.aim[1]*self.wind_size[0])
         self.viewer.render()
     def reset_init_agent(self):
-        unit=1.0
-        grid=7.0
-        self.init_state=[]
-        x=2*unit/grid
-        end=5*unit/grid
-        while x<end:
-            y = 2 * unit / grid
-            while y<end:
-                idx,idy=int(x/self.dx),int(y/self.dx)
-                if self.obs_map[idx,idy]==0 and self.obs_map[idx,idy+1]==0 and self.obs_map[idx+1,idy+1]==0 and self.obs_map[idx+1,idy]==0 and self.obs_map[idx+1,idy-1]==0\
-                        and self.obs_map[idx,idy-1]==0 and self.obs_map[idx-1,idy-1]==0 and self.obs_map[idx-1,idy]==0 and self.obs_map[idx-1,idy+1]==0:
-                    self.init_state.append([x,y])
-                y+=2.5*self.radius
-            x+=2.5*self.radius
+        x=0.105
+        idx=0
+        while x<0.9:
+            y = 0.205
+            while y<0.4:
+                self.init_state.append([x,y])
+                y+=0.04
+                #print(x,y)
+            x+=0.04
         #self.reset_agent()
         self.reset_aim()
     def reset_agent(self):
-        agent_no=random.sample(self.init_state, self.n_robots)
+        agent_no=self.init_state#random.sample(self.init_state, self.n_robots)
         for i in range(self.n_robots):
             self.state[i] = agent_no[i][0]
             self.state[i + self.n_robots] = agent_no[i][1]
         return self.state*self.scale
     def reset_aim(self):
-        p=np.random.rand()*0.8+0.1
-        self.a=(self.a+1)%4
-        a=self.a
-        if a==0:
-            self.aim=[p,0.05]
-        elif a==1:
-            self.aim=[1.0-p,0.95]
-        elif a==2:
-            self.aim=[0.05,1.0-p]
-        else:
-            self.aim=[0.95,p]
-        #self.aim=[0.05,0.05]
+        state=np.zeros([1,self.n_robots*2])
+        x=0.305
+        idx=0
+        while x<0.7:
+            y=0.305
+            while y<0.7:
+                state[0,idx]=x*self.scale
+                state[0,idx+self.n_robots]=y*self.scale
+                idx+=1
+
+                y+=0.04
+            x+=0.04
+        self.gt=self.P2GForLoss(torch.from_numpy(state).to(self.device))
     def reset(self):
         self.reset_init_agent()
         self.dis = dijkstra(self.dx, find_grid_index(self.aim, self.dx), self.obs_map).to(self.device)
@@ -384,12 +380,7 @@ class CoverEnvs():
         if self.viewer is not None:
             self.viewer.reset_array()
             self.reset_viewer()
-        #return self.state  # np.append(self.state,np.zeros(2*self.n_robots))
-    '''
-    def find_grid_index(self):
-        pos = self.state.reshape([self.n_robots, 2])
-        self.in_grid = (pos[:, 1] / self.dx).astype(np.int32) * self.size + (pos[:, 0] / self.dx).astype(np.int32)
-    '''
+
     def get_target_map(self):
         for i in range(self.size_x):
             for j in range(self.size_y):
@@ -455,22 +446,8 @@ class CoverEnvs():
         self.GT=self.GT.to_sparse()
         '''
 
-    def P2G(self, pos, target):
+    def P2G(self, pos):
         I = torch.zeros((pos.size(0), 1, self.size_x, self.size_y)).to(self.device)
-        #target_map = torch.zeros_like(I).to(self.device)
-        #target_map[:,0,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=1
-
-        target_map=self.target_map.unsqueeze(0).unsqueeze(0).expand(
-            [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
-        target_map[target_map.clone()>=20]=20
-        #target_map/=20
-
-        '''
-        obs_map=self.obs_map.unsqueeze(0).unsqueeze(0).expand(
-            [pos.size(0), 1, self.size_x, self.size_y]).to(self.device)
-        add_map=torch.cat((target_map,obs_map),1)
-        '''
-        target_map.requires_grad=True
 
         for i in range(pos.size(0)):
             px = pos[i, :self.n_robots]/self.scale
@@ -486,50 +463,41 @@ class CoverEnvs():
             I[i, 0, idx.long() + 1, idy.long()] += 1*alphax * (1 - alphay)
             I[i, 0, idx.long(), idy.long()] += 1*(1 - alphax) * (1 - alphay)
 
-            # target[i,int(self.aim[0]/self.dx),int(self.aim[1]/self.dx)]=-1
-        # I+=target
+        I=I/0.05
+
+        return I
+    def P2GForLoss(self, pos,sz=100):
+        dx=1.0/sz
+
+        I = torch.zeros((pos.size(0), 1, sz, sz)).to(self.device)
+
+        for i in range(pos.size(0)):
+            px = pos[i, :self.n_robots]/self.scale
+            py = pos[i, self.n_robots:]/self.scale
+
+            idx = torch.floor(px / dx)
+            idy = torch.floor(py / dx)
+            alphax = (px - idx * dx)/dx
+            alphay = (py - idy * dx)/dx
+
+            I[i, 0, idx.long() + 1, idy.long() + 1] += 1*alphax * alphay
+            I[i, 0, idx.long(), idy.long() + 1] += 1*(1 - alphax) * alphay
+            I[i, 0, idx.long() + 1, idy.long()] += 1*alphax * (1 - alphay)
+            I[i, 0, idx.long(), idy.long()] += 1*(1 - alphax) * (1 - alphay)
+        #print(I)
         I=I/0.05
 
         return I
 
-    def apply(self,pos,action):
-        t0 = time.time()
-        k = action.size(0)
-        x0 = action[:, ::5].unsqueeze(2)
-        y0 = action[:, 1::5].unsqueeze(2)
-        phix = (action[:, 2::5].unsqueeze(2) - 0.5) * 0.2
-        phiy = (action[:, 3::5].unsqueeze(2) - 0.5) * 0.2
-        alpha = (action[:, 4::5].unsqueeze(2)) * 0.0 + 1.0
-        #alpha[alpha <= 1] = 1
-
-
-        # print(torch.max(torch.abs(phix)))
-        # print(action.grad)
-        # alpha[alpha<=1]=1
-
-        if self.use_kernel_loop == False:
-            ux = pos[:,::2].unsqueeze(1)
-            uy = pos[:,1::2].unsqueeze(1)
-
-            r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2) + self.eps)
-
-            vel_x = (20 * torch.sum((0.1 * alpha + 1) * phix * torch.exp(-alpha * r),
-                                         dim=1))
-            vel_y = (20 * torch.sum((0.1 * alpha + 1) * phiy * torch.exp(-alpha * r),
-                                         dim=1))
-            v=1.0 * torch.cat((vel_x, vel_y), 1)
-            v[v>2]=2
-            v[v<-2]=-2
-        return v
     def projection(self, action):
         # print(action.requires_grad)
         t0 = time.time()
         k = action.size(0)
-        x0 = action[:, ::5].unsqueeze(2).unsqueeze(3)*1.2-0.1
-        y0 = action[:, 1::5].unsqueeze(2).unsqueeze(3)*1.2-0.1
+        x0 = action[:, ::5].unsqueeze(2).unsqueeze(3) * 1.2 - 0.1
+        y0 = action[:, 1::5].unsqueeze(2).unsqueeze(3) * 1.2 - 0.1
         phix = (action[:, 2::5].unsqueeze(2).unsqueeze(3) - 0.5) * 0.2
         phiy = (action[:, 3::5].unsqueeze(2).unsqueeze(3) - 0.5) * 0.2
-        alpha = action[:, 4::5].unsqueeze(2).unsqueeze(3) * 27.0 + 3.0
+        alpha = (action[:, 4::5].unsqueeze(2).unsqueeze(3)) * 15.5 + 0.5
         #alpha[alpha <= 1] = 1
 
         # print(phix)
@@ -542,15 +510,15 @@ class CoverEnvs():
 
             r = torch.sqrt(torch.pow(x0 - ux, 2) + torch.pow(y0 - uy, 2) + self.eps)
 
-            velocity_x = (20 * torch.sum((0.1 * alpha + 1) * phix * torch.exp(-F.relu(alpha * r - 0.01) - 0.01),
-                                         dim=1)) * self.mask_x
+            velocity_x = (4 * torch.sum((0.1 * alpha + 1) * phix * torch.exp(-alpha * r ),
+                                        dim=1)) * self.mask_x
 
             vx = self.grid_vx.unsqueeze(0).unsqueeze(0)
             vy = self.grid_vy.unsqueeze(0).unsqueeze(0)
 
             r = torch.sqrt(torch.pow(vx - x0, 2) + torch.pow(vy - y0, 2) + self.eps)
-            velocity_y = (20 * torch.sum((0.1 * alpha + 1) * phiy * torch.exp(-F.relu(alpha * r - 0.01) - 0.01),
-                                         dim=1)) * self.mask_y
+            velocity_y = (4 * torch.sum((0.1 * alpha + 1) * phiy * torch.exp(-alpha * r ),
+                                        dim=1)) * self.mask_y
         else:
             ux = self.grid_ux.unsqueeze(0)
             uy = self.grid_uy.unsqueeze(0)
@@ -619,102 +587,20 @@ class CoverEnvs():
         idx2 = (idx_y * self.size_x + idx_x).long()
         vel_y = torch.gather(velocity_y, 1, idx2) * (1.0 - alpha_y) + torch.gather(velocity_y, 1,
                                                                                    idx2 + self.size_x) * alpha_y
-        '''
-        # velocity boundary
-        rr = torch.sqrt(vel_x * vel_x + vel_y * vel_y+ self.eps)
 
-        energy = (torch.mean(rr, 1, keepdim=True) ) / 1.5
-
-        vel_x = vel_x / energy
-        vel_y = vel_y / energy
-        '''
         rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y))
+
+        rr = F.relu(rr / 1.0 - 1.0) + 1.0
+        '''
+        vel_x/=rr
+        vel_y/=rr
+        
+        rr = torch.sqrt(torch.square(vel_x) + torch.square(vel_y) + self.eps)
         vel_x[rr<0.1]=0
-        vel_y[rr<0.1]=0
-        return 4*torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
-
-        #return torch.cat((vel_x, vel_y), 1)  # .squeeze(2)
-
-    def step(self, velocity):
-        # action=action*0.5+0.5
-        # velocity = velocity.squeeze(0)
-
+        vel_y[rr < 0.1] = 0
         '''
-        action=action.squeeze(0)
-        t0=time.time()
-        velocity=self.projection(action)
-        for i in range(self.N):
-            self.x0[i]=action[4*i]#0~1
-            self.y0[i]=action[4*i+1]#0~1
-        #print(action)
-        '''
+        return torch.cat((vel_x/rr, vel_y/rr), 1)  # .squeeze(2)
 
-        for i in range(self.n_robots):
-            self.oldstate[i * 2:i * 2 + 2] = self.state[i * 2:i * 2 + 2]
-        state_p = np.zeros([1, self.size_x, self.size_y])
-        # self.BEM_solver()
-        vx = velocity[:self.n_robots]
-        vy = velocity[self.n_robots:]
-        # vx = vx.cpu().detach().numpy()
-        # vy = vy.cpu().detach().numpy()
-        for it in range(1):
-            pos = self.state.reshape([-1, 2])
-
-            for i in range(self.n_robots):
-                if i < self.n_robots / 2:
-                    self.deltap[i] = [vx[i] * 0.1, vy[i] * 0.0]
-                else:
-                    self.deltap[i] = [vx[i] * 0.0, vy[i] * 0.1]
-
-            # print(time.time()-t0)
-
-            for i in range(self.n_robots):
-                dx = vx[i]
-                dy = vy[i]
-                # print(dx,dy)
-                lenn = math.sqrt(dx * dx + dy * dy)
-                if lenn > 2.0:
-                    dx *= 2.0 / lenn
-                    dy *= 2.0 / lenn
-
-                if self.state[i * 2] > 0.51 and self.state[i * 2] < 0.89 and self.state[i * 2 + 1] < 0.69 and \
-                        self.state[i * 2 + 1] > 0.31:
-                    self.t[i] -= 1
-                    r = np.sqrt((pow(pos[i][0] - 0.7, 2) + pow(pos[i][1] - 0.5, 2)))
-                    dx = 1.0 * (0.7 - pos[i][0]) / r
-                    dy = 1.0 * (0.5 - pos[i][1]) / r
-                    if r < 0.01 or self.t[i] <= 0:
-                        dx = 0  # *=r/0.01
-                        dy = 0  # *=r/0.01
-                self.sim.setAgentPrefVelocity(self.agent[i], (dx, dy))
-                self.sim.setAgentPosition(self.agent[i], (pos[i][0], pos[i][1]))
-                self.deltap[i] = [dx, dy]
-
-            self.sim.doNewtonStep(True)
-
-            for i in range(self.n_robots):
-                self.state[i * 2:i * 2 + 2] = self.sim.getAgentPosition(self.agent[i])
-        for i in range(self.n_robots):
-            self.oldvel[i * 2:i * 2 + 2] = self.vel[i * 2:i * 2 + 2]
-            self.vel[i * 2:i * 2 + 2] = self.state[i * 2:i * 2 + 2] - self.oldstate[i * 2:i * 2 + 2]
-
-        reward1, reward2 = get_reward(self.n_robots, self.aim, self.state, self.oldstate, self.angle, self.dis, self.dx)
-        reward = reward1  # +reward2
-        self.pos_reward += reward1
-        self.vel_reward += reward2
-        done = 0
-        # state_p=P2G(self.state,state_p,self.n_robots,self.dx)
-        # self.render(0)
-        # print(time.time()-t0)
-        '''
-        a=np.append(self.x0,self.y0)
-        b=np.append(self.omega,self.alpha)
-        c=np.append(a,b)
-        '''
-        if self.cnt % 1 == 0:
-            self.render()
-        self.cnt += 1
-        return self.state, reward, done, dict(reward=reward)
 
     def MBStep(self, xNew, render=True):
         X = xNew.detach().cpu().numpy()
@@ -723,47 +609,13 @@ class CoverEnvs():
             self.render()
         self.cnt += 1
 
-    def MBLoss(self, xNew, x):
-
-        loss = 0
-        xNew=xNew/self.scale
-        x=x/self.scale
-        for i in range(xNew.size(0)):
-
-            idx = torch.floor(xNew[i, :self.n_robots] / self.dx)
-            idy = torch.floor(xNew[i, self.n_robots:] / self.dx)
-            alphax = (xNew[i, :self.n_robots] - idx * self.dx)/self.dx
-            alphay = (xNew[i, self.n_robots:] - idy * self.dx)/self.dx
-            id = (idy * self.size_y + idx).long()
-            distnew = self.dis[id + self.size_y + 1] * alphax * alphay + self.dis[id + self.size_y] * (
-                    1.0 - alphax) * alphay \
-                      + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
-                              1.0 - alphax) * (1.0 - alphay)
-
-            #if self.dis[id + self.size_y + 1].item()>15 or self.dis[id + self.size_y].item()>15 or self.dis[id + 1].item()>15 or self.dis[id].item()>15:
-            #print(self.dis[id + self.size_y + 1], self.dis[id + self.size_y], self.dis[id + 1], self.dis[id])
-            #loss+=torch.sum(distnew)
-
-            idx = torch.floor(x[i, :self.n_robots] / self.dx)
-            idy = torch.floor(x[i, self.n_robots:] / self.dx)
-            alphax = (x[i, :self.n_robots] - idx * self.dx)/self.dx
-            alphay = (x[i, self.n_robots:] - idy * self.dx)/self.dx
-            id = (idy * self.size_y + idx).long()
-            distold = self.dis[id + self.size_y + 1] * alphax * alphay + self.dis[id + self.size_y] * (
-                    1.0 - alphax) * alphay \
-                      + self.dis[id + 1] * alphax * (1.0 - alphay) + self.dis[id] * (
-                              1.0 - alphax) * (1.0 - alphay)
-            maxdis=torch.sort(distnew)[0]
-
-            loss += torch.sum(torch.square(distnew))#+torch.sum(torch.square(maxdis[-10:]))
-            #loss+=torch.max(distnew)*self.n_robots
-            #print(torch.sort(distnew))
-            #loss += torch.sum(distnew - distold)
-            #loss+=torch.sum(xNew-x)
-
-        return 0.01*loss/xNew.size(0)
+    def ShapeLoss(self,xNew,x):
         '''
-        xNew=xNew/self.scale
-        #return torch.sum(torch.square(xNew[::2]-self.aim[0])+torch.square(xNew[1::2]-self.aim[1]))
-        return torch.sum(torch.square(xNew[:,:self.n_robots] - self.aim[0]) + torch.square(xNew[:,self.n_robots:] - self.aim[1]))
+        loss=torch.nn.MSELoss()
+        #print(xNew,self.gt)
+        return loss(xNew,self.gt)
         '''
+        I=self.P2GForLoss(xNew)
+
+        loss=-1e-5*(torch.square(torch.sum(I[:,:,30:68,30:68])-torch.sum(self.gt[:,:,30:68,30:68])))/xNew.size(0)
+        return loss

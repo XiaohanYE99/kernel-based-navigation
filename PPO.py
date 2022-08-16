@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
+import random
 from torch.distributions import MultivariateNormal
 from torch.distributions import Categorical
-from robot_envs.robot_env import CollisionFreeLayer
+
 import time
 ################################## set device ##################################
 print("============================================================================================")
@@ -35,7 +36,7 @@ class RolloutBuffer:
 
 
 class ActorCritic(nn.Module):
-    def __init__(self, env,state_dim, action_dim, has_continuous_action_space, action_std_init):
+    def __init__(self, env,state_dim, action_dim, has_continuous_action_space, action_std_init,CollisionFreeLayer):
         super(ActorCritic, self).__init__()
 
         self.has_continuous_action_space = has_continuous_action_space
@@ -45,70 +46,69 @@ class ActorCritic(nn.Module):
             self.action_var = torch.full((action_dim,), action_std_init * action_std_init).to(device)
         # actor
         if has_continuous_action_space :
-            
+            '''
             self.actor = nn.Sequential(
                             nn.Linear(state_dim, 200),
                             nn.Tanh(),
                             nn.Linear(200, 200),
                             nn.Tanh(),
-                            nn.Linear(200, 4*self.env.N),
+                            nn.Linear(200, 5*self.env.N),
                             nn.Sigmoid(),
                         )
             '''
             self.actor = nn.Sequential(
-                            nn.Conv2d(1, 8, 7, 2,3), nn.ReLU(),#[50,50,8]
-                            nn.Conv2d(8, 12, 5, 2,2), nn.ReLU(),#[25,25,16]
-                            nn.Conv2d(12, 20, 5, 2,2), nn.ReLU(), nn.Flatten(),#[13,13,32]
-                            nn.Linear(20 * 13 * 13, 128), nn.ReLU(),
-                            nn.Linear(128, action_dim),nn.Sigmoid()
-                            )
-            '''
+                nn.Conv2d(2, 8, 5, 1, 0, bias=False), nn.MaxPool2d(2), nn.Tanh(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 1, 0, bias=False), nn.MaxPool2d(2), nn.Tanh(),  # [25,25,16]
+                nn.Conv2d(12, 20, 3, 1, 0, bias=False), nn.MaxPool2d(2), nn.Tanh(),  # [25,25,16]
+                nn.Conv2d(20, 32, 3, 1, 0, bias=False), nn.Tanh(), nn.Flatten(),  # [9,9,128]
+                nn.Linear(32 * 8 * 8, 128, bias=False), nn.Tanh(), nn.Dropout(0.25),
+                nn.Linear(128, action_dim, bias=False), nn.Sigmoid()
+            )
+
         else:
             self.actor = nn.Sequential(
-                            nn.Conv2d(1, 8, 7, stride=2), nn.ReLU(),#[50,50,8]
-                            nn.Conv2d(8, 12, 5, stride=2), nn.ReLU(),#[25,25,16]
-                            nn.Conv2d(12, 20, 5, stride=2), nn.ReLU(), nn.Flatten(),#[13,13,32]
-                            nn.Linear(20 * 13 * 13, 128), nn.ReLU(),
-                            nn.Linear(128, action_dim),nn.Sigmoid()
-                        )
+                nn.Conv2d(2, 8, 5, 1, 0, bias=False), nn.MaxPool2d(2), nn.Tanh(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 1, 0, bias=False), nn.MaxPool2d(2), nn.Tanh(),  # [25,25,16]
+                nn.Conv2d(12, 20, 3, 1, 0, bias=False), nn.MaxPool2d(2), nn.Tanh(),  # [25,25,16]
+                nn.Conv2d(20, 32, 3, 1, 0, bias=False), nn.Tanh(), nn.Flatten(),  # [9,9,128]
+                nn.Linear(32 * 8 * 8, 128, bias=False), nn.Tanh(), nn.Dropout(0.25),
+                nn.Linear(128, action_dim, bias=False), nn.Sigmoid()
+            )
         # critic
-        
+
         self.critic = nn.Sequential(
-                        nn.Linear(state_dim, 200),
-                        nn.Tanh(),
-                        nn.Linear(200, 200),
-                        nn.Tanh(),
-                        nn.Linear(200, 1)
-                    )
-        '''
-        self.critic = nn.Sequential(
-                            nn.Conv2d(1, 8, 7, 2,3), nn.ReLU(),#[50,50,8]
-                            nn.Conv2d(8, 12, 5, 2,2), nn.ReLU(),#[25,25,16]
-                            nn.Conv2d(12, 20, 5, 2,2), nn.ReLU(), nn.Flatten(),#[13,13,32]
-                            nn.Linear(20 * 13 * 13, 128), nn.ReLU(),
-                            nn.Linear(128, 1)
-                            )
-        '''
+                nn.Conv2d(2, 8, 5, 1, 0,bias=False), nn.MaxPool2d(2),  nn.Tanh(),  # [50,50,8]
+                nn.Conv2d(8, 12, 5, 1, 0,bias=False), nn.MaxPool2d(2),  nn.Tanh(),  # [25,25,16]
+                nn.Conv2d(12, 20, 3, 1, 0,bias=False), nn.MaxPool2d(2),  nn.Tanh(),  # [25,25,16]
+                nn.Conv2d(20, 32, 3, 1, 0,bias=False),   nn.Tanh(), nn.Flatten(),  # [9,9,128]
+                nn.Linear(32 * 8 * 8, 128,bias=False),  nn.Tanh(),nn.Dropout(0.25),
+                nn.Linear(128, 1,bias=False), nn.Sigmoid()
+            )
+
         self.CFLayer = CollisionFreeLayer.apply
-    def implement(self,state):
+    def switch(self, v,state,target):
+        x = state[:, :self.env.n_robots] - target[0]
+        y = state[:, self.env.n_robots:] - target[1]
 
-        action=torch.squeeze(self.actor(state),1)
-        #print(action)
+        r = torch.sqrt(torch.square(x) + torch.square(y) + 1e-2)
+        alpha = -3 * torch.pow((2 * self.env.bound - r), 2) / (r * r) + 2 * torch.pow((2 * self.env.bound - r), 3) / (
+                    r * r * r) + 1.0
 
-        velocity=self.env.projection(action)
+        alpha[r < self.env.bound] = 0
+        alpha[r > 2 * self.env.bound] = 1
+        alpha = torch.cat((alpha, alpha), 1)
+        return alpha*v+(1.0-alpha)*(-5*torch.cat((x/r,y/r),1))
+    def implement(self,state,target):
+        #print(state)
+        I = self.env.P2G(state, target)
+        I = I.to(device)
+        # action = self.controller(I)
 
-        v=self.env.get_velocity(state,velocity)
-
-        xNew=self.CFLayer(self.env,state,v)
-
-        return xNew
-    '''
-    def implement(self,img):
-        output=torch.squeeze(self.actor(img),1)
-
-        velocity=self.env.projection1(output,img)
-        return velocity
-    '''
+        action = torch.squeeze(self.actor(I), 1)
+        for i in range(self.env.N):
+            self.env.x0[i] = action[0][5 * i]
+            self.env.y0[i] = action[0][5 * i + 1]
+        return action
     def set_action_std(self, new_action_std):
         if self.has_continuous_action_space:
             self.action_var = torch.full((self.action_dim,), new_action_std * new_action_std).to(device)
@@ -122,11 +122,11 @@ class ActorCritic(nn.Module):
     
     def act(self, state):
         if self.has_continuous_action_space:
-            action_mean = self.implement(state)
+            action_mean = self.implement(state,self.env.aim)
             cov_mat = torch.diag(self.action_var).unsqueeze(dim=0)
             dist = MultivariateNormal(action_mean, cov_mat)
         else:
-            action_probs = self.implement(state)
+            action_probs = self.implement(state,self.env.aim)
             dist = Categorical(action_probs)
 
         action = dist.sample()
@@ -139,7 +139,7 @@ class ActorCritic(nn.Module):
         
         if self.has_continuous_action_space:
             
-            action_mean = self.implement(state)  
+            action_mean = self.implement(state,self.env.aim)
 
             #print(action_mean.size())
             action_var = self.action_var.expand_as(action_mean)
@@ -160,13 +160,15 @@ class ActorCritic(nn.Module):
         
         action_logprobs = dist.log_prob(action)
         dist_entropy = dist.entropy()
-        state_values = self.critic(state)
+        I = self.env.P2G(state, self.env.aim)
+        I = I.to(device)
+        state_values = self.critic(I)
 
         return action_logprobs, state_values, dist_entropy
 
 
 class PPO:
-    def __init__(self,env, state_dim, action_dim, lr_actor, lr_critic, gamma, K_epochs, eps_clip, has_continuous_action_space, action_std_init=0.6):
+    def __init__(self,env, state_dim, action_dim, lr_actor, lr_critic, gamma, K_epochs, eps_clip, has_continuous_action_space,CollisionFreeLayer, action_std_init=0.6):
 
         self.has_continuous_action_space = has_continuous_action_space
 
@@ -179,13 +181,13 @@ class PPO:
         
         self.buffer = RolloutBuffer()
 
-        self.policy = ActorCritic(env,state_dim, action_dim, has_continuous_action_space, action_std_init).to(device)
+        self.policy = ActorCritic(env,state_dim, action_dim, has_continuous_action_space, action_std_init,CollisionFreeLayer).to(device)
         self.optimizer = torch.optim.Adam([
                         {'params': self.policy.actor.parameters(), 'lr': lr_actor},
                         {'params': self.policy.critic.parameters(), 'lr': lr_critic}
                     ])
         
-        self.policy_old = ActorCritic(env,state_dim, action_dim, has_continuous_action_space, action_std_init).to(device)
+        self.policy_old = ActorCritic(env,state_dim, action_dim, has_continuous_action_space, action_std_init,CollisionFreeLayer).to(device)
         self.policy_old.load_state_dict(self.policy.state_dict())
         
         self.MseLoss = nn.MSELoss()
@@ -220,7 +222,8 @@ class PPO:
 
         if self.has_continuous_action_space:
             with torch.no_grad():
-                state = torch.unsqueeze(torch.FloatTensor(state),0).to(device)
+                #print(state)
+
                 action, action_logprob = self.policy_old.act(state)
 
             self.buffer.states.append(state)
@@ -242,7 +245,7 @@ class PPO:
     def update(self):
         # Monte Carlo estimate of returns
         t0=time.time()
-        batch=100
+        batch=128
         rewards_ = []
         discounted_reward = 0
         for reward, is_terminal in zip(reversed(self.buffer.rewards), reversed(self.buffer.is_terminals)):
@@ -304,7 +307,31 @@ class PPO:
         self.policy_old.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         self.policy.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         
-        
+    def step(self, state,action,target):
+        #state = torch.unsqueeze(torch.FloatTensor(state), 0).to(device)
+        velocity = self.policy.env.projection(action)
+
+        v = self.policy.env.get_velocity(state / self.policy.env.scale, velocity)
+        v = self.policy.switch(v, state / self.policy.env.scale, target)
+        state_f = torch.zeros_like(state)
+        v_f = torch.zeros_like(v)
+        state_f[:, ::2] = state[:, :self.policy.env.n_robots]
+        state_f[:, 1::2] = state[:, self.policy.env.n_robots:]
+        v_f[:, ::2] = v[:, :self.policy.env.n_robots]
+        v_f[:, 1::2] = v[:, self.policy.env.n_robots:]
+
+        xNew_f = self.policy.CFLayer(self.policy.env, state_f, v_f)
+
+        xNew = torch.cat((xNew_f[:, ::2], xNew_f[:, 1::2]), 1)
+        done=0
+        reward=-10*self.policy.env.MBLoss(state,xNew).item()
+        self.policy.env.MBStep(state)
+        return xNew, reward, done, dict(reward=reward)
+    def reset(self,path='./robot_envs/mazes_g75w675h675/maze'):
+        idx=random.randint(0,500)
+        idx=78
+        fn=path+str(idx)+'.dat'
+        self.policy.env.load_roadmap(fn)
        
 
 

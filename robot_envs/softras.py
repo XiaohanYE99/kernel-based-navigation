@@ -1,13 +1,14 @@
 import torch as th
 import math,random
 
-def rasterize(pos,rad,radext,szCell,nrCell):
+def rasterize(pos,rad,radext,szCell,nrCell,reg=0.):
     '''
     I:      B x nx x ny
     pos:    B x np x 2, paricle locations
     rad:    radius of agent
     range:  softness range
     szCell: size of cell
+    reg:    reg=0 has no effect, reg>0 implies normalized by I/(I+reg)
     '''
     invSzCell=1/szCell
     dummy=th.zeros((pos.shape[1],))
@@ -33,7 +34,10 @@ def rasterize(pos,rad,radext,szCell,nrCell):
                 dxid=x+dx+rangeCell 
                 dyid=y+dy+rangeCell
                 I[i,dxid.long(),dyid.long()]+=th.where(dist<2,Wq,dummy)
-    return I[:,rangeCell:I.shape[1]-rangeCell,rangeCell:I.shape[2]-rangeCell]
+    ICtr=I[:,rangeCell:I.shape[1]-rangeCell,rangeCell:I.shape[2]-rangeCell]
+    if reg>0.:
+        return ICtr/(ICtr+reg)
+    else: return ICtr
     
 if __name__=='__main__':
     #we need to do a finite difference check, which requires high-prec float64
@@ -42,6 +46,7 @@ if __name__=='__main__':
     #setup 
     bs=3
     N=10
+    reg=.1
     rad=.5
     radext=.5
     szCell=.1
@@ -54,7 +59,7 @@ if __name__=='__main__':
     
     #forward/backward, finite difference check
     pos.requires_grad_(True)
-    I=rasterize(pos,rad,radext,szCell,nrCell)
+    I=rasterize(pos,rad,radext,szCell,nrCell,reg)
     coef=th.rand((bs,nrCell[0]+1,nrCell[1]+1))
     loss=th.tensordot(I,coef,3)
     #get grad
@@ -63,7 +68,7 @@ if __name__=='__main__':
     #compute loss
     delta=1e-8
     pos2=th.rand((bs,N,2))
-    I2=rasterize(pos+pos2*delta,rad,radext,szCell,nrCell)
+    I2=rasterize(pos+pos2*delta,rad,radext,szCell,nrCell,reg)
     loss2=th.tensordot(I2,coef,3)
     analytic=th.tensordot(grad,pos2,3).item()
     numeric=(loss2.item()-loss.item())/delta

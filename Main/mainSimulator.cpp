@@ -10,7 +10,7 @@ using namespace RVO;
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  RVOSimulator rvo(1,1e-4,1,1,10,false,true,"NEWTON");
+  RVOSimulator rvo(1,1e-4,1,1,10,false,true,"LBFGS");
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)

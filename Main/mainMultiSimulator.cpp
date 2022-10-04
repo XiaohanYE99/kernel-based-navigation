@@ -9,7 +9,7 @@ using namespace RVO;
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  MultiRVOSimulator rvo(2,1,1e-4,1,1,1000,false,true);
+  MultiRVOSimulator rvo(2,1,1e-4,1,1,10,false,true,"LBFGS");
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)
@@ -46,7 +46,7 @@ int main(int argc,char** argv) {
       rvo.setAgentTarget(id, {-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y)},maxV);
     }
   //top left
-  rad=1;
+  rad=2;
   for(int x=-120; x<=-80; x+=10)
     for(int y=80; y<=120; y+=10) {
       int id=rvo.addAgent({Vec2T(x,y)+Vec2T::Random()*randRange,

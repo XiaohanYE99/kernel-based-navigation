@@ -1,4 +1,5 @@
-LibRVO
+# LibRVO
+
 ![](example.gif)
 
 This library implements our differentiable, stable algorithm for multi-agent navigation. The library supports the following features:

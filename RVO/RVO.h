@@ -3,10 +3,16 @@
 
 #include "BoundingVolumeHierarchy.h"
 #include "ParallelVector.h"
+#include "LBFGSUpdate.h"
 #include <unordered_map>
 #include <Eigen/Sparse>
 
 namespace RVO {
+enum RVOOptimizer {
+  NEWTON,
+  LBFGS,
+  UNKNOWN,
+};
 class SpatialHash;
 class RVOSimulator {
  public:
@@ -22,7 +28,7 @@ class RVOSimulator {
 #ifndef SWIG
   RVOSimulator& operator=(const RVOSimulator& other);
 #endif
-  RVOSimulator(T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
+  RVOSimulator(T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true,const std::string& optimizer="NEWTON");
   virtual ~RVOSimulator() {}
   bool getUseHash() const;
   T getMaxRadius() const;
@@ -61,6 +67,7 @@ class RVOSimulator {
   int addObstacle(std::vector<Vec2T> vss);
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
+  void setLBFGSParameter(int nrCorrect=10);
   void setTimestep(T timestep);
   T timestep() const;
   virtual bool optimize(bool requireGrad,bool output);
@@ -87,6 +94,8 @@ class RVOSimulator {
   bool energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Matrix<int,4,1>& nBarrier);
   bool energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
   bool energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
+  bool optimizeNewton(bool requireGrad,bool output);
+  bool optimizeLBFGS(bool requireGrad,bool output);
   std::shared_ptr<SpatialHash> _hash;
   BoundingVolumeHierarchy _bvh;
   Mat2XT _perfVelocities;
@@ -97,6 +106,8 @@ class RVOSimulator {
   T _timestep,_gTol,_d0,_coef,_maxRad;
   bool _useHash;
   int _maxIter;
+  LBFGSUpdate _LBFGSUpdate;
+  RVOOptimizer _optimizer;
   //data
   MatT _DXDX,_DXDV;
   SMatT _id;

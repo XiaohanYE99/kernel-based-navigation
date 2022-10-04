@@ -16,6 +16,7 @@ RVOSimulator& RVOSimulator::operator=(const RVOSimulator& other) {
   _maxRad=other._maxRad;
   _useHash=other._useHash;
   _maxIter=other._maxIter;
+  _optimizer=other._optimizer;
   //clone agents
   if(std::dynamic_pointer_cast<SpatialHashRadixSort>(other._hash))
     _hash.reset(new SpatialHashRadixSort());
@@ -29,13 +30,14 @@ RVOSimulator& RVOSimulator::operator=(const RVOSimulator& other) {
     addObstacle(other.getObstacle(i));
   return *this;
 }
-RVOSimulator::RVOSimulator(T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash) {
+RVOSimulator::RVOSimulator(T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash,const std::string& optimizer) {
   if(radixSort)
     _hash.reset(new SpatialHashRadixSort());
   else _hash.reset(new SpatialHashLinkedList());
   setNewtonParameter(maxIter,gTol,d0,coef);
   setTimestep(timestep);
   _useHash=useHash;
+  _optimizer=optimizer=="NEWTON"?NEWTON:optimizer=="LBFGS"?LBFGS:UNKNOWN;
 }
 bool RVOSimulator::getUseHash() const {
   return _useHash;
@@ -137,6 +139,9 @@ void RVOSimulator::setNewtonParameter(int maxIter,T gTol,T d0,T coef) {
   _d0=d0;
   _coef=coef;
 }
+void RVOSimulator::setLBFGSParameter(int nrCorrect) {
+  _LBFGSUpdate.nCorrect(nrCorrect);
+}
 void RVOSimulator::setTimestep(T timestep) {
   _timestep=timestep;
 }
@@ -144,97 +149,14 @@ RVOSimulator::T RVOSimulator::timestep() const {
   return _timestep;
 }
 bool RVOSimulator::optimize(bool requireGrad,bool output) {
-  Eigen::Map<Vec> XFrom(_agentPositions.data(),_agentPositions.size());
-  Vec X=XFrom,newX=XFrom;
-  Vec g,g2;
-  SMatT h;
-  T E;
-  int iter;
-  T lastAlpha;
-  T maxPerturbation=1e2;
-  T minPerturbation=1e-6;
-  T perturbation=1e0;
-  T perturbationDec=0.7;
-  T perturbationInc=10.0;
-  T alpha=1,alphaMin=1e-10;
-  Eigen::Matrix<int,4,1> nBarrier;
-  for(iter=0; iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++) {
-    //always use spatial hash to compute obstacle neighbors, but only use spatial hash to compute agent neighbors
-    bool succ=energy(mapCV<Vec>(NULL),mapCV(newX),&E,&g,&h,nBarrier);
-    if(!succ)
-      return false;
-    if(g.cwiseAbs().maxCoeff()<_gTol) {
-      if(output)
-        std::cout << "Exit on gTol<" << _gTol << std::endl;
-      break;
-    }
-    if(iter==0) {
-      T hMax=absMax(h);
-      maxPerturbation*=std::max<T>(1.0,hMax);
-      minPerturbation*=std::max<T>(1.0,hMax);
-      perturbation*=std::max<T>(1.0,hMax);
-    }
-    if(output)
-      std::cout << "iter=" << iter
-                << " alpha=" << alpha
-                << " E=" << E
-                << " gNormInf=" << g.cwiseAbs().maxCoeff()
-                << " perturbation=" << perturbation
-                << " minPertubation=" << minPerturbation <<std::endl;
-    //outer-loop of line search and newton direction computation
-    while(true) {
-      //ensure hessian factorization is successful
-      while(perturbation<maxPerturbation) {
-        _sol.compute(_id*perturbation+h);
-        if(_sol.info()==Eigen::Success) {
-          perturbation=fmax(perturbation*perturbationDec,minPerturbation);
-          break;
-        } else {
-          perturbation*=perturbationInc;
-        }
-      }
-      if(perturbation>=maxPerturbation) {
-        if(output)
-          std::cout << "Exit on perturbation>=maxPerturbation" <<std::endl;
-        break;
-      }
-      //line search
-      lastAlpha=alpha;
-      succ=lineSearch(E,g,-_sol.solve(g),alpha,newX,[&](const Vec& evalPt,T& E2)->bool {
-        return energy(mapCV(X),mapCV(evalPt),&E2,NULL,NULL,nBarrier);
-      },alphaMin);
-      if(succ) {
-        X=newX;
-        perturbation=fmax(perturbation*perturbationDec,minPerturbation);
-        break;
-      }
-      //probably we need more perturbation to h
-      perturbation*=perturbationInc;
-      alpha=lastAlpha;
-      if(output)
-        std::cout<<"Increase perturbation to "<<perturbation<<std::endl;
-    }
+  if(_optimizer==NEWTON)
+    return optimizeNewton(requireGrad,output);
+  else if(_optimizer==LBFGS)
+    return optimizeLBFGS(requireGrad,output);
+  else {
+    std::cout << "Unknown optimizer!" << std::endl;
+    return false;
   }
-  if(requireGrad) {
-    perturbation=0;
-    while(true) {
-      _sol.compute(h+_id*perturbation);
-      if(_sol.info()==Eigen::Success)
-        break;
-      else {
-        perturbation=fmax(minPerturbation,perturbation*perturbationInc);
-        if(output)
-          std::cout << "Singular configuration during backward pass!" << std::endl;
-      }
-    }
-    _DXDX=_sol.solve(_id.toDense()*(1/(_timestep*_timestep)));
-    _DXDV=_sol.solve(_id.toDense()*(1/_timestep));
-  } else {
-    _DXDX.setZero(0,0);
-    _DXDV.setZero(0,0);
-  }
-  XFrom=X;
-  return iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation;
 }
 void RVOSimulator::updateAgentTargets() {
   for(const auto& target:_agentTargets) {
@@ -554,5 +476,155 @@ bool RVOSimulator::energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,
     }
   }
   return true;
+}
+bool RVOSimulator::optimizeNewton(bool requireGrad,bool output) {
+  Eigen::Map<Vec> XFrom(_agentPositions.data(),_agentPositions.size());
+  Vec X=XFrom,newX=XFrom;
+  Vec g,g2;
+  SMatT h;
+  T E;
+  int iter;
+  T lastAlpha;
+  T maxPerturbation=1e2;
+  T minPerturbation=1e-6;
+  T perturbation=1e0;
+  T perturbationDec=0.7;
+  T perturbationInc=10.0;
+  T alpha=1,alphaMin=1e-10;
+  Eigen::Matrix<int,4,1> nBarrier;
+  for(iter=0; iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++) {
+    //always use spatial hash to compute obstacle neighbors, but only use spatial hash to compute agent neighbors
+    bool succ=energy(mapCV<Vec>(NULL),mapCV(newX),&E,&g,&h,nBarrier);
+    if(!succ)
+      return false;
+    if(g.cwiseAbs().maxCoeff()<_gTol) {
+      if(output)
+        std::cout << "Exit on gTol<" << _gTol << std::endl;
+      break;
+    }
+    if(iter==0) {
+      T hMax=absMax(h);
+      maxPerturbation*=std::max<T>(1.0,hMax);
+      minPerturbation*=std::max<T>(1.0,hMax);
+      perturbation*=std::max<T>(1.0,hMax);
+    }
+    if(output)
+      std::cout << "iter=" << iter
+                << " alpha=" << alpha
+                << " E=" << E
+                << " gNormInf=" << g.cwiseAbs().maxCoeff()
+                << " perturbation=" << perturbation
+                << " minPertubation=" << minPerturbation <<std::endl;
+    //outer-loop of line search and newton direction computation
+    while(true) {
+      //ensure hessian factorization is successful
+      while(perturbation<maxPerturbation) {
+        _sol.compute(_id*perturbation+h);
+        if(_sol.info()==Eigen::Success) {
+          perturbation=fmax(perturbation*perturbationDec,minPerturbation);
+          break;
+        } else {
+          perturbation*=perturbationInc;
+        }
+      }
+      if(perturbation>=maxPerturbation) {
+        if(output)
+          std::cout << "Exit on perturbation>=maxPerturbation" <<std::endl;
+        break;
+      }
+      //line search
+      lastAlpha=alpha;
+      succ=lineSearch(E,g,-_sol.solve(g),alpha,newX,[&](const Vec& evalPt,T& E2)->bool {
+        return energy(mapCV(X),mapCV(evalPt),&E2,NULL,NULL,nBarrier);
+      },alphaMin);
+      if(succ) {
+        X=newX;
+        perturbation=fmax(perturbation*perturbationDec,minPerturbation);
+        break;
+      }
+      //probably we need more perturbation to h
+      perturbation*=perturbationInc;
+      alpha=lastAlpha;
+      if(output)
+        std::cout<<"Increase perturbation to "<<perturbation<<std::endl;
+    }
+  }
+  if(requireGrad) {
+    perturbation=0;
+    while(true) {
+      _sol.compute(h+_id*perturbation);
+      if(_sol.info()==Eigen::Success)
+        break;
+      else {
+        perturbation=fmax(minPerturbation,perturbation*perturbationInc);
+        if(output)
+          std::cout << "Singular configuration during backward pass!" << std::endl;
+      }
+    }
+    _DXDX=_sol.solve(_id.toDense()*(1/(_timestep*_timestep)));
+    _DXDV=_sol.solve(_id.toDense()*(1/_timestep));
+  } else {
+    _DXDX.setZero(0,0);
+    _DXDV.setZero(0,0);
+  }
+  XFrom=X;
+  return iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation;
+}
+bool RVOSimulator::optimizeLBFGS(bool requireGrad,bool output) {
+  Eigen::Map<Vec> XFrom(_agentPositions.data(),_agentPositions.size());
+  Vec X=XFrom,pos=XFrom,posPrev,s,y;
+  Vec g,g2,gPrev,d;
+  SMatT h;
+  T E;
+  int iter;
+  T alpha=1,alphaMin=1e-10;
+  Eigen::Matrix<int,4,1> nBarrier;
+  _LBFGSUpdate.reset(XFrom.size());
+  bool succ=energy(mapCV<Vec>(NULL),mapCV(pos),&E,&g,NULL,nBarrier);
+  d=-g;
+  alpha=1/std::max<T>(g.norm(),1e-8);
+  for(iter=0; succ && iter<_maxIter && alpha>alphaMin; iter++) {
+    posPrev=pos;
+    gPrev=g;
+    //update
+    succ=lineSearch(E,g,d,alpha,pos,[&](const Vec& evalPt,T& E2)->bool {
+      return energy(mapCV(X),mapCV(evalPt),&E2,&g2,NULL,nBarrier);
+    },alphaMin);
+    if(!succ)
+      break;
+    g.swap(g2);
+    //update LBFGS
+    if(_LBFGSUpdate.nCorrect()<=0)
+      d=-g;
+    else {
+      s=pos-posPrev;
+      y=g-gPrev;
+      _LBFGSUpdate.update(mapCV(s),mapCV(y));
+      _LBFGSUpdate.mulHv(mapCV(g),mapV(d));
+      d*=-1;
+    }
+    if(output)
+      std::cout << "iter=" << iter
+                << " alpha=" << alpha
+                << " E=" << E
+                << " gNormInf=" << g.cwiseAbs().maxCoeff() <<std::endl;
+    //termination
+    if(g.cwiseAbs().maxCoeff()<_gTol) {
+      if(output)
+        std::cout << "Exit on gTol<" << _gTol << std::endl;
+      break;
+    }
+  }
+  if(requireGrad) {
+    energy(mapCV<Vec>(NULL),mapCV(pos),&E,&g,&h,nBarrier);
+    _sol.compute(h);    //the safety of such factorization is dubious
+    _DXDX=_sol.solve(_id.toDense()*(1/(_timestep*_timestep)));
+    _DXDV=_sol.solve(_id.toDense()*(1/_timestep));
+  } else {
+    _DXDX.setZero(0,0);
+    _DXDV.setZero(0,0);
+  }
+  XFrom=X;
+  return iter<_maxIter && alpha>alphaMin && succ;
 }
 }

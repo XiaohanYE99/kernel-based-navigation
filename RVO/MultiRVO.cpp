@@ -1,9 +1,9 @@
 #include "MultiRVO.h"
 
 namespace RVO {
-MultiRVOSimulator::MultiRVOSimulator(int batchSize,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash) {
+MultiRVOSimulator::MultiRVOSimulator(int batchSize,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash,const std::string& optimizer) {
   for(int i=0; i<batchSize; i++)
-    _sims.push_back(RVOSimulator(d0,gTol,coef,timestep,maxIter,radixSort,useHash));
+    _sims.push_back(RVOSimulator(d0,gTol,coef,timestep,maxIter,radixSort,useHash,optimizer));
 }
 void MultiRVOSimulator::clearAgent() {
   for(auto& sim:_sims)

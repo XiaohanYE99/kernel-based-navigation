@@ -67,7 +67,7 @@ class RVOSimulator {
   int addObstacle(std::vector<Vec2T> vss);
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
-  void setLBFGSParameter(int nrCorrect=10);
+  void setLBFGSParameter(int nrCorrect=5);
   void setTimestep(T timestep);
   T timestep() const;
   virtual bool optimize(bool requireGrad,bool output);

@@ -16,6 +16,7 @@ RVOSimulator& RVOSimulator::operator=(const RVOSimulator& other) {
   _maxRad=other._maxRad;
   _useHash=other._useHash;
   _maxIter=other._maxIter;
+  _LBFGSUpdate.nCorrect(other._LBFGSUpdate.nCorrect());
   _optimizer=other._optimizer;
   //clone agents
   if(std::dynamic_pointer_cast<SpatialHashRadixSort>(other._hash))
@@ -35,6 +36,7 @@ RVOSimulator::RVOSimulator(T d0,T gTol,T coef,T timestep,int maxIter,bool radixS
     _hash.reset(new SpatialHashRadixSort());
   else _hash.reset(new SpatialHashLinkedList());
   setNewtonParameter(maxIter,gTol,d0,coef);
+  setLBFGSParameter(10);
   setTimestep(timestep);
   _useHash=useHash;
   _optimizer=optimizer=="NEWTON"?NEWTON:optimizer=="LBFGS"?LBFGS:UNKNOWN;
@@ -624,7 +626,7 @@ bool RVOSimulator::optimizeLBFGS(bool requireGrad,bool output) {
     _DXDX.setZero(0,0);
     _DXDV.setZero(0,0);
   }
-  XFrom=X;
+  XFrom=pos;
   return iter<_maxIter && alpha>alphaMin && succ;
 }
 }

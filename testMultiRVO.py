@@ -29,7 +29,7 @@ for x in range(-120,-80,10):
             pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
-            rad.append(3)
+            rad.append(2)
         id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
 for x in range(-120,-80,10):
@@ -39,7 +39,7 @@ for x in range(-120,-80,10):
             pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
-            rad.append(0.5)
+            rad.append(1)
         id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
 for x in range(80,120,10):
@@ -59,7 +59,7 @@ for x in range(80,120,10):
             pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
-            rad.append(3)
+            rad.append(2)
         id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
         

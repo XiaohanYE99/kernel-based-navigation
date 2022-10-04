@@ -11,8 +11,7 @@ class MultiRVOSimulator {
 #ifndef SWIG
   DECL_MAP_FUNCS
 #endif
-  MultiRVOSimulator(int batchSize,T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
-  T getRadius() const;
+  MultiRVOSimulator(int batchSize,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   void clearAgent();
   void clearObstacle();
   int getNrObstacle() const;
@@ -25,7 +24,7 @@ class MultiRVOSimulator {
 #ifdef SWIG
   std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
-  int addAgent(std::vector<Eigen::Matrix<double,2,1>> pos,std::vector<Eigen::Matrix<double,2,1>> vel);
+  int addAgent(std::vector<Eigen::Matrix<double,2,1>> pos,std::vector<Eigen::Matrix<double,2,1>> vel,std::vector<double> rad);
   void setAgentPosition(int i,std::vector<Eigen::Matrix<double,2,1>> pos);
   void setAgentVelocity(int i,std::vector<Eigen::Matrix<double,2,1>> vel);
   void setAgentTarget(int i,std::vector<Eigen::Matrix<double,2,1>> target,T maxVelocity);
@@ -33,14 +32,14 @@ class MultiRVOSimulator {
 #else
   std::vector<Vec2T> getAgentPosition(int i) const;
   std::vector<Vec2T> getAgentVelocity(int i) const;
-  int addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel);
+  std::vector<T> getAgentRadius(int i) const;
+  int addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel,std::vector<T> rad);
   void setAgentPosition(int i,std::vector<Vec2T> pos);
   void setAgentVelocity(int i,std::vector<Vec2T> vel);
   void setAgentTarget(int i,std::vector<Vec2T> target,T maxVelocity);
   int addObstacle(std::vector<Vec2T> vss);
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
-  void setAgentRadius(T radius);
   void setTimestep(T timestep);
   T timestep() const;
   int getBatchSize() const;

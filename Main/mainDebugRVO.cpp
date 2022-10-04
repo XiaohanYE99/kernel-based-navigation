@@ -8,9 +8,9 @@ int main() {
   DECL_MAT_VEC_MAP_TYPES_T
   T scale=100;
 
-  RVOSimulator rvo(1,100);
+  RVOSimulator rvo(100);
   for(int i=0; i<100; i++)
-    rvo.addAgent(Vec2T::Random()*scale,Vec2T::Random()*scale);
+    rvo.addAgent(Vec2T::Random()*scale,Vec2T::Random()*scale,i<50?0.5:1);
   for(const auto& off: {
         Vec2T(-60,-60),Vec2T(40,-60),Vec2T(40,40),Vec2T(-60,40)
       })

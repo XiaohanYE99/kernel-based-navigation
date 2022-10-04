@@ -20,21 +20,25 @@ for off in [np.array([-70.,-70.]),np.array([30.,-70.]),np.array([30.,30.]),np.ar
     print('')
     
 #add agent
+rad=3
 for x in range(-120,-80,10):
     for y in range(-120,-80,10):
-        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]))
+        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]),rad)
         rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxVelocity)
+rad=0.5
 for x in range(-120,-80,10):
     for y in range(80,120,10):
-        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]))
+        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]),rad)
         rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxVelocity)
+rad=0.5
 for x in range(80,120,10):
     for y in range(-120,-80,10):
-        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]))
+        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]),rad)
         rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxVelocity)
+rad=3
 for x in range(80,120,10):
     for y in range(80,120,10):
-        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]))
+        id=rvo.addAgent(np.array([x,y],dtype=float),np.array([0.,0.]),rad)
         rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxVelocity)
         
 #print

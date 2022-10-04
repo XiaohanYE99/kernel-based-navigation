@@ -1,12 +1,9 @@
 #include "MultiRVO.h"
 
 namespace RVO {
-MultiRVOSimulator::MultiRVOSimulator(int batchSize,T rad,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash) {
+MultiRVOSimulator::MultiRVOSimulator(int batchSize,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash) {
   for(int i=0; i<batchSize; i++)
-    _sims.push_back(RVOSimulator(rad,d0,gTol,coef,timestep,maxIter,radixSort,useHash));
-}
-MultiRVOSimulator::T MultiRVOSimulator::getRadius() const {
-  return _sims[0].getRadius();
+    _sims.push_back(RVOSimulator(d0,gTol,coef,timestep,maxIter,radixSort,useHash));
 }
 void MultiRVOSimulator::clearAgent() {
   for(auto& sim:_sims)
@@ -37,9 +34,15 @@ std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentVelocity(int i)
     vel.push_back(sim.getAgentVelocity(i));
   return vel;
 }
-int MultiRVOSimulator::addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel) {
+std::vector<MultiRVOSimulator::T> MultiRVOSimulator::getAgentRadius(int i) const {
+  std::vector<T> rad;
+  for(auto& sim:_sims)
+    rad.push_back(sim.getAgentRadius(i));
+  return rad;
+}
+int MultiRVOSimulator::addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel,std::vector<T> rad) {
   for(int i=0; i<(int)_sims.size(); i++)
-    _sims[i].addAgent(pos[i],vel[i]);
+    _sims[i].addAgent(pos[i],vel[i],rad[i]);
   return _sims[0].getNrAgent()-1;
 }
 void MultiRVOSimulator::setAgentPosition(int i,std::vector<Vec2T> pos) {
@@ -63,10 +66,6 @@ int MultiRVOSimulator::addObstacle(std::vector<Vec2T> vss) {
 void MultiRVOSimulator::setNewtonParameter(int maxIter,T gTol,T d0,T coef) {
   for(auto& sim:_sims)
     sim.setNewtonParameter(maxIter,gTol,d0,coef);
-}
-void MultiRVOSimulator::setAgentRadius(T radius) {
-  for(auto& sim:_sims)
-    sim.setAgentRadius(radius);
 }
 void MultiRVOSimulator::setTimestep(T timestep) {
   for(auto& sim:_sims)

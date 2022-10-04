@@ -13,7 +13,7 @@ RVOSimulator& RVOSimulator::operator=(const RVOSimulator& other) {
   _gTol=other._gTol;
   _d0=other._d0;
   _coef=other._coef;
-  _rad=other._rad;
+  _maxRad=other._maxRad;
   _useHash=other._useHash;
   _maxIter=other._maxIter;
   //clone agents
@@ -22,27 +22,26 @@ RVOSimulator& RVOSimulator::operator=(const RVOSimulator& other) {
   else _hash.reset(new SpatialHashLinkedList());
   clearAgent();
   for(int i=0; i<other.getNrAgent(); i++)
-    addAgent(other.getAgentPosition(i),other.getAgentVelocity(i));
+    addAgent(other.getAgentPosition(i),other.getAgentVelocity(i),other.getAgentRadius(i));
   //clone obstacle
   clearObstacle();
   for(int i=0; i<other.getNrObstacle(); i++)
     addObstacle(other.getObstacle(i));
   return *this;
 }
-RVOSimulator::RVOSimulator(T rad,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash) {
+RVOSimulator::RVOSimulator(T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash) {
   if(radixSort)
     _hash.reset(new SpatialHashRadixSort());
   else _hash.reset(new SpatialHashLinkedList());
   setNewtonParameter(maxIter,gTol,d0,coef);
   setTimestep(timestep);
   _useHash=useHash;
-  _rad=rad;
 }
 bool RVOSimulator::getUseHash() const {
   return _useHash;
 }
-RVOSimulator::T RVOSimulator::getRadius() const {
-  return _rad;
+RVOSimulator::T RVOSimulator::getMaxRadius() const {
+  return _maxRad;
 }
 void RVOSimulator::clearAgent() {
   if(std::dynamic_pointer_cast<SpatialHashRadixSort>(_hash))
@@ -50,8 +49,10 @@ void RVOSimulator::clearAgent() {
   else _hash.reset(new SpatialHashLinkedList());
   _perfVelocities.resize(2,0);
   _agentPositions.resize(2,0);
+  _agentRadius.resize(0);
   _agentTargets.clear();
   _id.resize(0,0);
+  _maxRad=0;
 }
 void RVOSimulator::clearObstacle() {
   _bvh.clearObstacle();
@@ -77,13 +78,19 @@ RVOSimulator::Mat2XT RVOSimulator::getAgentPositions() const {
 RVOSimulator::Mat2XT RVOSimulator::getAgentVelocities() const {
   return _perfVelocities;
 }
+const RVOSimulator::Vec& RVOSimulator::getAgentRadius() const {
+  return _agentRadius;
+}
 RVOSimulator::Vec2T RVOSimulator::getAgentPosition(int i) const {
   return _agentPositions.col(i);
 }
 RVOSimulator::Vec2T RVOSimulator::getAgentVelocity(int i) const {
   return _perfVelocities.col(i);
 }
-int RVOSimulator::addAgent(const Vec2T& pos,const Vec2T& vel) {
+RVOSimulator::T RVOSimulator::getAgentRadius(int i) const {
+  return _agentRadius[i];
+}
+int RVOSimulator::addAgent(const Vec2T& pos,const Vec2T& vel,T rad) {
   _hash->addVertex(std::shared_ptr<Agent>(new Agent(_agentPositions.cols())));
   {
     Mat2XT perfVelocities=Mat2XT::Zero(2,_perfVelocities.cols()+1);
@@ -96,6 +103,13 @@ int RVOSimulator::addAgent(const Vec2T& pos,const Vec2T& vel) {
     agentPositions.block(0,0,2,_agentPositions.cols())=_agentPositions;
     agentPositions.col(_agentPositions.cols())=pos;
     agentPositions.swap(_agentPositions);
+  }
+  {
+    Vec agentRadius=Vec::Zero(_agentRadius.size()+1);
+    agentRadius.segment(0,_agentRadius.size())=_agentRadius;
+    agentRadius[_agentRadius.size()]=rad;
+    _maxRad=agentRadius.maxCoeff();
+    agentRadius.swap(_agentRadius);
   }
   {
     _id.resize(_agentPositions.size(),_agentPositions.size());
@@ -122,9 +136,6 @@ void RVOSimulator::setNewtonParameter(int maxIter,T gTol,T d0,T coef) {
   _gTol=gTol;
   _d0=d0;
   _coef=coef;
-}
-void RVOSimulator::setAgentRadius(T radius) {
-  _rad=radius;
 }
 void RVOSimulator::setTimestep(T timestep) {
   _timestep=timestep;
@@ -244,30 +255,30 @@ void RVOSimulator::debugNeighbor(T scale) {
   while(true) {
     Vec prevPos=Vec::Random(_agentPositions.size())*scale;
     Vec pos=Vec::Random(_agentPositions.size())*scale;
-    _hash->buildSpatialHash(mapCV(prevPos),mapCV(pos),_rad);
+    _hash->buildSpatialHash(mapCV(prevPos),mapCV(pos),_maxRad);
     std::vector<AgentNeighbor> AAss,AAssBF;
     std::vector<AgentObstacleNeighbor> AOss,AOssBF;
     //fast
-    T margin=sqrt(_rad*_rad*4+_d0)-_rad*2;
+    T margin=sqrt(_maxRad*_maxRad*4+_d0)-_maxRad*2;
     _hash->detectSphereBroad([&](AgentNeighbor n)->bool{
       OMP_CRITICAL_
       AAss.push_back(n);
       return true;
     },*_hash,margin);
-    margin=sqrt(_rad*_rad+_d0)-_rad;
+    margin=sqrt(_maxRad*_maxRad+_d0)-_maxRad;
     _hash->detectImplicitShape([&](AgentObstacleNeighbor n)->bool{
       OMP_CRITICAL_
       AOss.push_back(n);
       return true;
     },_bvh,margin);
     //slow
-    margin=sqrt(_rad*_rad*4+_d0)-_rad*2;
+    margin=sqrt(_maxRad*_maxRad*4+_d0)-_maxRad*2;
     _hash->detectSphereBroadBF([&](AgentNeighbor n)->bool{
       OMP_CRITICAL_
       AAssBF.push_back(n);
       return true;
     },*_hash,margin);
-    margin=sqrt(_rad*_rad+_d0)-_rad;
+    margin=sqrt(_maxRad*_maxRad+_d0)-_maxRad;
     _hash->detectImplicitShapeBF([&](AgentObstacleNeighbor n)->bool{
       OMP_CRITICAL_
       AOssBF.push_back(n);
@@ -401,9 +412,9 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
       trips.push_back(STrip(i,i,1/(_timestep*_timestep)));
   //update hash
   nBarrier.setZero();
-  _hash->buildSpatialHash(prevPos,pos,_rad,_useHash);
+  _hash->buildSpatialHash(prevPos,pos,_maxRad,_useHash);
   //inter-agent query
-  T margin=sqrt(_rad*_rad*4+_d0)-_rad*2;
+  T margin=sqrt(_maxRad*_maxRad*4+_d0)-_maxRad*2;
   auto computeEnergyAA=[&](AgentNeighbor n)->bool{
     if(!succ)
       return false;
@@ -420,7 +431,7 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
     _hash->detectSphereBroad(computeEnergyAA,*_hash,margin);
   else _hash->detectSphereBroadBF(computeEnergyAA,*_hash,margin);
   //agent-obstacle query
-  margin=sqrt(_rad*_rad+_d0)-_rad;
+  margin=sqrt(_maxRad*_maxRad+_d0)-_maxRad;
   auto computeEnergyAO=[&](AgentObstacleNeighbor n)->bool{
     if(!succ)
       return false;
@@ -448,10 +459,11 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
 #undef CURRO
 }
 bool RVOSimulator::energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const {
+  T sumRad=_agentRadius[aid]+_agentRadius[bid];
   aid*=2;
   bid*=2;
   Vec2T ab=a-b;
-  T D=0,DD=0,margin=ab.squaredNorm()-4*_rad*_rad;
+  T D=0,DD=0,margin=ab.squaredNorm()-sumRad*sumRad;
   if(margin<=0)
     return false;
   if(margin<_d0) {
@@ -478,8 +490,9 @@ bool RVOSimulator::energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,V
   return true;
 }
 bool RVOSimulator::energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const {
+  T rad=_agentRadius[aid];
   aid*=2;
-  T radSq=_rad*_rad,D=0,DD=0;
+  T radSq=rad*rad,D=0,DD=0;
   Vec2T obsVec=o[1]-o[0],relPos0=o[0]-a,relPos1=o[1]-a;
   T lenSq=obsVec.squaredNorm(),s=(-relPos0.dot(obsVec))/lenSq;
   if(s<0) {

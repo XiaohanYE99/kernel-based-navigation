@@ -2,7 +2,6 @@
 %{
 #include <RVO/Pragma.h>
 #include <RVO/RVO.h>
-#include <RVO/ORCA.h>
 #include <RVO/MultiRVO.h>
 #include <RVO/CoverageEnergy.h>
 #include <RVO/MultiCoverageEnergy.h>
@@ -29,7 +28,6 @@ typedef double LSCALAR;
 
 %include <RVO/Pragma.h>
 %include <RVO/RVO.h>
-%include <RVO/ORCA.h>
 %include <RVO/MultiRVO.h>
 %include <RVO/CoverageEnergy.h>
 %include <RVO/MultiCoverageEnergy.h>

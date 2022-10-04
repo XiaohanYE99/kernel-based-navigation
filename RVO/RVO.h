@@ -22,10 +22,10 @@ class RVOSimulator {
 #ifndef SWIG
   RVOSimulator& operator=(const RVOSimulator& other);
 #endif
-  RVOSimulator(T rad,T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
+  RVOSimulator(T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true);
   virtual ~RVOSimulator() {}
   bool getUseHash() const;
-  T getRadius() const;
+  T getMaxRadius() const;
   void clearAgent();
   void clearObstacle();
   int getNrObstacle() const;
@@ -33,6 +33,7 @@ class RVOSimulator {
 #ifndef SWIG
   Mat2XT& getAgentPositions();
   Mat2XT& getAgentVelocities();
+  const Vec& getAgentRadius() const;
 #endif
 #ifdef SWIG
   std::vector<Eigen::Matrix<double,2,1>> getObstacle(int i) const;
@@ -40,7 +41,8 @@ class RVOSimulator {
   Eigen::Matrix<double,2,-1> getAgentVelocities() const;
   Eigen::Matrix<double,2,1> getAgentPosition(int i) const;
   Eigen::Matrix<double,2,1> getAgentVelocity(int i) const;
-  int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel);
+  double getAgentRadius(int i) const;
+  int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel,double rad);
   void setAgentPosition(int i,const Eigen::Matrix<double,2,1>& pos);
   void setAgentVelocity(int i,const Eigen::Matrix<double,2,1>& vel);
   void setAgentTarget(int i,const Eigen::Matrix<double,2,1>& target,T maxVelocity);
@@ -51,14 +53,14 @@ class RVOSimulator {
   Mat2XT getAgentVelocities() const;
   Vec2T getAgentPosition(int i) const;
   Vec2T getAgentVelocity(int i) const;
-  int addAgent(const Vec2T& pos,const Vec2T& vel);
+  T getAgentRadius(int i) const;
+  int addAgent(const Vec2T& pos,const Vec2T& vel,T rad);
   void setAgentPosition(int i,const Vec2T& pos);
   void setAgentVelocity(int i,const Vec2T& vel);
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
   int addObstacle(std::vector<Vec2T> vss);
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
-  void setAgentRadius(T radius);
   void setTimestep(T timestep);
   T timestep() const;
   virtual bool optimize(bool requireGrad,bool output);
@@ -89,9 +91,10 @@ class RVOSimulator {
   BoundingVolumeHierarchy _bvh;
   Mat2XT _perfVelocities;
   Mat2XT _agentPositions;
+  Vec _agentRadius;
   Eigen::SimplicialLDLT<SMatT> _sol;
   std::unordered_map<int,Vec3T> _agentTargets;
-  T _timestep,_gTol,_d0,_coef,_rad;
+  T _timestep,_gTol,_d0,_coef,_maxRad;
   bool _useHash;
   int _maxIter;
   //data

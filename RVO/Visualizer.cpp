@@ -13,10 +13,10 @@ std::shared_ptr<DRAWER::CompositeShape> drawRVO(const RVOSimulator& sim,std::sha
   using namespace DRAWER;
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
   if(!shapesInput) {
-    std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<GLfloat,2,1>::Zero(),(GLfloat)sim.getRadius());
-    circle->setColor(GL_TRIANGLES,0,0,0);
     for(int i=0; i<sim.getNrAgent(); i++) {
       std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
+      std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<GLfloat,2,1>::Zero(),(GLfloat)sim.getAgentRadius(i));
+      circle->setColor(GL_TRIANGLES,0,0,0);
       agent->addShape(circle);
       shapes->addShape(agent);
     }

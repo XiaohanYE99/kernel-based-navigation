@@ -1,22 +1,16 @@
 #include <RVO/RVO.h>
-#include <RVO/ORCA.h>
 #include <RVO/Visualizer.h>
 
 #define maxV 0.5
 //#define CIRCLE
 //#define BLOCK
-#define USE_ORCA
 #define DEBUG_BACKWARD
 using namespace RVO;
 
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-#ifdef USE_ORCA
-  ORCASimulator rvo(4,1,1e-4,1,1,1000,false,true);
-#else
-  RVOSimulator rvo(4,1,1e-4,1,1,1000,false,true);
-#endif
+  RVOSimulator rvo(1,1e-4,1,1,1000,false,true);
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)
@@ -35,38 +29,47 @@ int main(int argc,char** argv) {
       })
     rvo.addObstacle({off,off+Vec2T(40,0),off+Vec2T(40,40),off+Vec2T(0,40)});
 #endif
-  int id=rvo.addAgent(Vec2T(-50,-51),Vec2T( 1, 1));
+  T rad;
+  /*rad=0.5;
+  int id=rvo.addAgent(Vec2T(-50,-51),Vec2T( 1, 1),rad);
   rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
-  id=rvo.addAgent(Vec2T(51,50),Vec2T( 1, 1));
+  rad=1;
+  id=rvo.addAgent(Vec2T(51,50),Vec2T( 1, 1),rad);
   rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
-  id=rvo.addAgent(Vec2T(-50,55),Vec2T( 1, 1));
+  rad=1;
+  id=rvo.addAgent(Vec2T(-50,55),Vec2T( 1, 1),rad);
   rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
-  //id=rvo.addAgent(Vec2T(52,-50),Vec2T( 1, 1));
-  //rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
-  /*//bottom left
+  rad=0.5;
+  id=rvo.addAgent(Vec2T(52,-50),Vec2T( 1, 1),rad);
+  rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);*/
+  //bottom left
+  rad=0.5;
   for(int x=-120; x<=-80; x+=10)
     for(int y=-120; y<=-80; y+=10) {
-      int id=rvo.addAgent(Vec2T(x,y),Vec2T( 1, 1));
+      int id=rvo.addAgent(Vec2T(x,y),Vec2T( 1, 1),rad);
       rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
     }
   //top left
+  rad=1;
   for(int x=-120; x<=-80; x+=10)
     for(int y=80; y<=120; y+=10) {
-      int id=rvo.addAgent(Vec2T(x,y),Vec2T( 1,-1));
+      int id=rvo.addAgent(Vec2T(x,y),Vec2T( 1,-1),rad);
       rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
     }
   //bottom right
+  rad=1;
   for(int x=80; x<=120; x+=10)
     for(int y=-120; y<=-80; y+=10) {
-      int id=rvo.addAgent(Vec2T(x,y),Vec2T(-1, 1));
+      int id=rvo.addAgent(Vec2T(x,y),Vec2T(-1, 1),rad);
       rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
     }
   //top right
+  rad=0.5;
   for(int x=80; x<=120; x+=10)
     for(int y=80; y<=120; y+=10) {
-      int id=rvo.addAgent(Vec2T(x,y),Vec2T(-1,-1));
+      int id=rvo.addAgent(Vec2T(x,y),Vec2T(-1,-1),0.5);
       rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
-    }*/
+    }
   //run
   drawRVOApp(argc,argv,150,rvo,[&]() {
     rvo.updateAgentTargets();

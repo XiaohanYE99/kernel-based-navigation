@@ -21,10 +21,10 @@ for off in [np.array([-70.,-70.]),np.array([30.,-70.]),np.array([30.,30.]),np.ar
 #add agent
 for i in range(100):
     id=rvo.addAgent(np.array([random.randrange(-scale,scale),
-                              random.randrange(-scale,scale)],dtype=float),np.array([0.,0.]))
+                              random.randrange(-scale,scale)],dtype=float),np.array([0.,0.]),1.0)
     
 #debug
-pos=np.zeros((100*2),dtype=float)
+pos=np.zeros((100*2,),dtype=float)
 for i in range(200):
     pos[i]=random.randrange(-scale,scale)
 

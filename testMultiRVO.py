@@ -24,39 +24,43 @@ for off in [np.array([-70.,-70.]),np.array([30.,-70.]),np.array([30.,30.]),np.ar
 #add agent
 for x in range(-120,-80,10):
     for y in range(-120,-80,10):
-        pos,vel,tar=[],[],[]
+        pos,vel,rad,tar=[],[],[],[]
         for i in range(batchSize):
             pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
-        id=rvo.addAgent(pos,vel)
+            rad.append(3)
+        id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
 for x in range(-120,-80,10):
     for y in range(80,120,10):
-        pos,vel,tar=[],[],[]
+        pos,vel,rad,tar=[],[],[],[]
         for i in range(batchSize):
             pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
-        id=rvo.addAgent(pos,vel)
+            rad.append(0.5)
+        id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
 for x in range(80,120,10):
     for y in range(-120,-80,10):
-        pos,vel,tar=[],[],[]
+        pos,vel,rad,tar=[],[],[],[]
         for i in range(batchSize):
             pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
-        id=rvo.addAgent(pos,vel)
+            rad.append(0.5)
+        id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
 for x in range(80,120,10):
     for y in range(80,120,10):
-        pos,vel,tar=[],[],[]
+        pos,vel,rad,tar=[],[],[],[]
         for i in range(batchSize):
             pos.append(np.array([x+random.randrange(-3,3),y+random.randrange(-3,3)],dtype=float))
             vel.append(np.array([0.,0.]))
             tar.append(-pos[-1])
-        id=rvo.addAgent(pos,vel)
+            rad.append(3)
+        id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
         
 #MultiCoverageEnergy

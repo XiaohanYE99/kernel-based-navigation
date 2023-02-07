@@ -1,5 +1,4 @@
 import sys
-sys.path.append('../kernel-based-navigation-build')
 import pyRVO as pyrvo
 import numpy as np
 

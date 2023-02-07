@@ -8,4 +8,5 @@ __pycache__/
 robot_envs/mazes_g100w700h700_Var10
 robot_envs/mazes_g100w700h700
 *.user
+*.bak
 

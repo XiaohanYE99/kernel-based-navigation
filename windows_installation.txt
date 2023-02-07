@@ -1,0 +1,38 @@
+Step 1:
+cd C:\
+git clone https://github.com/gaoxifeng/TinyVisualizer.git
+cd TinyVisualizer
+git submodule update --init --recursive
+
+Step 2: (install TinyVisualizer Release mode)
+open cmake.exe
+set the source code path: C:/TinyVisualizer
+set the binaries path: C:/TinyVisualizer-build
+set the PYTHON_BINDING to: Python3
+set the SWIG_EXECUTABLE to the swig.exe file, mine is: D:/Misc/swigwin-4.1.1/swig.exe
+press "Configure"
+press "Generate"
+press "Open Project"
+build project "INSTALL"
+
+Step 3:
+cd C:\
+git clone https://github.com/XiaohanYE99/kernel-based-navigation.git
+cd kernel-based-navigation
+git checkout variable-radius-rvo
+git submodule update --init --recursive
+
+Step 4: (install rvo Release mode)
+open cmake.exe
+set the source code path: C:/kernel-based-navigation
+set the binaries path: C:/kernel-based-navigation-build
+set the CMAKE_BUILD_TYPE to: Release
+set the PYTHON_BINDING to: Python3
+set the SWIG_EXECUTABLE to the swig.exe file, mine is: D:/Misc/swigwin-4.1.1/swig.exe
+set the TinyVisualizer_INCLUDE_DIR to: C:/TinyVisualizer/include
+set the TinyVisualizer_LIBRARIES to: C:/TinyVisualizer/lib/TinyVisualizer.lib;C:/TinyVisualizer/lib/glfw3.lib
+set the ImGui_INCLUDE_DIR to: C:/TinyVisualizer/include/imgui
+press "Configure"
+press "Generate"
+press "Open Project"
+build project "INSTALL"

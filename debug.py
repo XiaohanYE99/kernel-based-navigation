@@ -1,5 +1,6 @@
 import sys,random
 sys.path.append('../kernel-based-navigation-build')
+sys.path.append('../kernel-based-navigation-build/Release')
 import pyRVO as pyrvo
 import numpy as np
 

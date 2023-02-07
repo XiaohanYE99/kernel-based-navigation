@@ -36,3 +36,8 @@ press "Configure"
 press "Generate"
 press "Open Project"
 build project "INSTALL"
+
+Step 5: (run python example problem)
+cd C:\kernel-based-navigation-build\pyRVO
+python3 testRVO.py
+python3 testMultiRVO.py

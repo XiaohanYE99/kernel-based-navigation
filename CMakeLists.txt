@@ -34,7 +34,11 @@ ENDIF()
 
 #LIBRARY SETTINGS
 SET(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
-OPTION(USE_BOOST "Enable boost multi-precision" ON)
+IF(MSVC)
+  OPTION(USE_BOOST "Enable boost multi-precision" OFF)
+ELSE(MSVC)
+  OPTION(USE_BOOST "Enable boost multi-precision" ON)
+ENDIF(MSVC)
 INCLUDE("${PROJECT_SOURCE_DIR}/cmake/LoadLibs.cmake")
 ADD_DEFINITIONS(-DDATA_PATH="${PROJECT_SOURCE_DIR}/data")
 #let user choose the floating point precision

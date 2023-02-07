@@ -5,6 +5,7 @@
 #include <RVO/MultiRVO.h>
 #include <RVO/CoverageEnergy.h>
 #include <RVO/MultiCoverageEnergy.h>
+#include <RVO/Visualizer.h>
 %}
 
 %include "typemaps.i"
@@ -30,3 +31,4 @@ typedef double LSCALAR;
 %include <RVO/MultiRVO.h>
 %include <RVO/CoverageEnergy.h>
 %include <RVO/MultiCoverageEnergy.h>
+%include <RVO/Visualizer.h>

@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <RVO/RVO.h>
-#include <RVO/Visualizer.h>
+#include <RVO/RVOVisualizer.h>
 
 using namespace RVO;
 
@@ -45,7 +45,7 @@ int main(int argc,char** argv) {
   //run
   std::vector<T> rss;
   rss.resize(rvo.getNrAgent());
-  drawRVOApp(argc,argv,150,rvo,[&]() {
+  RVOVisualizer::drawRVO(argc,argv,150,rvo,[&]() {
     rvo.updateAgentTargets();
     clock_t beg=clock();
     //set target

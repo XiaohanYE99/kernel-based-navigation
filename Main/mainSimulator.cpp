@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <RVO/RVO.h>
-#include <RVO/Visualizer.h>
+#include <RVO/RVOVisualizer.h>
 
 #define maxV 0.5
 //#define CIRCLE
@@ -73,10 +73,10 @@ int main(int argc,char** argv) {
       rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
     }
   //run
-  drawLine({-50,0}, {50,0}, {1,0,0});
-  drawLine({0,-50}, {0,50}, {0,1,0});
-  drawQuad({-20,-20}, {20,20}, {.6,.6,.6});
-  drawRVOApp(argc,argv,150,rvo,[&]() {
+  RVOVisualizer::drawLine({-50,0}, {50,0}, {1,0,0});
+  RVOVisualizer::drawLine({0,-50}, {0,50}, {0,1,0});
+  RVOVisualizer::drawQuad({-20,-20}, {20,20}, {.6,.6,.6});
+  RVOVisualizer::drawRVO(argc,argv,150,rvo,[&]() {
     rvo.updateAgentTargets();
 #ifdef DEBUG_BACKWARD
     Mat2XT pos=rvo.getAgentPositions();

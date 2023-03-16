@@ -5,7 +5,7 @@
 #include <RVO/MultiRVO.h>
 #include <RVO/CoverageEnergy.h>
 #include <RVO/MultiCoverageEnergy.h>
-#include <RVO/Visualizer.h>
+#include <RVO/RVOVisualizer.h>
 %}
 
 %include "typemaps.i"
@@ -23,12 +23,21 @@ typedef double LSCALAR;
 
 %eigen_typemaps(Eigen::Matrix<double,2,1>)
 %eigen_typemaps(Eigen::Matrix<double,2,-1>)
+%eigen_typemaps(Eigen::Matrix<double,3,1>)
+%eigen_typemaps(Eigen::Matrix<double,3,-1>)
 %eigen_typemaps(Eigen::Matrix<double,-1,-1>)
 %eigen_typemaps(Eigen::Matrix<double,-1,1>)
+
+%eigen_typemaps(Eigen::Matrix<float,2,1>)
+%eigen_typemaps(Eigen::Matrix<float,2,-1>)
+%eigen_typemaps(Eigen::Matrix<float,3,1>)
+%eigen_typemaps(Eigen::Matrix<float,3,-1>)
+%eigen_typemaps(Eigen::Matrix<float,-1,-1>)
+%eigen_typemaps(Eigen::Matrix<float,-1,1>)
 
 %include <RVO/Pragma.h>
 %include <RVO/RVO.h>
 %include <RVO/MultiRVO.h>
 %include <RVO/CoverageEnergy.h>
 %include <RVO/MultiCoverageEnergy.h>
-%include <RVO/Visualizer.h>
+%include <RVO/RVOVisualizer.h>

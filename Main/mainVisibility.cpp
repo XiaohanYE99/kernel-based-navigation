@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <RVO/RVO.h>
-#include <RVO/Visualizer.h>
+#include <RVO/RVOVisualizer.h>
 
 using namespace RVO;
 
@@ -31,6 +31,6 @@ int main(int argc,char** argv) {
       nvss.push_back(b);
     }
   }
-  drawVisibleApp(argc,argv,100,rvo,vss,nvss);
+  RVOVisualizer::drawVisibleApp(argc,argv,100,rvo,vss,nvss);
   return 0;
 }

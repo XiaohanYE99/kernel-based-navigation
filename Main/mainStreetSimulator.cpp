@@ -43,7 +43,6 @@ int main(int argc,char** argv) {
     for(int y=-10; y<=10; y+=3)
       rvo.addAgent(Vec2T(x,y-r),Vec2T( 1, 1),rad);
   //run
-  bool output=true;
   std::vector<T> rss;
   rss.resize(rvo.getNrAgent());
   drawRVOApp(argc,argv,150,rvo,[&]() {
@@ -58,7 +57,7 @@ int main(int argc,char** argv) {
       rvo.setAgentTarget(i,Vec2T(rss[i]*cos(theta+dtheta),rss[i]*sin(theta+dtheta)),0.5);
     }
     //optimize
-    rvo.optimize(false,output);
+    rvo.optimize(false,false);
     std::cout << "cost=" << (double)(clock()-beg)/CLOCKS_PER_SEC << "s" << std::endl;
   });
   return 0;

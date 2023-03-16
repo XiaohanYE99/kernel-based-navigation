@@ -12,7 +12,7 @@ using namespace RVO;
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  RVOSimulator rvo(1,1e-4,1,1,10,false,true,"LBFGS");
+  RVOSimulator rvo(1,1e-4,1,1,1000,false,true,"NEWTON");
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)
@@ -73,7 +73,9 @@ int main(int argc,char** argv) {
       rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
     }
   //run
-  bool output=true;
+  drawLine({-50,0}, {50,0}, {1,0,0});
+  drawLine({0,-50}, {0,50}, {0,1,0});
+  drawQuad({-20,-20}, {20,20}, {.6,.6,.6});
   drawRVOApp(argc,argv,150,rvo,[&]() {
     rvo.updateAgentTargets();
 #ifdef DEBUG_BACKWARD
@@ -81,7 +83,7 @@ int main(int argc,char** argv) {
     Mat2XT vel=rvo.getAgentVelocities();
 #endif
     clock_t beg=clock();
-    rvo.optimize(false,output);
+    rvo.optimize(false,false);
     std::cout << "cost=" << (double)(clock()-beg)/CLOCKS_PER_SEC << "s" << std::endl;
 #ifdef DEBUG_BACKWARD
     Mat2XT newPos=rvo.getAgentPositions();

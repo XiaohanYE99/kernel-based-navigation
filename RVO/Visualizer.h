@@ -10,6 +10,10 @@ class MeshShape;
 }
 
 namespace RVO {
+extern void drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color);
+extern void drawLine(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color);
+extern void clearQuad();
+extern void clearLine();
 #ifndef SWIG
 extern std::shared_ptr<DRAWER::CompositeShape> drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<DRAWER::CompositeShape> shapesInput=NULL);
 extern std::shared_ptr<DRAWER::MeshShape> drawRVOVelocity(const RVOSimulator& sim,std::shared_ptr<DRAWER::MeshShape> shapesInput=NULL);

@@ -11,7 +11,7 @@ using namespace RVO;
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  MultiRVOSimulator rvo(2,1,1e-4,1,1,10,false,true,"LBFGS");
+  MultiRVOSimulator rvo(2,1,1e-4,1,1,10,false,true,"NEWTON");
 #ifdef CIRCLE
   for(const auto& off: {
         Vec2T(-50,-50),Vec2T(50,-50),Vec2T(50,50),Vec2T(-50,50)
@@ -89,7 +89,7 @@ int main(int argc,char** argv) {
   //run
   drawRVOApp(argc,argv,150,rvo,[&]() {
     rvo.updateAgentTargets();
-    rvo.optimize(true,true);
+    rvo.optimize(true,false);
     rvo.getDXDV();
     rvo.getDXDX();
   });

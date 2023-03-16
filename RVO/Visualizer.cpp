@@ -9,14 +9,18 @@
 #include <TinyVisualizer/CameraExportPlugin.h>
 
 namespace RVO {
-std::shared_ptr<DRAWER::CompositeShape> drawRVO(const RVOSimulator& sim,std::shared_ptr<DRAWER::CompositeShape> shapesInput) {
-  using namespace DRAWER;
+using namespace DRAWER;
+float COLOR_AGT[3]= {.6,.6,.6};
+float COLOR_OBS[3]= {.0,.0,.0};
+float COLOR_VEL[3]= {.5,.0,.0};
+std::shared_ptr<CompositeShape> drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput) {
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
   if(!shapesInput) {
     for(int i=0; i<sim.getNrAgent(); i++) {
       std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
       std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<GLfloat,2,1>::Zero(),(GLfloat)sim.getAgentRadius(i));
-      circle->setColor(GL_TRIANGLES,0,0,0);
+      circle->setColorAmbient(GL_TRIANGLES,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+      circle->setColor(GL_TRIANGLES,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
       agent->addShape(circle);
       shapes->addShape(agent);
     }
@@ -33,7 +37,7 @@ std::shared_ptr<DRAWER::CompositeShape> drawRVO(const RVOSimulator& sim,std::sha
         obs->addVertex(Eigen::Matrix<GLfloat,3,1>((GLfloat)pos[j+2][0],(GLfloat)pos[j+2][1],0));
       }
       obs->setMode(GL_TRIANGLES);
-      obs->setColor(GL_TRIANGLES,0,0,0);
+      obs->setColor(GL_TRIANGLES,COLOR_OBS[0],COLOR_OBS[1],COLOR_OBS[2]);
       shapes->addShape(obs);
     }
   }
@@ -42,9 +46,29 @@ std::shared_ptr<DRAWER::CompositeShape> drawRVO(const RVOSimulator& sim,std::sha
     setLocalTranslate(Eigen::Matrix<GLfloat,3,1>((GLfloat)sim.getAgentPosition(i)[0],(GLfloat)sim.getAgentPosition(i)[1],0));
   return shapes;
 }
-std::shared_ptr<DRAWER::MeshShape> drawLines(const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const Eigen::Matrix<GLfloat,3,1>& color) {
-  using namespace DRAWER;
-  std::shared_ptr<DRAWER::MeshShape> mesh(new MeshShape);
+std::shared_ptr<MeshShape> drawRVOVelocity(const RVOSimulator& sim,std::shared_ptr<MeshShape> shapesInput) {
+  std::shared_ptr<MeshShape> shapes=shapesInput?shapesInput:std::shared_ptr<MeshShape>(new MeshShape);
+  RVOSimulator::Mat2XT pss=sim.getAgentPositions();
+  RVOSimulator::Mat2XT vss=sim.getAgentVelocities()+pss;
+  if(!shapesInput) {
+    for(int i=0; i<sim.getNrAgent(); i++) {
+      shapes->addVertex(Eigen::Matrix<float,3,1>(pss(0,i),pss(1,i),0));
+      shapes->addVertex(Eigen::Matrix<float,3,1>(vss(0,i),vss(1,i),0));
+      shapes->addIndexSingle(i*2+0);
+      shapes->addIndexSingle(i*2+1);
+    }
+    shapes->setMode(GL_LINES);
+    shapes->setColor(GL_LINES,COLOR_VEL[0],COLOR_VEL[1],COLOR_VEL[2]);
+    shapes->setLineWidth(5);
+  }
+  for(int i=0; i<sim.getNrAgent(); i++) {
+    shapes->setVertex(i*2+0,Eigen::Matrix<float,3,1>(pss(0,i),pss(1,i),0));
+    shapes->setVertex(i*2+1,Eigen::Matrix<float,3,1>(vss(0,i),vss(1,i),0));
+  }
+  return shapes;
+}
+std::shared_ptr<MeshShape> drawLines(const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const Eigen::Matrix<GLfloat,3,1>& color) {
+  std::shared_ptr<MeshShape> mesh(new MeshShape);
   for(int i=0; i<(int)vss.size(); i++) {
     mesh->addVertex(Eigen::Matrix<GLfloat,3,1>((GLfloat)vss[i][0],(GLfloat)vss[i][1],0));
     mesh->addIndexSingle(i);
@@ -57,11 +81,10 @@ std::shared_ptr<DRAWER::MeshShape> drawLines(const std::vector<Eigen::Matrix<LSC
 void drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
                     const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,
                     const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss) {
-  using namespace DRAWER;
   Drawer drawer(argc,argv);
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  drawer.addShape(drawRVO(sim));
+  drawer.addShape(drawRVOPosition(sim));
   if(!vss.empty())
     drawer.addShape(drawLines(vss,Eigen::Matrix<GLfloat,3,1>(.7,.2,.2)));
   if(!nvss.empty())
@@ -71,36 +94,38 @@ void drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
   drawer.mainLoop();
 }
 void drawRVOApp(int argc,char** argv,GLfloat ext,const RVOSimulator& sim,std::function<void()> frm) {
-  using namespace DRAWER;
   Drawer drawer(argc,argv);
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> shape=drawRVO(sim);
-  drawer.addShape(shape);
+  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim);
+  std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim);
+  drawer.addShape(agent);
+  drawer.addShape(vel);
   drawer.addCamera2D(ext);
   drawer.clearLight();
   bool step=false;
   drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
     if(captured)
       return;
-    else if(key==GLFW_KEY_R && action==GLFW_PRESS)
+    if(key==GLFW_KEY_R && action==GLFW_PRESS)
       step=!step;
   });
   drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
-    if(step) {
+    if(step)
       frm();
-      drawRVO(sim,shape);
-    }
+    drawRVOPosition(sim,agent);
+    drawRVOVelocity(sim,vel);
   });
   drawer.mainLoop();
 }
 void drawRVOApp(int argc,char** argv,GLfloat ext,const MultiRVOSimulator& sim,std::function<void()> frm) {
-  using namespace DRAWER;
   Drawer drawer(argc,argv);
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> shape=drawRVO(sim.getSubSimulator(0));
-  drawer.addShape(shape);
+  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim.getSubSimulator(0));
+  std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim.getSubSimulator(0));
+  drawer.addShape(agent);
+  drawer.addShape(vel);
   drawer.addCamera2D(ext);
   drawer.clearLight();
   bool step=false;
@@ -108,33 +133,34 @@ void drawRVOApp(int argc,char** argv,GLfloat ext,const MultiRVOSimulator& sim,st
   drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
     if(captured)
       return;
-    else if(key==GLFW_KEY_R && action==GLFW_PRESS)
+    if(key==GLFW_KEY_R && action==GLFW_PRESS)
       step=!step;
-    else if(key==GLFW_KEY_D && action==GLFW_PRESS) {
+    if(key==GLFW_KEY_D && action==GLFW_PRESS) {
       id=(id+1)%sim.getBatchSize();
-      drawRVO(sim.getSubSimulator(id),shape);
-    } else if(key==GLFW_KEY_A && action==GLFW_PRESS) {
+      drawRVOPosition(sim.getSubSimulator(id),agent);
+      drawRVOVelocity(sim.getSubSimulator(id),vel);
+    }
+    if(key==GLFW_KEY_A && action==GLFW_PRESS) {
       id=(id+sim.getBatchSize()-1)%sim.getBatchSize();
-      drawRVO(sim.getSubSimulator(id),shape);
+      drawRVOPosition(sim.getSubSimulator(id),agent);
+      drawRVOVelocity(sim.getSubSimulator(id),vel);
     }
   });
   drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
-    if(step) {
+    if(step)
       frm();
-      drawRVO(sim.getSubSimulator(id),shape);
-    }
+    drawRVOPosition(sim.getSubSimulator(id),agent);
+    drawRVOVelocity(sim.getSubSimulator(id),vel);
   });
   drawer.mainLoop();
 }
 void drawRVOApp(float ext,RVOSimulator& sim) {
-  using namespace DRAWER;
   drawRVOApp(0,NULL,ext,sim,[&]() {
     sim.updateAgentTargets();
     sim.optimize(false,false);
   });
 }
 void drawRVOApp(float ext,MultiRVOSimulator& sim) {
-  using namespace DRAWER;
   drawRVOApp(0,NULL,ext,sim,[&]() {
     sim.updateAgentTargets();
     sim.optimize(false,false);

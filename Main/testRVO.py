@@ -45,4 +45,4 @@ print('agent positions=',rvo.getAgentPositions())
 print('agent velocities=',rvo.getAgentVelocities())
 
 #simulate
-pyrvo.drawRVOApp(100,rvo)
+pyrvo.RVOVisualizer.drawRVO(100,rvo)

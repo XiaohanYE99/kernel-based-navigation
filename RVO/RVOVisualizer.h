@@ -6,6 +6,7 @@
 
 namespace DRAWER {
 class CompositeShape;
+class PythonCallback;
 class MeshShape;
 }
 
@@ -26,11 +27,13 @@ class RVOVisualizer {
   static void drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
                              const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,
                              const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss);
-  static void drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm);
-  static void drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm);
+  static void drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb=NULL);
+  static void drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb=NULL);
 #endif
   static void drawRVO(float ext,RVOSimulator& sim);
   static void drawRVO(float ext,MultiRVOSimulator& sim);
+  static void drawRVO(float ext,RVOSimulator& sim,PythonCallback* cb);
+  static void drawRVO(float ext,MultiRVOSimulator& sim,PythonCallback* cb);
 };
 }
 

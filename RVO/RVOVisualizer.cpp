@@ -9,6 +9,9 @@
 #include <TinyVisualizer/CameraExportPlugin.h>
 
 namespace RVO {
+float COLOR_AGT[3]= {200/255.,143/255., 29/255.};
+float COLOR_OBS[3]= {000/255.,000/255.,000/255.};
+float COLOR_VEL[3]= {120/255.,000/255.,000/255.};
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> qss;
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> lss;
 void RVOVisualizer::drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color) {
@@ -23,10 +26,6 @@ void RVOVisualizer::clearQuad() {
 void RVOVisualizer::clearLine() {
   lss.clear();
 }
-
-float COLOR_AGT[3]= {200/255.,143/255., 29/255.};
-float COLOR_OBS[3]= {000/255.,000/255.,000/255.};
-float COLOR_VEL[3]= {120/255.,000/255.,000/255.};
 std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput) {
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
   if(!shapesInput) {
@@ -139,8 +138,10 @@ void RVOVisualizer::drawVisibleApp(int argc,char** argv,float ext,const RVOSimul
   drawer.clearLight();
   drawer.mainLoop();
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm) {
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
   Drawer drawer(argc,argv);
+  if(cb)
+    drawer.setPythonCallback(cb);
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim);
@@ -170,8 +171,10 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
   });
   drawer.mainLoop();
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm) {
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
   Drawer drawer(argc,argv);
+  if(cb)
+    drawer.setPythonCallback(cb);
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim.getSubSimulator(0));
@@ -216,12 +219,24 @@ void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim) {
   RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
     sim.updateAgentTargets();
     sim.optimize(false,false);
-  });
+  },NULL);
 }
 void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim) {
   RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
     sim.updateAgentTargets();
     sim.optimize(false,false);
-  });
+  },NULL);
+}
+void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim,PythonCallback* cb) {
+  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
+    sim.updateAgentTargets();
+    sim.optimize(false,false);
+  },cb);
+}
+void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim,PythonCallback* cb) {
+  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
+    sim.updateAgentTargets();
+    sim.optimize(false,false);
+  },cb);
 }
 }

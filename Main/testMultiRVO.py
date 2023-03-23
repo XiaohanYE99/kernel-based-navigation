@@ -1,4 +1,5 @@
-import sys
+import sys,random, inspect
+import pyTinyVisualizer as vis
 import pyRVO as pyrvo
 import numpy as np
 
@@ -74,4 +75,9 @@ loss=C.loss(poss)
 grad=C.grad()
         
 #simulate
-pyrvo.drawRVOApp(100,rvo)
+class CustomPythonCallback(vis.PythonCallback):
+    def __init__(self):
+        pass
+    
+setup=CustomPythonCallback()
+pyrvo.RVOVisualizer.drawRVO(100,rvo,setup)

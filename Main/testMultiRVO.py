@@ -77,7 +77,10 @@ grad=C.grad()
 #simulate
 class CustomPythonCallback(vis.PythonCallback):
     def __init__(self):
-        pass
+        vis.PythonCallback.__init__(self)
+        
+    def frame(self, root):
+        print("on frame!")
     
 setup=CustomPythonCallback()
 pyrvo.RVOVisualizer.drawRVO(100,rvo,setup)

@@ -228,15 +228,9 @@ void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim) {
   },NULL);
 }
 void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim,PythonCallback* cb) {
-  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
-    sim.updateAgentTargets();
-    sim.optimize(false,false);
-  },cb);
+  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {},cb);
 }
 void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim,PythonCallback* cb) {
-  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
-    sim.updateAgentTargets();
-    sim.optimize(false,false);
-  },cb);
+  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {},cb);
 }
 }

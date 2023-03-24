@@ -373,9 +373,8 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
   else _hash->detectImplicitShapeBF(computeEnergyAO,_bvh,margin);
   //assemble
   if(h) {
-    auto& v=trips.getVector();
     h->resize(pos.size(),pos.size());
-    h->setFromTriplets(v.begin(),v.end());
+    h->setFromTriplets(trips.begin(),trips.end());
   }
   return succ;
 #undef PREVA

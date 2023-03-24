@@ -58,10 +58,11 @@ class ParallelVector {
     return omp_get_thread_num()%(int)_blocks.size();
   }
   void join() {
-    for(int i=1; i<(int)_blocks.size(); i++) {
-      _blocks[0].insert(_blocks[0].end(),_blocks[i].begin(),_blocks[i].end());
-      _blocks[i].clear();
-    }
+    for(int i=1; i<(int)_blocks.size(); i++)
+      if(!_blocks[i].empty()) {
+        _blocks[0].insert(_blocks[0].end(),_blocks[i].begin(),_blocks[i].end());
+        _blocks[i].clear();
+      }
   }
   std::vector<vector_type> _blocks;
 };

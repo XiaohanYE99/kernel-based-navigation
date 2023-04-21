@@ -10,7 +10,7 @@ T cross(const Eigen::Matrix<T,2,1>& a,const Eigen::Matrix<T,2,1>& b) {
 PolarInterval::PolarInterval() {}
 PolarInterval::PolarInterval(const Vec2T& dL,const Vec2T& dR,int idL,int idR):_dL(dL),_dR(dR),_idL(idL),_idR(idR) {}
 bool PolarInterval::withinAngle(const Vec2T& d) const {
-  return cross(_dL,d)*cross(_dR,d)<0;
+  return cross(_dL,d)>0 && cross(d,_dR)>0;
 }
 bool PolarInterval::within(const Vec2T& d,T& alpha) const {
   Mat2T LHS;
@@ -75,6 +75,25 @@ void PolarIntervals::visible(std::unordered_set<int>& pss,std::function<bool(int
   for(int ptr=0; ptr<(int)_pointers.size(); ptr++)
     if(isNegX(_pointers[ptr]))
       distNegX=std::min(distNegX,-dir(_pointers[ptr])[0]);
+//#define BRUTE_FORCE
+#ifdef BRUTE_FORCE
+  for(int ptr=0; ptr<(int)_pointers.size(); ptr++) {
+    const Vec2T& d=dir(_pointers[ptr]);
+    bool valid=true;
+    T alpha;
+    for(int i=0; valid && i<(int)_intervals.size(); i++) {
+      if(i==_pointers[ptr].first)
+        continue;
+      if(!_intervals[i].within(d,alpha))
+        continue;
+      if(alpha<1)
+        valid=false;
+    }
+    if(valid)
+      if(id(_pointers[ptr])>=0 && canAdd(id(_pointers[ptr]),d))
+        pss.insert(id(_pointers[ptr]));
+  }
+#else
   //main loop
   for(int ptr=0; ptr<(int)_pointers.size(); ptr++) {
     //update heap value
@@ -93,6 +112,7 @@ void PolarIntervals::visible(std::unordered_set<int>& pss,std::function<bool(int
       if(id(_pointers[ptr])>=0 && canAdd(id(_pointers[ptr]),dir(_pointers[ptr])))
         pss.insert(id(_pointers[ptr]));
   }
+#endif
 }
 void PolarIntervals::addInterval(const PolarInterval& I) {
   if(I.wrapAround()) {
@@ -131,7 +151,6 @@ void PolarIntervals::sort() {
 VisibilityGraph::VisibilityGraph(const RVOSimulator& rvo):_rvo(rvo) {
   const auto& obs=_rvo.getBVH().getObstacles();
   _graph.resize((int)obs.size());
-  //OMP_PARALLEL_FOR_
   for(int i=0; i<(int)obs.size(); i++)
     _graph[i]=visible(obs[i]->_pos,i);
 }
@@ -141,8 +160,7 @@ std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> Visibility
   for(int i=0; i<(int)_graph.size(); i++)
     if(id<0 || i==id)
       for(int j:_graph[i])
-        if(i<j)
-          lines.push_back(std::make_pair(obs[i]->_pos,obs[j]->_pos));
+        lines.push_back(std::make_pair(obs[i]->_pos,obs[j]->_pos));
   return lines;
 }
 void VisibilityGraph::findNeighbor(int id,int& idNext,int& idLast) const {

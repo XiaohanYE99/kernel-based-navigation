@@ -3,6 +3,7 @@
 
 #include "RVO.h"
 #include "MultiRVO.h"
+#include "Visibility.h"
 
 namespace DRAWER {
 class CompositeShape;
@@ -16,6 +17,7 @@ class RVOVisualizer {
  public:
   static void drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color);
   static void drawLine(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color);
+  static void drawVisibility(const VisibilityGraph& graph,int id=-1);
   static void clearQuad();
   static void clearLine();
 #ifndef SWIG

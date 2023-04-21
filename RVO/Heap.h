@@ -5,14 +5,18 @@
 
 namespace RVO {
 template<class T>
-struct absgreater : public std::binary_function<T, T, bool> {
+struct absgreater {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
   bool operator()(const T& left, const T& right) const {
     // apply operator> to operands
     return (std::abs(left) > std::abs(right));
   }
 };
 template<class T>
-struct absless : public std::binary_function<T, T, bool> {
+struct absless {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
   bool operator()(const T& left, const T& right) const {
     // apply operator> to operands
     return (std::abs(left) < std::abs(right));
@@ -21,7 +25,7 @@ struct absless : public std::binary_function<T, T, bool> {
 //heap template on a compact vector where value and offset are separate
 template <typename RESULT_TYPE,typename MARK_TYPE,typename HEAP_TYPE,typename LESS>
 typename HEAP_TYPE::value_type popHeapTpl(const RESULT_TYPE& result,MARK_TYPE& heapOffsets,HEAP_TYPE& heap,const typename HEAP_TYPE::value_type& error_code) {
-  typedef typename LESS::first_argument_type T;
+  //typedef typename LESS::first_argument_type T;
   LESS le;
 
   if(heap.empty())
@@ -35,18 +39,11 @@ typename HEAP_TYPE::value_type popHeapTpl(const RESULT_TYPE& result,MARK_TYPE& h
   for(int i=0,j; i<back-1; i=j) {
     int lc=(i<<1)+1;
     int rc=lc+1;
-    T current=result[heap[i]];
-    T lv,rv;
     if(lc<back) {
-      lv=result[heap[lc]];
-      if(rc<back) {
-        rv=result[heap[rc]];
-        if(le(rv,lv)) {
+      if(rc<back)
+        if(le(result[heap[rc]],result[heap[lc]]))
           lc=rc;
-          lv=rv;
-        }
-      }
-      if(le(lv,current)) {
+      if(le(result[heap[lc]],result[heap[i]])) {
         heap[i]=heap[lc];
         heapOffsets[heap[lc]]=i;
         heap[lc]=heap.back();
@@ -82,6 +79,26 @@ void updateHeapTpl(const RESULT_TYPE& result,MARK_TYPE& heapOffsets,HEAP_TYPE& h
   //typedef typename LESS::first_argument_type T;
   LESS le;
 
+  //adjust downward
+  const int back=(int)heap.size();
+  while(true) {
+    int i=heapOffsets[valueOff];
+    int lc=(i<<1)+1;
+    int rc=lc+1;
+    if(lc<back) {
+      if(rc<back)
+        if(le(result[heap[rc]],result[heap[lc]]))
+          lc=rc;
+      if(le(result[heap[lc]],result[valueOff])) {
+        heap[i]=heap[lc];
+        heapOffsets[heap[lc]]=i;
+        heap[lc]=valueOff;
+        heapOffsets[valueOff]=lc;
+      } else break;
+    } else break;
+  }
+
+  //adjust upward
   for(int i=heapOffsets[valueOff],j=(i-1)>>1; i>0; i=j,j=(i-1)>>1) {
     if(le(result[heap[i]],result[heap[j]])) {
       heap[i]=heap[j];

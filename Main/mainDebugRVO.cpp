@@ -1,7 +1,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <RVO/RVO.h>
-#include <RVO/CoverageEnergy.h>
 
 using namespace RVO;
 
@@ -18,8 +17,6 @@ int main() {
       })
     rvo.addObstacle({off,off+Vec2T(20,0),off+Vec2T(20,20),off+Vec2T(0,20)});
   //debug
-  CoverageEnergy(rvo,50,true).debugCoverage(scale);
-  CoverageEnergy(rvo,50,false).debugCoverage(scale);
   rvo.debugNeighbor(scale);
   rvo.debugEnergy(scale);
   return 0;

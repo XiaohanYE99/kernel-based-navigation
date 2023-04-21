@@ -12,6 +12,7 @@ namespace RVO {
 float COLOR_AGT[3]= {200/255.,143/255., 29/255.};
 float COLOR_OBS[3]= {000/255.,000/255.,000/255.};
 float COLOR_VEL[3]= {120/255.,000/255.,000/255.};
+float COLOR_VIS[3]= {000/255.,255/255.,000/255.};
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> qss;
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> lss;
 void RVOVisualizer::drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color) {
@@ -19,6 +20,12 @@ void RVOVisualizer::drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2
 }
 void RVOVisualizer::drawLine(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color) {
   lss.push_back(std::make_tuple(from,to,color));
+}
+void RVOVisualizer::drawVisibility(const VisibilityGraph& graph,int id) {
+  for(const auto& line:graph.lines(id))
+    drawLine(line.first.template cast<float>(),
+             line.second.template cast<float>(),
+             Eigen::Matrix<float,3,1>(COLOR_VIS[0],COLOR_VIS[1],COLOR_VIS[2]));
 }
 void RVOVisualizer::clearQuad() {
   qss.clear();

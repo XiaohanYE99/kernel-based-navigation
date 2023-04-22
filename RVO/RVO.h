@@ -74,10 +74,10 @@ class RVOSimulator {
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
   int addObstacle(std::vector<Vec2T> vss);
   std::shared_ptr<VisibilityGraph> getVisibility() const;
+#endif
   void buildVisibility(const RVOSimulator& ref);
   void buildVisibility();
   void clearVisibility();
-#endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
   void setLBFGSParameter(int nrCorrect=5);
   void setTimestep(T timestep);

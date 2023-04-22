@@ -92,6 +92,11 @@ RVOSimulator::Vec2T RVOSimulator::getAgentPosition(int i) const {
 RVOSimulator::Vec2T RVOSimulator::getAgentVelocity(int i) const {
   return _perfVelocities.col(i);
 }
+RVOSimulator::Mat2T RVOSimulator::getAgentDVDP(int i) const {
+  if(_vis)
+    return _vis->getAgentDVDP(i);
+  else return _agentTargets.find(i)->second._DVDP;
+}
 RVOSimulator::T RVOSimulator::getAgentRadius(int i) const {
   return _agentRadius[i];
 }
@@ -132,7 +137,10 @@ void RVOSimulator::setAgentVelocity(int i,const Vec2T& vel) {
 void RVOSimulator::setAgentTarget(int i,const Vec2T& target,T maxVelocity) {
   if(_vis)
     _vis->setAgentTarget(i,target,maxVelocity);
-  else _agentTargets[i]=Vec3T(target[0],target[1],maxVelocity);
+  else {
+    _agentTargets[i]._target=target;
+    _agentTargets[i]._maxVelocity=maxVelocity;
+  }
 }
 int RVOSimulator::addObstacle(std::vector<Vec2T> vss) {
   _bvh.addObstacle(vss);
@@ -179,11 +187,16 @@ void RVOSimulator::updateAgentTargets() {
   if(_vis)
     _vis->updateAgentTargets();
   else {
-    for(const auto& target:_agentTargets) {
-      _perfVelocities.col(target.first)=target.second.template segment<2>(0)-_agentPositions.col(target.first);
+    for(auto& target:_agentTargets) {
+      _perfVelocities.col(target.first)=target.second._target-_agentPositions.col(target.first);
       T len=_perfVelocities.col(target.first).norm();
-      if(len>target.second[2])
-        _perfVelocities.col(target.first)*=target.second[2]/len;
+      if(len>target.second._maxVelocity) {
+        T coef=target.second._maxVelocity/len;
+        _perfVelocities.col(target.first)*=coef;
+        target.second._DVDP=(_perfVelocities.col(target.first)*_perfVelocities.col(target.first).transpose()-Mat2T::Identity())*coef;
+      } else {
+        target.second._DVDP=-Mat2T::Identity();
+      }
     }
   }
 }

@@ -32,6 +32,7 @@ class MultiRVOSimulator {
 #else
   std::vector<Vec2T> getAgentPosition(int i) const;
   std::vector<Vec2T> getAgentVelocity(int i) const;
+  std::vector<Mat2T> getAgentDVDP(int i) const;
   std::vector<T> getAgentRadius(int i) const;
   int addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel,std::vector<T> rad);
   void setAgentPosition(int i,std::vector<Vec2T> pos);

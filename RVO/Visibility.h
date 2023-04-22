@@ -51,6 +51,7 @@ class VisibilityGraph {
     std::vector<int> _last;
     std::vector<T> _distance;
     T _maxVelocity;
+    Mat2T _DVDP;
   };
   VisibilityGraph(RVOSimulator& rvo);
   VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other);
@@ -61,7 +62,8 @@ class VisibilityGraph {
   ShortestPath buildShortestPath(const Vec2T& target);
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
   int getNrBoundaryPoint() const;
-  Vec2T getWayPoint(int i) const;
+  Vec2T getAgentWayPoint(int i) const;
+  Mat2T getAgentDVDP(int i) const;
   void updateAgentTargets();
  private:
   RVOSimulator& _rvo;

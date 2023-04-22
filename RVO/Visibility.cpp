@@ -265,7 +265,7 @@ void VisibilityGraph::setAgentTarget(int i,const Vec2T& target,T maxVelocity) {
 int VisibilityGraph::getNrBoundaryPoint() const {
   return (int)_graph.size();
 }
-VisibilityGraph::Vec2T VisibilityGraph::getWayPoint(int i) const {
+VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(int i) const {
   const auto& obs=_rvo.getBVH().getObstacles();
   const ShortestPath& p=_paths.find(i)->second;
   Vec2T pos=_rvo.getAgentPosition(i);
@@ -285,14 +285,22 @@ VisibilityGraph::Vec2T VisibilityGraph::getWayPoint(int i) const {
     return obs[minId]->_pos;
   }
 }
+VisibilityGraph::Mat2T VisibilityGraph::getAgentDVDP(int i) const {
+  return _paths.find(i)->second._DVDP;
+}
 void VisibilityGraph::updateAgentTargets() {
-  for(const auto& p:_paths) {
+  for(auto& p:_paths) {
     int i=p.first;
-    Vec2T pos=_rvo.getAgentPosition(i),dir=getWayPoint(i)-pos;
+    Vec2T pos=_rvo.getAgentPosition(i),dir=getAgentWayPoint(i)-pos;
     T len=dir.norm();
-    if(len>p.second._maxVelocity)
-      _rvo.setAgentVelocity(i,dir*p.second._maxVelocity/len);
-    else _rvo.setAgentVelocity(i,dir);
+    if(len>p.second._maxVelocity) {
+      T coef=p.second._maxVelocity/len;
+      _rvo.setAgentVelocity(i,dir*coef);
+      p.second._DVDP=(_rvo.getAgentVelocity(i)*_rvo.getAgentVelocity(i).transpose()-Mat2T::Identity())*coef;
+    } else {
+      _rvo.setAgentVelocity(i,dir);
+      p.second._DVDP=-Mat2T::Identity();
+    }
   }
 }
 }

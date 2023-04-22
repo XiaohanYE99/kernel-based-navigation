@@ -4,8 +4,6 @@
 #include <RVO/RVO.h>
 #include <RVO/MultiRVO.h>
 #include <RVO/Visibility.h>
-#include <RVO/CoverageEnergy.h>
-#include <RVO/MultiCoverageEnergy.h>
 #include <RVO/RVOVisualizer.h>
 %}
 
@@ -40,6 +38,4 @@ typedef double LSCALAR;
 %include <RVO/RVO.h>
 %include <RVO/MultiRVO.h>
 %include <RVO/Visibility.h>
-%include <RVO/CoverageEnergy.h>
-%include <RVO/MultiCoverageEnergy.h>
 %include <RVO/RVOVisualizer.h>

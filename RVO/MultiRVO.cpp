@@ -34,6 +34,12 @@ std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentVelocity(int i)
     vel.push_back(sim.getAgentVelocity(i));
   return vel;
 }
+std::vector<MultiRVOSimulator::Mat2T> MultiRVOSimulator::getAgentDVDP(int i) const {
+  std::vector<Mat2T> DVDP;
+  for(auto& sim:_sims)
+    DVDP.push_back(sim.getAgentDVDP(i));
+  return DVDP;
+}
 std::vector<MultiRVOSimulator::T> MultiRVOSimulator::getAgentRadius(int i) const {
   std::vector<T> rad;
   for(auto& sim:_sims)

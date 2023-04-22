@@ -24,6 +24,11 @@ class RVOSimulator {
   typedef Eigen::Triplet<T,int> STrip;
   typedef ParallelVector<STrip> STrips;
   typedef Eigen::SparseMatrix<T,0,int> SMatT;
+  struct AgentTarget {
+    Vec2T _target;
+    T _maxVelocity;
+    Mat2T _DVDP;
+  };
 #endif
   RVOSimulator(const RVOSimulator& other);
 #ifndef SWIG
@@ -58,8 +63,10 @@ class RVOSimulator {
   std::vector<Vec2T> getObstacle(int i) const;
   Mat2XT getAgentPositions() const;
   Mat2XT getAgentVelocities() const;
+  Mat2XT getAgentDiffVelocities() const;
   Vec2T getAgentPosition(int i) const;
   Vec2T getAgentVelocity(int i) const;
+  Mat2T getAgentDVDP(int i) const;
   T getAgentRadius(int i) const;
   int addAgent(const Vec2T& pos,const Vec2T& vel,T rad);
   void setAgentPosition(int i,const Vec2T& pos);
@@ -108,7 +115,7 @@ class RVOSimulator {
   Mat2XT _agentPositions;
   Vec _agentRadius;
   Eigen::SimplicialLDLT<SMatT> _sol;
-  std::unordered_map<int,Vec3T> _agentTargets;
+  std::unordered_map<int,AgentTarget> _agentTargets;
   T _timestep,_gTol,_d0,_coef,_maxRad;
   bool _useHash;
   int _maxIter;

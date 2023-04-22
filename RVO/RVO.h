@@ -53,6 +53,7 @@ class RVOSimulator {
   Eigen::Matrix<double,2,-1> getAgentVelocities() const;
   Eigen::Matrix<double,2,1> getAgentPosition(int i) const;
   Eigen::Matrix<double,2,1> getAgentVelocity(int i) const;
+  Eigen::Matrix<double,2,2> getAgentDVDP(int i) const;
   double getAgentRadius(int i) const;
   int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel,double rad);
   void setAgentPosition(int i,const Eigen::Matrix<double,2,1>& pos);

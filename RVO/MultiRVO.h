@@ -24,6 +24,7 @@ class MultiRVOSimulator {
 #ifdef SWIG
   std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
+  std::vector<Eigen::Matrix<double,2,2>> getAgentDVDP(int i) const;
   int addAgent(std::vector<Eigen::Matrix<double,2,1>> pos,std::vector<Eigen::Matrix<double,2,1>> vel,std::vector<double> rad);
   void setAgentPosition(int i,std::vector<Eigen::Matrix<double,2,1>> pos);
   void setAgentVelocity(int i,std::vector<Eigen::Matrix<double,2,1>> vel);

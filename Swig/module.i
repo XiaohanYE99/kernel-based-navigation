@@ -14,6 +14,7 @@
 typedef float GLfloat;
 typedef double LSCALAR;
 %template(vectorPos) std::vector<Eigen::Matrix<double,2,1>>;
+%template(vectorDVDP) std::vector<Eigen::Matrix<double,2,2>>;
 %template(vectorMat2XT) std::vector<Eigen::Matrix<double,2,-1>>;
 %template(vectorMatT) std::vector<Eigen::Matrix<double,-1,-1>>;
 %template(vectorVec) std::vector<Eigen::Matrix<double,-1,1>>;
@@ -21,6 +22,7 @@ typedef double LSCALAR;
 %template(vectorChar) std::vector<char>;
 
 %eigen_typemaps(Eigen::Matrix<double,2,1>)
+%eigen_typemaps(Eigen::Matrix<double,2,2>)
 %eigen_typemaps(Eigen::Matrix<double,2,-1>)
 %eigen_typemaps(Eigen::Matrix<double,3,1>)
 %eigen_typemaps(Eigen::Matrix<double,3,-1>)
@@ -28,6 +30,7 @@ typedef double LSCALAR;
 %eigen_typemaps(Eigen::Matrix<double,-1,1>)
 
 %eigen_typemaps(Eigen::Matrix<float,2,1>)
+%eigen_typemaps(Eigen::Matrix<float,2,2>)
 %eigen_typemaps(Eigen::Matrix<float,2,-1>)
 %eigen_typemaps(Eigen::Matrix<float,3,1>)
 %eigen_typemaps(Eigen::Matrix<float,3,-1>)

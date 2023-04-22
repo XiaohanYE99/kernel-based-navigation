@@ -21,7 +21,7 @@ bool PolarInterval::within(const Vec2T& d,T& alpha) const {
   return withinAngle(d) && alpha<1;
 }
 bool PolarInterval::valid() const {
-  return !_dL.isZero() && !_dR.isZero() && !wrapAround() && cross(_dL,_dR)>0;
+  return !_dL.isZero() && !_dR.isZero() && cross(_dL,_dR)>0;
 }
 bool PolarInterval::wrapAround() const {
   return _dL.y()>0 && _dR.y()<0;
@@ -69,16 +69,11 @@ int PolarIntervals::id(const std::pair<int,bool>& p) const {
 }
 //visibility
 void PolarIntervals::visible(std::unordered_set<int>& pss,std::function<bool(int,const Vec2T&)> canAdd) {
-  sort();
-  //since we break intervals along -x axis, this axis is a special case
-  T distNegX=std::numeric_limits<double>::max();
-  for(int ptr=0; ptr<(int)_pointers.size(); ptr++)
-    if(isNegX(_pointers[ptr]))
-      distNegX=std::min(distNegX,-dir(_pointers[ptr])[0]);
 //#define BRUTE_FORCE
 #ifdef BRUTE_FORCE
   for(int ptr=0; ptr<(int)_pointers.size(); ptr++) {
     const Vec2T& d=dir(_pointers[ptr]);
+    int did=id(_pointers[ptr]);
     bool valid=true;
     T alpha;
     for(int i=0; valid && i<(int)_intervals.size(); i++) {
@@ -90,27 +85,37 @@ void PolarIntervals::visible(std::unordered_set<int>& pss,std::function<bool(int
         valid=false;
     }
     if(valid)
-      if(id(_pointers[ptr])>=0 && canAdd(id(_pointers[ptr]),d))
-        pss.insert(id(_pointers[ptr]));
+      if(did>=0 && canAdd(did,d))
+        pss.insert(did);
   }
 #else
+  sort();
+  //since we break intervals along -x axis, this axis is a special case
+  T distNegX=std::numeric_limits<double>::max();
+  for(int ptr=0; ptr<(int)_pointers.size(); ptr++)
+    if(isNegX(_pointers[ptr]))
+      distNegX=std::min(distNegX,-dir(_pointers[ptr])[0]);
   //main loop
+  std::vector<int> heapTmp;
   for(int ptr=0; ptr<(int)_pointers.size(); ptr++) {
+    const Vec2T& d=dir(_pointers[ptr]);
+    int did=id(_pointers[ptr]);
     //update heap value
-    for(int i=0; i<(int)_heap.size(); i++) {
-      _intervals[_heap[i]].within(dir(_pointers[ptr]),_distance[_heap[i]]);
-      updateHeapDef(_distance,_heapOffset,_heap,_heap[i]);
+    heapTmp=_heap;
+    for(int Iid:heapTmp) {
+      _intervals[Iid].within(d,_distance[Iid]);
+      updateHeapDef(_distance,_heapOffset,_heap,Iid);
     }
     //move pointer forward
     updateHeap(ptr);
     //since we break intervals along -x axis, this axis is a special case
     if(isNegX(_pointers[ptr]))
-      if(-dir(_pointers[ptr])[0]>distNegX)
+      if(-d[0]>distNegX)
         continue;
     //insert if visible
     if(_heap.empty() || _distance[_heap[0]]>=1)
-      if(id(_pointers[ptr])>=0 && canAdd(id(_pointers[ptr]),dir(_pointers[ptr])))
-        pss.insert(id(_pointers[ptr]));
+      if(did>=0 && canAdd(did,d))
+        pss.insert(did);
   }
 #endif
 }
@@ -151,8 +156,16 @@ void PolarIntervals::sort() {
 VisibilityGraph::VisibilityGraph(const RVOSimulator& rvo):_rvo(rvo) {
   const auto& obs=_rvo.getBVH().getObstacles();
   _graph.resize((int)obs.size());
+  OMP_PARALLEL_FOR_
   for(int i=0; i<(int)obs.size(); i++)
     _graph[i]=visible(obs[i]->_pos,i);
+}
+std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> VisibilityGraph::lines(const Vec2T& p) const {
+  const auto& obs=_rvo.getBVH().getObstacles();
+  std::vector<std::pair<Vec2T,Vec2T>> lines;
+  for(int id:visible(p))
+    lines.push_back(std::make_pair(p,obs[id]->_pos));
+  return lines;
 }
 std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> VisibilityGraph::lines(int id) const {
   const auto& obs=_rvo.getBVH().getObstacles();
@@ -264,14 +277,12 @@ VisibilityGraph::Vec2T VisibilityGraph::getWayPoint(int i) const {
       }
     }
     ASSERT_MSG(minId,"Target out of reach!")
+    std::cout << obs[minId]->_pos.transpose() << std::endl;
     return obs[minId]->_pos;
   }
 }
 VisibilityGraph::Vec2T VisibilityGraph::getVelocity(int i,T maxVelocity) const {
-  Vec2T pos=_rvo.getAgentPosition(i),dir=getWayPoint(i)-pos;
-  if(dir.norm()>maxVelocity)
-    return dir/maxVelocity;
-  else return dir;
+  return getVelocity(i,getWayPoint(i),maxVelocity);
 }
 VisibilityGraph::Vec2T VisibilityGraph::getVelocity(int i,const Vec2T& way,T maxVelocity) const {
   Vec2T pos=_rvo.getAgentPosition(i),dir=way-pos;

@@ -52,6 +52,7 @@ class VisibilityGraph {
     std::vector<T> _distance;
   };
   VisibilityGraph(const RVOSimulator& rvo);
+  std::vector<std::pair<Vec2T,Vec2T>> lines(const Vec2T& p) const;
   std::vector<std::pair<Vec2T,Vec2T>> lines(int id=-1) const;
   void findNeighbor(int id,int& idNext,int& idLast) const;
   std::unordered_set<int> visible(const Vec2T& p,int id=-1) const;

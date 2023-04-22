@@ -21,6 +21,12 @@ void RVOVisualizer::drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2
 void RVOVisualizer::drawLine(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color) {
   lss.push_back(std::make_tuple(from,to,color));
 }
+void RVOVisualizer::drawVisibility(const VisibilityGraph& graph,const Eigen::Matrix<LSCALAR,2,1> p) {
+  for(const auto& line:graph.lines(p))
+    drawLine(line.first.template cast<float>(),
+             line.second.template cast<float>(),
+             Eigen::Matrix<float,3,1>(COLOR_VIS[0],COLOR_VIS[1],COLOR_VIS[2]));
+}
 void RVOVisualizer::drawVisibility(const VisibilityGraph& graph,int id) {
   for(const auto& line:graph.lines(id))
     drawLine(line.first.template cast<float>(),

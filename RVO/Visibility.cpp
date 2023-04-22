@@ -159,6 +159,10 @@ VisibilityGraph::VisibilityGraph(RVOSimulator& rvo):_rvo(rvo) {
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)obs.size(); i++)
     _graph[i]=visible(obs[i]->_pos,i);
+  //force symmetric
+  for(int i=0; i<(int)obs.size(); i++)
+    for(int j:_graph[i])
+      _graph[j].insert(i);
 }
 VisibilityGraph::VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other):_rvo(rvo) {
   _graph=other._graph;

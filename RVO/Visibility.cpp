@@ -281,7 +281,7 @@ VisibilityGraph::Vec2T VisibilityGraph::getWayPoint(int i) const {
         minId=id;
       }
     }
-    ASSERT_MSG(minId,"Target out of reach!")
+    ASSERT_MSG(minId>=0,"Target out of reach!")
     return obs[minId]->_pos;
   }
 }

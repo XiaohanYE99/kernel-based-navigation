@@ -1,5 +1,6 @@
 #include "RVO.h"
 #include "Epsilon.h"
+#include "Visibility.h"
 #include "SpatialHashLinkedList.h"
 #include "SpatialHashRadixSort.h"
 #include <iostream>
@@ -129,11 +130,25 @@ void RVOSimulator::setAgentVelocity(int i,const Vec2T& vel) {
   _perfVelocities.col(i)=vel;
 }
 void RVOSimulator::setAgentTarget(int i,const Vec2T& target,T maxVelocity) {
-  _agentTargets[i]=Vec3T(target[0],target[1],maxVelocity);
+  if(_vis)
+    _vis->setAgentTarget(i,target,maxVelocity);
+  else _agentTargets[i]=Vec3T(target[0],target[1],maxVelocity);
 }
 int RVOSimulator::addObstacle(std::vector<Vec2T> vss) {
   _bvh.addObstacle(vss);
   return getNrObstacle()-1;
+}
+std::shared_ptr<VisibilityGraph> RVOSimulator::getVisibility() const {
+  return _vis;
+}
+void RVOSimulator::buildVisibility(const RVOSimulator& ref) {
+  _vis.reset(new VisibilityGraph(*this,*(ref._vis)));
+}
+void RVOSimulator::buildVisibility() {
+  _vis.reset(new VisibilityGraph(*this));
+}
+void RVOSimulator::clearVisibility() {
+  _vis=NULL;
 }
 void RVOSimulator::setNewtonParameter(int maxIter,T gTol,T d0,T coef) {
   _maxIter=maxIter;
@@ -161,11 +176,15 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
   }
 }
 void RVOSimulator::updateAgentTargets() {
-  for(const auto& target:_agentTargets) {
-    _perfVelocities.col(target.first)=target.second.template segment<2>(0)-_agentPositions.col(target.first);
-    T len=_perfVelocities.col(target.first).norm();
-    if(len>target.second[2])
-      _perfVelocities.col(target.first)*=target.second[2]/len;
+  if(_vis)
+    _vis->updateAgentTargets();
+  else {
+    for(const auto& target:_agentTargets) {
+      _perfVelocities.col(target.first)=target.second.template segment<2>(0)-_agentPositions.col(target.first);
+      T len=_perfVelocities.col(target.first).norm();
+      if(len>target.second[2])
+        _perfVelocities.col(target.first)*=target.second[2]/len;
+    }
   }
 }
 RVOSimulator::MatT RVOSimulator::getDXDX() const {

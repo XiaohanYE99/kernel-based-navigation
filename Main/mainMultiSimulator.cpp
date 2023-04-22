@@ -32,6 +32,7 @@ int main(int argc,char** argv) {
     int id=rvo.addObstacle({off,off+Vec2T(40,0),off+Vec2T(40,40),off+Vec2T(0,40)});
     rvo.getObstacle(id);
   }
+  rvo.buildVisibility();
 #endif
   T randRange=3,rad;
   //bottom left

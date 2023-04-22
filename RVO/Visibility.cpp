@@ -153,12 +153,15 @@ void PolarIntervals::sort() {
   });
 }
 //Visibility
-VisibilityGraph::VisibilityGraph(const RVOSimulator& rvo):_rvo(rvo) {
+VisibilityGraph::VisibilityGraph(RVOSimulator& rvo):_rvo(rvo) {
   const auto& obs=_rvo.getBVH().getObstacles();
   _graph.resize((int)obs.size());
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)obs.size(); i++)
     _graph[i]=visible(obs[i]->_pos,i);
+}
+VisibilityGraph::VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other):_rvo(rvo) {
+  _graph=other._graph;
 }
 std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> VisibilityGraph::lines(const Vec2T& p) const {
   const auto& obs=_rvo.getBVH().getObstacles();
@@ -196,8 +199,10 @@ std::unordered_set<int> VisibilityGraph::visible(const Vec2T& p,int id) const {
     if(!incidentI.valid())
       return pss;
     else {
-      pss.insert(idLast);
-      pss.insert(idNext);
+      if(_rvo.getBVH().visible(obs[id]->_pos,obs[idLast]->_pos,obs[id]))
+        pss.insert(idLast);
+      if(_rvo.getBVH().visible(obs[id]->_pos,obs[idNext]->_pos,obs[id]))
+        pss.insert(idNext);
     }
   }
   //insert intervals
@@ -253,16 +258,16 @@ VisibilityGraph::ShortestPath VisibilityGraph::buildShortestPath(const Vec2T& ta
   }
   return path;
 }
-void VisibilityGraph::setAgentTarget(int i,const Vec2T& target) {
-  _paths.resize(_rvo.getNrAgent());
+void VisibilityGraph::setAgentTarget(int i,const Vec2T& target,T maxVelocity) {
   _paths[i]=buildShortestPath(target);
+  _paths[i]._maxVelocity=maxVelocity;
 }
 int VisibilityGraph::getNrBoundaryPoint() const {
   return (int)_graph.size();
 }
 VisibilityGraph::Vec2T VisibilityGraph::getWayPoint(int i) const {
   const auto& obs=_rvo.getBVH().getObstacles();
-  const ShortestPath& p=_paths[i];
+  const ShortestPath& p=_paths.find(i)->second;
   Vec2T pos=_rvo.getAgentPosition(i);
   if(_rvo.getBVH().visible(pos,p._target))
     return p._target;
@@ -277,26 +282,17 @@ VisibilityGraph::Vec2T VisibilityGraph::getWayPoint(int i) const {
       }
     }
     ASSERT_MSG(minId,"Target out of reach!")
-    std::cout << obs[minId]->_pos.transpose() << std::endl;
     return obs[minId]->_pos;
   }
 }
-VisibilityGraph::Vec2T VisibilityGraph::getVelocity(int i,T maxVelocity) const {
-  return getVelocity(i,getWayPoint(i),maxVelocity);
-}
-VisibilityGraph::Vec2T VisibilityGraph::getVelocity(int i,const Vec2T& way,T maxVelocity) const {
-  Vec2T pos=_rvo.getAgentPosition(i),dir=way-pos;
-  T len=dir.norm();
-  if(len>maxVelocity)
-    return dir*maxVelocity/len;
-  else return dir;
-}
-VisibilityGraph::Mat2T VisibilityGraph::getDVDP(int i,const Vec2T& way,T maxVelocity) const {
-  Vec2T pos=_rvo.getAgentPosition(i),dir=way-pos;
-  T len=dir.norm();
-  if(len>maxVelocity) {
-    dir/=len;
-    return (dir*dir.transpose()-Mat2T::Identity())*maxVelocity/len;
-  } else return -Mat2T::Identity();
+void VisibilityGraph::updateAgentTargets() {
+  for(const auto& p:_paths) {
+    int i=p.first;
+    Vec2T pos=_rvo.getAgentPosition(i),dir=getWayPoint(i)-pos;
+    T len=dir.norm();
+    if(len>p.second._maxVelocity)
+      _rvo.setAgentVelocity(i,dir*p.second._maxVelocity/len);
+    else _rvo.setAgentVelocity(i,dir);
+  }
 }
 }

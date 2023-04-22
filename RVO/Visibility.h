@@ -50,23 +50,23 @@ class VisibilityGraph {
     Vec2T _target;
     std::vector<int> _last;
     std::vector<T> _distance;
+    T _maxVelocity;
   };
-  VisibilityGraph(const RVOSimulator& rvo);
+  VisibilityGraph(RVOSimulator& rvo);
+  VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other);
   std::vector<std::pair<Vec2T,Vec2T>> lines(const Vec2T& p) const;
   std::vector<std::pair<Vec2T,Vec2T>> lines(int id=-1) const;
   void findNeighbor(int id,int& idNext,int& idLast) const;
   std::unordered_set<int> visible(const Vec2T& p,int id=-1) const;
   ShortestPath buildShortestPath(const Vec2T& target);
-  void setAgentTarget(int i,const Vec2T& target);
+  void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
   int getNrBoundaryPoint() const;
   Vec2T getWayPoint(int i) const;
-  Vec2T getVelocity(int i,T maxVelocity) const;
-  Vec2T getVelocity(int i,const Vec2T& way,T maxVelocity) const;
-  Mat2T getDVDP(int i,const Vec2T& way,T maxVelocity) const;
+  void updateAgentTargets();
  private:
-  const RVOSimulator& _rvo;
+  RVOSimulator& _rvo;
   std::vector<std::unordered_set<int>> _graph;
-  std::vector<ShortestPath> _paths;
+  std::unordered_map<int,ShortestPath> _paths;
 };
 }
 

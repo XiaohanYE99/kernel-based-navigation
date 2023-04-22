@@ -38,6 +38,8 @@ class MultiRVOSimulator {
   void setAgentVelocity(int i,std::vector<Vec2T> vel);
   void setAgentTarget(int i,std::vector<Vec2T> target,T maxVelocity);
   int addObstacle(std::vector<Vec2T> vss);
+  void buildVisibility();
+  void clearVisibility();
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
   void setTimestep(T timestep);

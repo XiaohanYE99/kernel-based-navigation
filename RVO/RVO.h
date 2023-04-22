@@ -13,6 +13,7 @@ enum RVOOptimizer {
   LBFGS,
   UNKNOWN,
 };
+class VisibilityGraph;
 class SpatialHash;
 class RVOSimulator {
  public:
@@ -65,6 +66,10 @@ class RVOSimulator {
   void setAgentVelocity(int i,const Vec2T& vel);
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
   int addObstacle(std::vector<Vec2T> vss);
+  std::shared_ptr<VisibilityGraph> getVisibility() const;
+  void buildVisibility(const RVOSimulator& ref);
+  void buildVisibility();
+  void clearVisibility();
 #endif
   void setNewtonParameter(int maxIter,T gTol,T d0,T coef=1);
   void setLBFGSParameter(int nrCorrect=5);
@@ -96,6 +101,7 @@ class RVOSimulator {
   bool energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
   bool optimizeNewton(bool requireGrad,bool output);
   bool optimizeLBFGS(bool requireGrad,bool output);
+  std::shared_ptr<VisibilityGraph> _vis;
   std::shared_ptr<SpatialHash> _hash;
   BoundingVolumeHierarchy _bvh;
   Mat2XT _perfVelocities;

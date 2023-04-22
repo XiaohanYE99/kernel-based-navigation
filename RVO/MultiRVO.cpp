@@ -63,6 +63,16 @@ int MultiRVOSimulator::addObstacle(std::vector<Vec2T> vss) {
     ret=sim.addObstacle(vss);
   return ret;
 }
+void MultiRVOSimulator::buildVisibility() {
+  for(int i=0; i<(int)_sims.size(); i++)
+    if(i==0)
+      _sims[i].buildVisibility();
+    else _sims[i].buildVisibility(_sims[0]);
+}
+void MultiRVOSimulator::clearVisibility() {
+  for(int i=0; i<(int)_sims.size(); i++)
+    _sims[i].clearVisibility();
+}
 void MultiRVOSimulator::setNewtonParameter(int maxIter,T gTol,T d0,T coef) {
   for(auto& sim:_sims)
     sim.setNewtonParameter(maxIter,gTol,d0,coef);

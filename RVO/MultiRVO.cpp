@@ -93,6 +93,9 @@ MultiRVOSimulator::T MultiRVOSimulator::timestep() const {
 int MultiRVOSimulator::getBatchSize() const {
   return (int)_sims.size();
 }
+RVOSimulator& MultiRVOSimulator::getSubSimulator(int id) {
+  return _sims[id];
+}
 const RVOSimulator& MultiRVOSimulator::getSubSimulator(int id) const {
   return _sims[id];
 }

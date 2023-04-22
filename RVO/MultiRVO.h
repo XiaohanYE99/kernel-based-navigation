@@ -47,6 +47,7 @@ class MultiRVOSimulator {
   void setTimestep(T timestep);
   T timestep() const;
   int getBatchSize() const;
+  RVOSimulator& getSubSimulator(int id);
   const RVOSimulator& getSubSimulator(int id) const;
   std::vector<char> optimize(bool requireGrad,bool output);
   void updateAgentTargets();

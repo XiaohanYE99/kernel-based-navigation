@@ -163,6 +163,7 @@ VisibilityGraph::VisibilityGraph(RVOSimulator& rvo):_rvo(rvo) {
 VisibilityGraph::VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other):_rvo(rvo) {
   _graph=other._graph;
 }
+VisibilityGraph::~VisibilityGraph() {}
 std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> VisibilityGraph::lines(const Vec2T& p) const {
   const auto& obs=_rvo.getBVH().getObstacles();
   std::vector<std::pair<Vec2T,Vec2T>> lines;
@@ -227,7 +228,7 @@ std::unordered_set<int> VisibilityGraph::visible(const Vec2T& p,int id) const {
   });
   return pss;
 }
-VisibilityGraph::ShortestPath VisibilityGraph::buildShortestPath(const Vec2T& target) {
+VisibilityGraph::ShortestPath VisibilityGraph::buildShortestPath(const Vec2T& target) const {
   const auto& obs=_rvo.getBVH().getObstacles();
   ShortestPath path;
   path._target=target;
@@ -265,16 +266,14 @@ void VisibilityGraph::setAgentTarget(int i,const Vec2T& target,T maxVelocity) {
 int VisibilityGraph::getNrBoundaryPoint() const {
   return (int)_graph.size();
 }
-VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(int i) const {
+VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(const ShortestPath& p,const Vec2T& pos) const {
   const auto& obs=_rvo.getBVH().getObstacles();
-  const ShortestPath& p=_paths.find(i)->second;
-  Vec2T pos=_rvo.getAgentPosition(i);
   if(_rvo.getBVH().visible(pos,p._target))
     return p._target;
   else {
     int minId=-1;
     T minDistance=std::numeric_limits<double>::max();
-    for(int id:visible(_rvo.getAgentPosition(i))) {
+    for(int id:visible(pos)) {
       T distance=(pos-obs[id]->_pos).norm()+p._distance[id];
       if(distance<minDistance) {
         minDistance=distance;
@@ -284,6 +283,11 @@ VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(int i) const {
     ASSERT_MSG(minId>=0,"Target out of reach!")
     return obs[minId]->_pos;
   }
+}
+VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(int i) const {
+  const ShortestPath& p=_paths.find(i)->second;
+  Vec2T pos=_rvo.getAgentPosition(i);
+  return getAgentWayPoint(p,pos);
 }
 VisibilityGraph::Mat2T VisibilityGraph::getAgentDVDP(int i) const {
   return _paths.find(i)->second._DVDP;

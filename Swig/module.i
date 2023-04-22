@@ -4,6 +4,7 @@
 #include <RVO/RVO.h>
 #include <RVO/MultiRVO.h>
 #include <RVO/Visibility.h>
+#include <RVO/MultiVisibility.h>
 #include <RVO/RVOVisualizer.h>
 %}
 
@@ -41,4 +42,5 @@ typedef double LSCALAR;
 %include <RVO/RVO.h>
 %include <RVO/MultiRVO.h>
 %include <RVO/Visibility.h>
+%include <RVO/MultiVisibility.h>
 %include <RVO/RVOVisualizer.h>

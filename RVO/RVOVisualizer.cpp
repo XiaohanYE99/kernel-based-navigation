@@ -143,7 +143,6 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawLines(std::shared_ptr<Composi
     line->setLineWidth(5);
     lines->addShape(line);
   }
-  std::cout << lines->numChildren() << std::endl;
   linesUpdate=false;
   return lines;
 }

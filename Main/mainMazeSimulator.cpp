@@ -18,16 +18,16 @@ class VisibilityCallback : public PythonCallback {
   }
   void key(int key,int scan,int action,int mods) override {
     bool change=false;
-    if(key==GLFW_KEY_W && action==GLFW_PRESS) {
+    if(key==GLFW_KEY_UP && action==GLFW_PRESS) {
       _src.y()+=_speed;
       change=true;
-    } else if(key==GLFW_KEY_S && action==GLFW_PRESS) {
+    } else if(key==GLFW_KEY_DOWN && action==GLFW_PRESS) {
       _src.y()-=_speed;
       change=true;
-    } else if(key==GLFW_KEY_D && action==GLFW_PRESS) {
+    } else if(key==GLFW_KEY_RIGHT && action==GLFW_PRESS) {
       _src.x()+=_speed;
       change=true;
-    } else if(key==GLFW_KEY_A && action==GLFW_PRESS) {
+    } else if(key==GLFW_KEY_LEFT && action==GLFW_PRESS) {
       _src.x()-=_speed;
       change=true;
     }
@@ -35,6 +35,7 @@ class VisibilityCallback : public PythonCallback {
       return;
     RVOVisualizer::setNrLines(_nr);
     RVOVisualizer::drawVisibility(*(_rvo.getVisibility()),_src);
+    std::cout << "Checking visibility at: " << _src.transpose() << std::endl;
   }
   RVOSimulator& _rvo;
   Vec2T _src;

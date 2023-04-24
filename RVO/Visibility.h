@@ -38,6 +38,15 @@ struct PolarIntervals {
   std::vector<PolarInterval> _intervals;
   std::vector<std::pair<int,bool>> _pointers; //<id,left>
 };
+struct ShortestPath {
+  typedef LSCALAR T;
+  DECL_MAT_VEC_MAP_TYPES_T
+  Vec2T _target;
+  std::vector<int> _last;
+  std::vector<T> _distance;
+  T _maxVelocity;
+  Mat2T _DVDP;
+};
 class VisibilityGraph {
  public:
   typedef LSCALAR T;
@@ -45,13 +54,6 @@ class VisibilityGraph {
   enum Label {
     OUT_OF_REACH=-1,
     TARGET=-2,
-  };
-  struct ShortestPath {
-    Vec2T _target;
-    std::vector<int> _last;
-    std::vector<T> _distance;
-    T _maxVelocity;
-    Mat2T _DVDP;
   };
   VisibilityGraph(RVOSimulator& rvo);
   VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other);

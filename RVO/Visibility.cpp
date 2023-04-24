@@ -232,7 +232,7 @@ std::unordered_set<int> VisibilityGraph::visible(const Vec2T& p,int id) const {
   });
   return pss;
 }
-VisibilityGraph::ShortestPath VisibilityGraph::buildShortestPath(const Vec2T& target) const {
+ShortestPath VisibilityGraph::buildShortestPath(const Vec2T& target) const {
   const auto& obs=_rvo.getBVH().getObstacles();
   ShortestPath path;
   path._target=target;

@@ -13,13 +13,17 @@ float COLOR_AGT[3]= {200/255.,143/255., 29/255.};
 float COLOR_OBS[3]= {000/255.,000/255.,000/255.};
 float COLOR_VEL[3]= {120/255.,000/255.,000/255.};
 float COLOR_VIS[3]= {000/255.,255/255.,000/255.};
+bool quadsUpdate=true;
+bool linesUpdate=true;
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> qss;
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> lss;
 void RVOVisualizer::drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color) {
   qss.push_back(std::make_tuple(from,to,color));
+  quadsUpdate=true;
 }
 void RVOVisualizer::drawLine(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color) {
   lss.push_back(std::make_tuple(from,to,color));
+  linesUpdate=true;
 }
 void RVOVisualizer::drawVisibility(const VisibilityGraph& graph,const Eigen::Matrix<LSCALAR,2,1> p) {
   for(const auto& line:graph.lines(p))
@@ -35,9 +39,25 @@ void RVOVisualizer::drawVisibility(const VisibilityGraph& graph,int id) {
 }
 void RVOVisualizer::clearQuad() {
   qss.clear();
+  quadsUpdate=true;
 }
 void RVOVisualizer::clearLine() {
   lss.clear();
+  linesUpdate=true;
+}
+int RVOVisualizer::getNrQuads() {
+  return (int)qss.size();
+}
+void RVOVisualizer::setNrQuads(int nr) {
+  qss.resize(nr);
+  quadsUpdate=true;
+}
+int RVOVisualizer::getNrLines() {
+  return (int)lss.size();
+}
+void RVOVisualizer::setNrLines(int nr) {
+  lss.resize(nr);
+  linesUpdate=true;
 }
 std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput) {
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
@@ -103,8 +123,15 @@ std::shared_ptr<MeshShape> RVOVisualizer::drawLines(const std::vector<Eigen::Mat
   mesh->setLineWidth(5);
   return mesh;
 }
-std::shared_ptr<CompositeShape> RVOVisualizer::drawLines() {
-  std::shared_ptr<CompositeShape> lines(new CompositeShape);
+std::shared_ptr<CompositeShape> RVOVisualizer::drawLines(std::shared_ptr<CompositeShape> linesRef) {
+  std::shared_ptr<CompositeShape> lines;
+  if(linesRef)
+    lines=linesRef;
+  else lines.reset(new CompositeShape);
+  if(!linesUpdate)
+    return lines;
+  while(lines->numChildren()>0)
+    lines->removeChild(lines->getChild(0));
   for(int i=0; i<(int)lss.size(); i++) {
     std::shared_ptr<MeshShape> line(new MeshShape);
     line->addVertex(Eigen::Matrix<float,3,1>((float)std::get<0>(lss[i])[0],(float)std::get<0>(lss[i])[1],0));
@@ -116,10 +143,19 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawLines() {
     line->setLineWidth(5);
     lines->addShape(line);
   }
+  std::cout << lines->numChildren() << std::endl;
+  linesUpdate=false;
   return lines;
 }
-std::shared_ptr<CompositeShape> RVOVisualizer::drawQuads() {
-  std::shared_ptr<CompositeShape> quads(new CompositeShape);
+std::shared_ptr<CompositeShape> RVOVisualizer::drawQuads(std::shared_ptr<CompositeShape> quadsRef) {
+  std::shared_ptr<CompositeShape> quads;
+  if(quadsRef)
+    quads=quadsRef;
+  else quads.reset(new CompositeShape);
+  if(!quadsUpdate)
+    return quads;
+  while(quads->numChildren()>0)
+    quads->removeChild(quads->getChild(0));
   for(int i=0; i<(int)qss.size(); i++) {
     std::shared_ptr<MeshShape> quad(new MeshShape);
     quad->addVertex(Eigen::Matrix<float,3,1>((float)std::get<0>(qss[i])[0],(float)std::get<0>(qss[i])[1],0));
@@ -134,6 +170,7 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawQuads() {
     quad->setColor(GL_TRIANGLE_FAN,std::get<2>(qss[i])[0],std::get<2>(qss[i])[1],std::get<2>(qss[i])[2]);
     quads->addShape(quad);
   }
+  quadsUpdate=false;
   return quads;
 }
 void RVOVisualizer::drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
@@ -157,10 +194,10 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
     drawer.setPythonCallback(cb);
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim);
+  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim),lines,quads;
   std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim);
-  agent->addShape(drawLines());
-  agent->addShape(drawQuads());
+  agent->addShape(lines=drawLines(lines));
+  agent->addShape(quads=drawQuads(quads));
   drawer.addShape(agent);
   drawer.addCamera2D(ext);
   drawer.clearLight();
@@ -179,6 +216,8 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
   drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
     if(step)
       frm();
+    drawLines(lines);
+    drawQuads(quads);
     drawRVOPosition(sim,agent);
     drawRVOVelocity(sim,vel);
   });
@@ -190,10 +229,10 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
     drawer.setPythonCallback(cb);
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim.getSubSimulator(0));
+  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim.getSubSimulator(0)),lines,quads;
   std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim.getSubSimulator(0));
-  agent->addShape(drawLines());
-  agent->addShape(drawQuads());
+  agent->addShape(lines=drawLines(lines));
+  agent->addShape(quads=drawQuads(quads));
   drawer.addShape(agent);
   drawer.addCamera2D(ext);
   drawer.clearLight();
@@ -223,6 +262,8 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
   drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
     if(step)
       frm();
+    drawLines(lines);
+    drawQuads(quads);
     drawRVOPosition(sim.getSubSimulator(id),agent);
     drawRVOVelocity(sim.getSubSimulator(id),vel);
   });

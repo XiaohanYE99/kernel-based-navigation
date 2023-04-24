@@ -21,12 +21,16 @@ class RVOVisualizer {
   static void drawVisibility(const VisibilityGraph& graph,int id=-1);
   static void clearQuad();
   static void clearLine();
+  static int getNrQuads();
+  static void setNrQuads(int nr);
+  static int getNrLines();
+  static void setNrLines(int nr);
 #ifndef SWIG
   static std::shared_ptr<DRAWER::CompositeShape> drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<DRAWER::CompositeShape> shapesInput=NULL);
   static std::shared_ptr<DRAWER::MeshShape> drawRVOVelocity(const RVOSimulator& sim,std::shared_ptr<DRAWER::MeshShape> shapesInput=NULL);
   static std::shared_ptr<MeshShape> drawLines(const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const Eigen::Matrix<float,3,1>& color);
-  static std::shared_ptr<CompositeShape> drawLines();
-  static std::shared_ptr<CompositeShape> drawQuads();
+  static std::shared_ptr<CompositeShape> drawLines(std::shared_ptr<CompositeShape> linesRef);
+  static std::shared_ptr<CompositeShape> drawQuads(std::shared_ptr<CompositeShape> quadsRef);
   static void drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
                              const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,
                              const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss);

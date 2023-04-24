@@ -12,7 +12,7 @@ class VisibilityCallback : public PythonCallback {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
   VisibilityCallback(RVOSimulator& rvo,T speed=5):_rvo(rvo),_speed(speed) {
-    //RVOVisualizer::drawVisibility(*(rvo.getVisibility()));
+    RVOVisualizer::drawVisibility(*(rvo.getVisibility()));
     _nr=RVOVisualizer::getNrLines();
     _src=Vec2T(0,0);
   }

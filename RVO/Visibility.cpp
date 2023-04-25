@@ -54,8 +54,7 @@ bool PolarIntervals::less(const std::pair<int,bool>& a,const std::pair<int,bool>
     return !(da.y()>0 && db.y()<0);
   else if(acb<0)
     return (da.y()<0 && db.y()>0);
-  //acb=0
-  if(da.dot(db)>0) {
+  else if(da.dot(db)>0) {
     //a,b are parallel
     if(a.second && !b.second)
       return true;

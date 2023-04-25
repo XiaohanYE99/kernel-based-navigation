@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "Visibility.h"
 #include "Heap.h"
 

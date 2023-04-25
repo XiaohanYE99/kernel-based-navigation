@@ -37,18 +37,35 @@ void PolarInterval::divide(PolarInterval& L,PolarInterval& R) const {
 }
 //PolarIntervals
 bool PolarIntervals::less(const std::pair<int,bool>& a,const std::pair<int,bool>& b) const {
-  //angle
-  T aA=angle(a),aB=angle(b);
-  if(aA<aB)
-    return true;
-  else if(aA>aB)
+  //special case: negX
+  bool isNegXA=isNegX(a);
+  bool isNegXB=isNegX(b);
+  if(isNegXA && isNegXB)
+    return a.second && !b.second;
+  else if(isNegXA)
+    return a.second;
+  else if(isNegXB)
+    return !b.second;
+  //cross
+  const Vec2T& da=dir(a);
+  const Vec2T& db=dir(b);
+  T acb=cross(da,db);
+  if(acb>0)
+    return !(da.y()>0 && db.y()<0);
+  else if(acb<0)
+    return (da.y()<0 && db.y()>0);
+  //acb=0
+  if(da.dot(db)>0) {
+    //a,b are parallel
+    if(a.second && !b.second)
+      return true;
+    else if(!a.second && b.second)
+      return false;
     return false;
-  //left/right
-  if(a.second && !b.second)
-    return true;
-  else if(!a.second && b.second)
-    return false;
-  return false;
+  } else {
+    //a,b are opposite
+    return da.y()<0;
+  }
 }
 const PolarInterval& PolarIntervals::interval(const std::pair<int,bool>& p) const {
   return _intervals[p.first];

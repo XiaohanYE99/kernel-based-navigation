@@ -1,7 +1,14 @@
 #include "BoundingVolumeHierarchy.h"
+#include <boost/polygon/polygon.hpp>
 #include <stack>
 
 namespace RVO {
+BoundingVolumeHierarchy::BoundingVolumeHierarchy() {}
+BoundingVolumeHierarchy::BoundingVolumeHierarchy(const BoundingVolumeHierarchy& other,bool simplify):_obs(other._obs) {
+  if(simplify)
+    assembleSimplified();
+  else assembleFull();
+}
 void BoundingVolumeHierarchy::clearObstacle() {
   _obs.clear();
   _bvh.clear();
@@ -32,12 +39,8 @@ std::shared_ptr<Obstacle> BoundingVolumeHierarchy::getVertex(int i) const {
   return _obs[i];
 }
 void BoundingVolumeHierarchy::addObstacle(const std::vector<Vec2T>& vss) {
-  int offset=(int)_obs.size();
-  for(int i=0; i<(int)vss.size(); i++)
-    _obs.push_back(std::shared_ptr<Obstacle>(new Obstacle(vss[i],(int)_obs.size())));
-  for(int i=0; i<(int)vss.size(); i++)
-    _obs[offset+i]->_next=_obs[offset+(i+1)%(int)vss.size()];
-  assemble();
+  addObstacleInternal(vss);
+  assembleFull();
 }
 const std::vector<std::shared_ptr<Obstacle>>& BoundingVolumeHierarchy::getObstacles() const {
   return _obs;
@@ -138,7 +141,7 @@ BoundingVolumeHierarchy::T BoundingVolumeHierarchy::closestT(const Vec2T& pt,con
   return fmax((T)0,fmin((T)1,-b/2/a));
 }
 //helper
-void BoundingVolumeHierarchy::assemble() {
+void BoundingVolumeHierarchy::assembleFull() {
   _bvh.clear();
   std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash<int>> edgeMap;
   for(int i=0; i<(int)_obs.size(); i++) {
@@ -152,5 +155,77 @@ void BoundingVolumeHierarchy::assemble() {
       edgeMap.insert(Eigen::Matrix<int,2,1>(i,i+1));
   }
   Node<int,BBox>::buildBVHBottomUp(_bvh,edgeMap,false);
+}
+void BoundingVolumeHierarchy::assembleSimplified() {
+  namespace gtl=boost::polygon;
+  using namespace boost::polygon::operators;
+  typedef long long int T2;
+  typedef gtl::polygon_with_holes_data<T2> Polygon;
+  typedef gtl::polygon_traits<Polygon>::point_type Point;
+  typedef std::vector<Polygon> PolygonSet;
+  //insert and union polygons
+  PolygonSet ps;
+  std::vector<bool> visited(_obs.size(),false);
+  for(int i=0; i<(int)visited.size(); i++) {
+    if(visited[i])
+      continue;
+    std::vector<Point> pss;
+    std::shared_ptr<Obstacle> curr=_obs[i];
+    while(!visited[curr->_id]) {
+      for(int d=0; d<2; d++)
+        if(curr->_pos[d]!=T2(curr->_pos[d]))
+          throw std::invalid_argument("Point coordinate is not integer!");
+      pss.push_back(gtl::construct<Point>(curr->_pos[0],curr->_pos[1]));
+      visited[curr->_id]=true;
+      curr=curr->_next;
+    }
+    Polygon poly;
+    gtl::set_points(poly,pss.begin(),pss.end());
+    ps+=poly;
+  }
+  //insert to bvh
+  _obs.clear();
+  for(const auto& p:ps) {
+    //outer
+    {
+      std::vector<Eigen::Matrix<T2,2,1>> vss;
+      for(const auto& v:p)
+        vss.push_back(Eigen::Matrix<T2,2,1>(v.x(),v.y()));
+      removeDuplicateVertices(vss);
+      addObstacleInternal(vss);
+    }
+    //hole
+    for(const auto& h:p.holes_) {
+      std::vector<Eigen::Matrix<T2,2,1>> vss;
+      for(const auto& v:h)
+        vss.push_back(Eigen::Matrix<T2,2,1>(v.x(),v.y()));
+      removeDuplicateVertices<T2>(vss);
+      addObstacleInternal<T2>(vss);
+    }
+  }
+  assembleFull();
+}
+template <typename T2>
+void BoundingVolumeHierarchy::addObstacleInternal(const std::vector<Eigen::Matrix<T2,2,1>>& vss) {
+  int offset=(int)_obs.size();
+  for(int i=0; i<(int)vss.size(); i++)
+    _obs.push_back(std::shared_ptr<Obstacle>(new Obstacle(vss[i].template cast<T>(),(int)_obs.size())));
+  for(int i=0; i<(int)vss.size(); i++)
+    _obs[offset+i]->_next=_obs[offset+(i+1)%(int)vss.size()];
+}
+template <typename T2>
+void BoundingVolumeHierarchy::removeDuplicateVertices(std::vector<Eigen::Matrix<T2,2,1>>& vss) {
+  bool more=true;
+  while(more) {
+    more=false;
+    for(int i=0; i<(int)vss.size();) {
+      Eigen::Matrix<T2,2,1> next=vss[(i+1)%(int)vss.size()]-vss[i];
+      Eigen::Matrix<T2,2,1> last=vss[(i+(int)vss.size()-1)%(int)vss.size()]-vss[i];
+      if(last[0]*next[1]==last[1]*next[0]) {
+        vss.erase(vss.begin()+i);
+        more=true;
+      } else i++;
+    }
+  }
 }
 }

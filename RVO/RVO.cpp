@@ -185,7 +185,7 @@ bool RVOSimulator::optimize(bool requireGrad,bool output) {
 }
 void RVOSimulator::updateAgentTargets() {
   if(_vis)
-    _vis->updateAgentTargets();
+    _vis->updateAgentTargets(*this);
   else {
     for(auto& target:_agentTargets) {
       _perfVelocities.col(target.first)=target.second._target-_agentPositions.col(target.first);

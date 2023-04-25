@@ -4,7 +4,7 @@
 #include <RVO/RVOVisualizer.h>
 #include <TinyVisualizer/Drawer.h>
 
-#define maxV 0.5
+#define CASEI
 using namespace RVO;
 using namespace DRAWER;
 class VisibilityCallback : public PythonCallback {
@@ -49,11 +49,21 @@ int main(int argc,char** argv) {
   Eigen::Matrix<bool,-1,-1> maze;
   int sz=20;
   maze.resize(5,7);
-  maze << 0,0,0,0,0,0,0,
+#ifdef CASEI
+  maze <<
+       0,0,0,0,0,0,0,
        0,1,0,1,1,1,0,
        0,0,0,0,1,0,0,
        0,1,0,1,1,1,0,
        0,1,0,0,1,0,0;
+#else
+  maze <<
+       0,0,0,0,0,0,0,
+       0,0,0,1,0,0,0,
+       0,1,1,1,1,1,0,
+       0,0,0,1,0,0,0,
+       0,0,0,0,0,0,0;
+#endif
   for(int r=-1; r<=maze.rows(); r++)
     for(int c=-1; c<=maze.cols(); c++)
       if(r<0 || r>=maze.rows() || c<0 || c>=maze.cols() || maze(r,c)) {

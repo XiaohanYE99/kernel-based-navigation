@@ -153,8 +153,8 @@ void PolarIntervals::sort() {
   });
 }
 //Visibility
-VisibilityGraph::VisibilityGraph(RVOSimulator& rvo):_rvo(rvo) {
-  const auto& obs=_rvo.getBVH().getObstacles();
+VisibilityGraph::VisibilityGraph(RVOSimulator& rvo):_bvh(rvo.getBVH(),true) {
+  const auto& obs=_bvh.getObstacles();
   _graph.resize((int)obs.size());
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)obs.size(); i++)
@@ -164,19 +164,19 @@ VisibilityGraph::VisibilityGraph(RVOSimulator& rvo):_rvo(rvo) {
     for(int j:_graph[i])
       _graph[j].insert(i);
 }
-VisibilityGraph::VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other):_rvo(rvo) {
+VisibilityGraph::VisibilityGraph(RVOSimulator& rvo,const VisibilityGraph& other):_bvh(rvo.getBVH(),true) {
   _graph=other._graph;
 }
 VisibilityGraph::~VisibilityGraph() {}
 std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> VisibilityGraph::lines(const Vec2T& p) const {
-  const auto& obs=_rvo.getBVH().getObstacles();
+  const auto& obs=_bvh.getObstacles();
   std::vector<std::pair<Vec2T,Vec2T>> lines;
   for(int id:visible(p))
     lines.push_back(std::make_pair(p,obs[id]->_pos));
   return lines;
 }
 std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> VisibilityGraph::lines(int id) const {
-  const auto& obs=_rvo.getBVH().getObstacles();
+  const auto& obs=_bvh.getObstacles();
   std::vector<std::pair<Vec2T,Vec2T>> lines;
   for(int i=0; i<(int)_graph.size(); i++)
     if(id<0 || i==id)
@@ -185,13 +185,13 @@ std::vector<std::pair<VisibilityGraph::Vec2T,VisibilityGraph::Vec2T>> Visibility
   return lines;
 }
 void VisibilityGraph::findNeighbor(int id,int& idNext,int& idLast) const {
-  const auto& obs=_rvo.getBVH().getObstacles();
+  const auto& obs=_bvh.getObstacles();
   idLast=idNext=obs[id]->_next->_id;
   while(obs[idLast]->_next->_id!=id)
     idLast=obs[idLast]->_next->_id;
 }
 std::unordered_set<int> VisibilityGraph::visible(const Vec2T& p,int id) const {
-  const auto& obs=_rvo.getBVH().getObstacles();
+  const auto& obs=_bvh.getObstacles();
   std::vector<bool> visited(obs.size(),false);
   std::unordered_set<int> pss;
   //this point is part of boundary
@@ -204,10 +204,8 @@ std::unordered_set<int> VisibilityGraph::visible(const Vec2T& p,int id) const {
     if(!incidentI.valid())
       return pss;
     else {
-      if(_rvo.getBVH().visible(obs[id]->_pos,obs[idLast]->_pos,obs[id]))
-        pss.insert(idLast);
-      if(_rvo.getBVH().visible(obs[id]->_pos,obs[idNext]->_pos,obs[id]))
-        pss.insert(idNext);
+      pss.insert(idLast);
+      pss.insert(idNext);
     }
   }
   //insert intervals
@@ -233,7 +231,7 @@ std::unordered_set<int> VisibilityGraph::visible(const Vec2T& p,int id) const {
   return pss;
 }
 ShortestPath VisibilityGraph::buildShortestPath(const Vec2T& target) const {
-  const auto& obs=_rvo.getBVH().getObstacles();
+  const auto& obs=_bvh.getObstacles();
   ShortestPath path;
   path._target=target;
   path._last.assign(obs.size(),OUT_OF_REACH);
@@ -271,8 +269,8 @@ int VisibilityGraph::getNrBoundaryPoint() const {
   return (int)_graph.size();
 }
 VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(const ShortestPath& p,const Vec2T& pos) const {
-  const auto& obs=_rvo.getBVH().getObstacles();
-  if(_rvo.getBVH().visible(pos,p._target))
+  const auto& obs=_bvh.getObstacles();
+  if(_bvh.visible(pos,p._target))
     return p._target;
   else {
     int minId=-1;
@@ -288,25 +286,25 @@ VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(const ShortestPath& p,c
     return obs[minId]->_pos;
   }
 }
-VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(int i) const {
+VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(RVOSimulator& rvo,int i) const {
   const ShortestPath& p=_paths.find(i)->second;
-  Vec2T pos=_rvo.getAgentPosition(i);
+  Vec2T pos=rvo.getAgentPosition(i);
   return getAgentWayPoint(p,pos);
 }
 VisibilityGraph::Mat2T VisibilityGraph::getAgentDVDP(int i) const {
   return _paths.find(i)->second._DVDP;
 }
-void VisibilityGraph::updateAgentTargets() {
+void VisibilityGraph::updateAgentTargets(RVOSimulator& rvo) {
   for(auto& p:_paths) {
     int i=p.first;
-    Vec2T pos=_rvo.getAgentPosition(i),dir=getAgentWayPoint(i)-pos;
+    Vec2T pos=rvo.getAgentPosition(i),dir=getAgentWayPoint(rvo,i)-pos;
     T len=dir.norm();
     if(len>p.second._maxVelocity) {
       T coef=p.second._maxVelocity/len;
-      _rvo.setAgentVelocity(i,dir*coef);
-      p.second._DVDP=(_rvo.getAgentVelocity(i)*_rvo.getAgentVelocity(i).transpose()-Mat2T::Identity())*coef;
+      rvo.setAgentVelocity(i,dir*coef);
+      p.second._DVDP=(rvo.getAgentVelocity(i)*rvo.getAgentVelocity(i).transpose()-Mat2T::Identity())*coef;
     } else {
-      _rvo.setAgentVelocity(i,dir);
+      rvo.setAgentVelocity(i,dir);
       p.second._DVDP=-Mat2T::Identity();
     }
   }

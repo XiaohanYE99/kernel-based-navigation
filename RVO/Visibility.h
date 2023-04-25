@@ -66,11 +66,11 @@ class VisibilityGraph {
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
   int getNrBoundaryPoint() const;
   Vec2T getAgentWayPoint(const ShortestPath& p,const Vec2T& pos) const;
-  Vec2T getAgentWayPoint(int i) const;
+  Vec2T getAgentWayPoint(RVOSimulator& rvo,int i) const;
   Mat2T getAgentDVDP(int i) const;
-  void updateAgentTargets();
+  void updateAgentTargets(RVOSimulator& rvo);
  protected:
-  RVOSimulator& _rvo;
+  BoundingVolumeHierarchy _bvh;
   std::vector<std::unordered_set<int>> _graph;
   std::unordered_map<int,ShortestPath> _paths;
 };

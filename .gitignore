@@ -13,3 +13,8 @@ robot_envs/mazes_g100w700h700
 *.user
 *.bak
 *pyRVO*
+.idea
+.metadata
+.settings
+.project
+.pydevproject

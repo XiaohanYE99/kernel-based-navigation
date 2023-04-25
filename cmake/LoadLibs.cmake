@@ -51,6 +51,7 @@ ENDIF(MPFR_FOUND)
 #Boost
 FIND_PACKAGE(Boost QUIET REQUIRED)
 IF(Boost_FOUND)
+  MESSAGE(STATUS "Found Boost @ ${Boost_INCLUDE_DIRS}")
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ELSEIF(Boost_FOUND)
   MESSAGE(WARNING "Cannot find boost, multi-precision not support!")

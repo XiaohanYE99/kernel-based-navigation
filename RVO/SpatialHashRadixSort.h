@@ -8,6 +8,7 @@ namespace RVO {
 class SpatialHashRadixSort : public SpatialHash {
  public:
   typedef LSCALAR T;
+  DECL_MAT_VEC_MAP_TYPES_I
   DECL_MAT_VEC_MAP_TYPES_T
   DECL_MAP_FUNCS
   struct SpatialHashNode {
@@ -26,13 +27,13 @@ class SpatialHashRadixSort : public SpatialHash {
   void detectSphereBroadBF(std::function<bool(AgentNeighbor)> VVss,const SpatialHash& other,T margin) override;
  protected:
   int hashOff(const Vec2T& pt) const;
-  Eigen::Matrix<int,2,1> hash(const Vec2T& pt) const;
+  Vec2i hash(const Vec2T& pt) const;
   void reduce(std::function<void(SpatialHashNode&,SpatialHashNode&)> op);
   //temporary data, not serialized
   T _R,_invR;
   BBox _bb;
   bool _locked;
-  Eigen::Matrix<int,2,1> _stride,_nrCell;
+  Vec2i _stride,_nrCell;
   std::vector<SpatialHashNode> _nodes,_nodesBkg;
   std::vector<int> _indices,_offsetsInv,_offsets,_starts,_ends;
   //temporary data, not serialized

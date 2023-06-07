@@ -121,8 +121,8 @@ void SpatialHashLinkedList::detectSphereBroad(std::function<bool(AgentNeighbor)>
   for(int i=0; i<(int)other._vss.size(); i++) {
     AgentNeighbor VV;
     T searchRange=other._nodes[i]._radius+margin+_R;
-    Eigen::Matrix<int,2,1> L=hash(other._nodes[i]._ctr-Vec2T::Constant(searchRange)).cwiseMax(Eigen::Matrix<int,2,1>::Zero());
-    Eigen::Matrix<int,2,1> U=hash(other._nodes[i]._ctr+Vec2T::Constant(searchRange)).cwiseMin(_nrCell-Eigen::Matrix<int,2,1>::Ones());
+    Vec2i L=hash(other._nodes[i]._ctr-Vec2T::Constant(searchRange)).cwiseMax(Vec2i::Zero());
+    Vec2i U=hash(other._nodes[i]._ctr+Vec2T::Constant(searchRange)).cwiseMin(_nrCell-Vec2i::Ones());
     for(int x=L[0],offX=L.dot(_stride); x<=U[0]; x++,offX+=_stride[0])
       for(int y=L[1],offY=offX; y<=U[1]; y++,offY+=_stride[1]) {
         int head=_heads[offY];
@@ -162,8 +162,8 @@ void SpatialHashLinkedList::detectSphereBroadBF(std::function<bool(AgentNeighbor
 int SpatialHashLinkedList::hashOff(const Vec2T& pt) const {
   return hash(pt).dot(_stride);
 }
-Eigen::Matrix<int,2,1> SpatialHashLinkedList::hash(const Vec2T& pt) const {
-  return ((pt-_bb._minC)*_invR).array().floor().matrix().cast<int>().cwiseMin(_nrCell-Eigen::Matrix<int,2,1>::Ones());
+SpatialHashLinkedList::Vec2i SpatialHashLinkedList::hash(const Vec2T& pt) const {
+  return ((pt-_bb._minC)*_invR).array().floor().matrix().cast<int>().cwiseMin(_nrCell-Vec2i::Ones());
 }
 void SpatialHashLinkedList::reduce(std::function<void(SpatialHashNode&,SpatialHashNode&)> op) {
   for(int off=2,offHalf=1; offHalf<(int)_vss.size(); off<<=1,offHalf<<=1) {

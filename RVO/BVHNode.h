@@ -28,11 +28,12 @@ struct EdgeHash {
 template <typename T,typename BBOX>
 struct Node {
   typedef BBOX BoxType;
+  DECL_MAT_VEC_MAP_TYPES_I
   Node();
   Node<T,BBOX>& operator=(const Node<T,BBOX>& other);
   static void update(std::vector<Node<T,BBOX>>& bvh,std::function<BBOX(const T& n)> getBB);
   static void update(int i,std::vector<Node<T,BBOX>>& bvh,std::function<BBOX(const T& n)> getBB);
-  static void buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash<int>>& edgeMap,bool singleComponent=false);
+  static void buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::unordered_set<Vec2i,EdgeHash<int>>& edgeMap,bool singleComponent=false);
   int _l,_r,_parent,_nrCell;
   BBOX _bb;
   T _cell;

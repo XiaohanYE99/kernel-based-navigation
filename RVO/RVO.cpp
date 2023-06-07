@@ -52,11 +52,11 @@ void RVOSimulator::clearAgent() {
   if(std::dynamic_pointer_cast<SpatialHashRadixSort>(_hash))
     _hash.reset(new SpatialHashRadixSort());
   else _hash.reset(new SpatialHashLinkedList());
-  _perfVelocities.resize(2,0);
-  _agentPositions.resize(2,0);
-  _agentRadius.resize(0);
+  _perfVelocities.reset();
+  _agentPositions.reset();
+  _agentRadius.reset();
+  _agentId.reset();
   _agentTargets.clear();
-  _id.resize(0,0);
   _maxRad=0;
 }
 void RVOSimulator::clearObstacle() {
@@ -68,29 +68,32 @@ int RVOSimulator::getNrObstacle() const {
 int RVOSimulator::getNrAgent() const {
   return _agentPositions.cols();
 }
-RVOSimulator::Mat2XT& RVOSimulator::getAgentPositions() {
-  return _agentPositions;
+RVOSimulator::Mat2XTM RVOSimulator::getAgentPositions() {
+  return _agentPositions.getMap();
 }
-RVOSimulator::Mat2XT& RVOSimulator::getAgentVelocities() {
-  return _perfVelocities;
+RVOSimulator::Mat2XTM RVOSimulator::getAgentVelocities() {
+  return _perfVelocities.getMap();
 }
 std::vector<RVOSimulator::Vec2T> RVOSimulator::getObstacle(int i) const {
   return _bvh.getObstacle(i);
 }
 RVOSimulator::Mat2XT RVOSimulator::getAgentPositions() const {
-  return _agentPositions;
+  return _agentPositions.getCMap();
 }
 RVOSimulator::Mat2XT RVOSimulator::getAgentVelocities() const {
-  return _perfVelocities;
+  return _perfVelocities.getCMap();
 }
-const RVOSimulator::Vec& RVOSimulator::getAgentRadius() const {
-  return _agentRadius;
+RVOSimulator::VecCM RVOSimulator::getAgentRadius() const {
+  return _agentRadius.getCMap();
+}
+RVOSimulator::VeciCM RVOSimulator::getAgentId() const {
+  return _agentId.getCMap();
 }
 RVOSimulator::Vec2T RVOSimulator::getAgentPosition(int i) const {
-  return _agentPositions.col(i);
+  return _agentPositions.getCMap().col(i);
 }
 RVOSimulator::Vec2T RVOSimulator::getAgentVelocity(int i) const {
-  return _perfVelocities.col(i);
+  return _perfVelocities.getCMap().col(i);
 }
 RVOSimulator::Mat2T RVOSimulator::getAgentDVDP(int i) const {
   if(_vis)
@@ -98,41 +101,37 @@ RVOSimulator::Mat2T RVOSimulator::getAgentDVDP(int i) const {
   else return _agentTargets.find(i)->second._DVDP;
 }
 RVOSimulator::T RVOSimulator::getAgentRadius(int i) const {
-  return _agentRadius[i];
+  return _agentRadius.getCMap()[i];
 }
-int RVOSimulator::addAgent(const Vec2T& pos,const Vec2T& vel,T rad) {
-  _hash->addVertex(std::shared_ptr<Agent>(new Agent(_agentPositions.cols())));
-  {
-    Mat2XT perfVelocities=Mat2XT::Zero(2,_perfVelocities.cols()+1);
-    perfVelocities.block(0,0,2,_perfVelocities.cols())=_perfVelocities;
-    perfVelocities.col(_perfVelocities.cols())=vel;
-    perfVelocities.swap(_perfVelocities);
+int RVOSimulator::getAgentId(int i) const {
+  return _agentId.getCMap()[i];
+}
+void RVOSimulator::removeAgent(int i) {
+  int last=_agentPositions.cols()-1;
+  if(_agentTargets.find(last)!=_agentTargets.end()) {
+    _agentTargets[i]=_agentTargets[last];
+    _agentTargets.erase(last);
   }
-  {
-    Mat2XT agentPositions=Mat2XT::Zero(2,_agentPositions.cols()+1);
-    agentPositions.block(0,0,2,_agentPositions.cols())=_agentPositions;
-    agentPositions.col(_agentPositions.cols())=pos;
-    agentPositions.swap(_agentPositions);
-  }
-  {
-    Vec agentRadius=Vec::Zero(_agentRadius.size()+1);
-    agentRadius.segment(0,_agentRadius.size())=_agentRadius;
-    agentRadius[_agentRadius.size()]=rad;
-    _maxRad=agentRadius.maxCoeff();
-    agentRadius.swap(_agentRadius);
-  }
-  {
-    _id.resize(_agentPositions.size(),_agentPositions.size());
-    for(int i=0; i<_agentPositions.size(); i++)
-      _id.coeffRef(i,i)+=1;
-  }
+  _hash->removeVertex();
+  _perfVelocities.del(i);
+  _agentPositions.del(i);
+  _agentRadius.del(i);
+  _agentId.del(i);
+}
+int RVOSimulator::addAgent(const Vec2T& pos,const Vec2T& vel,T rad,int id) {
+  _hash->addVertex();
+  _perfVelocities.add(vel);
+  _agentPositions.add(pos);
+  _agentRadius.add(rad);
+  _agentId.add(id);
+  _maxRad=_agentRadius.getCMap().maxCoeff();
   return _agentPositions.cols()-1;
 }
 void RVOSimulator::setAgentPosition(int i,const Vec2T& pos) {
-  _agentPositions.col(i)=pos;
+  _agentPositions.getMap().col(i)=pos;
 }
 void RVOSimulator::setAgentVelocity(int i,const Vec2T& vel) {
-  _perfVelocities.col(i)=vel;
+  _perfVelocities.getMap().col(i)=vel;
 }
 void RVOSimulator::setAgentTarget(int i,const Vec2T& target,T maxVelocity) {
   if(_vis)
@@ -188,12 +187,12 @@ void RVOSimulator::updateAgentTargets() {
     _vis->updateAgentTargets(*this);
   else {
     for(auto& target:_agentTargets) {
-      _perfVelocities.col(target.first)=target.second._target-_agentPositions.col(target.first);
-      T len=_perfVelocities.col(target.first).norm();
+      _perfVelocities.getMap().col(target.first)=target.second._target-_agentPositions.getMap().col(target.first);
+      T len=_perfVelocities.getMap().col(target.first).norm();
       if(len>target.second._maxVelocity) {
         T coef=target.second._maxVelocity/len;
-        _perfVelocities.col(target.first)*=coef;
-        target.second._DVDP=(_perfVelocities.col(target.first)*_perfVelocities.col(target.first).transpose()-Mat2T::Identity())*coef;
+        _perfVelocities.getMap().col(target.first)*=coef;
+        target.second._DVDP=(_perfVelocities.getMap().col(target.first)*_perfVelocities.getMap().col(target.first).transpose()-Mat2T::Identity())*coef;
       } else {
         target.second._DVDP=-Mat2T::Identity();
       }
@@ -209,8 +208,8 @@ RVOSimulator::MatT RVOSimulator::getDXDV() const {
 void RVOSimulator::debugNeighbor(T scale) {
   std::cout << __FUNCTION__ << std::endl;
   while(true) {
-    Vec prevPos=Vec::Random(_agentPositions.size())*scale;
-    Vec pos=Vec::Random(_agentPositions.size())*scale;
+    Vec prevPos=Vec::Random(_agentPositions.getMap().size())*scale;
+    Vec pos=Vec::Random(_agentPositions.getMap().size())*scale;
     _hash->buildSpatialHash(mapCV(prevPos),mapCV(pos),_maxRad);
     std::vector<AgentNeighbor> AAss,AAssBF;
     std::vector<AgentObstacleNeighbor> AOss,AOssBF;
@@ -262,13 +261,13 @@ void RVOSimulator::debugEnergy(T scale,T dscale) {
   std::cout << __FUNCTION__ << std::endl;
   DEFINE_NUMERIC_DELTA_T(T)
   while(true) {
-    Vec prevPos=Vec::Random(_agentPositions.size())*scale;
-    Vec pos=prevPos+Vec::Random(_agentPositions.size())*dscale,pos2;
-    Vec dx=Vec::Random(_agentPositions.size());
+    Vec prevPos=Vec::Random(_agentPositions.getMap().size())*scale;
+    Vec pos=prevPos+Vec::Random(_agentPositions.getMap().size())*dscale,pos2;
+    Vec dx=Vec::Random(_agentPositions.getMap().size());
     T f,f2;
     Vec g,g2;
     SMatT h;
-    Eigen::Matrix<int,4,1> nBarrier;
+    Vec4i nBarrier;
     if(!energy(mapCV(prevPos),mapCV(pos),&f,&g,&h,nBarrier))
       continue;
     if((nBarrier.array()==0).any())
@@ -349,7 +348,7 @@ bool RVOSimulator::lineSearch(T E,const Vec& g,const Vec& d,T& alpha,Vec& newX,
   }
   return alpha>alphaMin;
 }
-bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Matrix<int,4,1>& nBarrier) {
+bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Vec4i& nBarrier) {
 #define PREVA(A) prevPos.data()?Vec2T(prevPos.template segment<2>(A->_id*2)):Vec2T::Zero()
 #define CURRA(A) pos.template segment<2>(A->_id*2)
 #define PREVO(O) O->_pos
@@ -357,8 +356,8 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
   //initialize
   STrips trips;
   bool succ=true;
-  Eigen::Map<const Vec> x(_agentPositions.data(),_agentPositions.size());
-  Eigen::Map<const Vec> v(_perfVelocities.data(),_perfVelocities.size());
+  VecCM x=_agentPositions.getCMapV();
+  VecCM v=_perfVelocities.getCMapV();
   if(f)
     *f=(pos-(x+v*_timestep)).squaredNorm()/(2*_timestep*_timestep);
   if(g)
@@ -414,8 +413,8 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Ma
 #undef PREVO
 #undef CURRO
 }
-bool RVOSimulator::energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const {
-  T sumRad=_agentRadius[aid]+_agentRadius[bid];
+bool RVOSimulator::energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Vec4i& nBarrier) const {
+  T sumRad=_agentRadius.getCMap()[aid]+_agentRadius.getCMap()[bid];
   aid*=2;
   bid*=2;
   Vec2T ab=a-b;
@@ -445,8 +444,8 @@ bool RVOSimulator::energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,V
   }
   return true;
 }
-bool RVOSimulator::energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const {
-  T rad=_agentRadius[aid];
+bool RVOSimulator::energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Vec4i& nBarrier) const {
+  T rad=_agentRadius.getCMap()[aid];
   aid*=2;
   T radSq=rad*rad,D=0,DD=0;
   Vec2T obsVec=o[1]-o[0],relPos0=o[0]-a,relPos1=o[1]-a;
@@ -512,7 +511,8 @@ bool RVOSimulator::energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,
   return true;
 }
 bool RVOSimulator::optimizeNewton(bool requireGrad,bool output) {
-  Eigen::Map<Vec> XFrom(_agentPositions.data(),_agentPositions.size());
+  updateIdentity();
+  VecM XFrom=_agentPositions.getMapV();
   Vec X=XFrom,newX=XFrom;
   Vec g,g2;
   SMatT h;
@@ -525,7 +525,7 @@ bool RVOSimulator::optimizeNewton(bool requireGrad,bool output) {
   T perturbationDec=0.7;
   T perturbationInc=10.0;
   T alpha=1,alphaMin=1e-10;
-  Eigen::Matrix<int,4,1> nBarrier;
+  Vec4i nBarrier;
   for(iter=0; iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation; iter++) {
     //always use spatial hash to compute obstacle neighbors, but only use spatial hash to compute agent neighbors
     bool succ=energy(mapCV<Vec>(NULL),mapCV(newX),&E,&g,&h,nBarrier);
@@ -553,7 +553,7 @@ bool RVOSimulator::optimizeNewton(bool requireGrad,bool output) {
     while(true) {
       //ensure hessian factorization is successful
       while(perturbation<maxPerturbation) {
-        _sol.compute(_id*perturbation+h);
+        _sol.compute(h+_id*perturbation);
         if(_sol.info()==Eigen::Success) {
           perturbation=fmax(perturbation*perturbationDec,minPerturbation);
           break;
@@ -605,14 +605,15 @@ bool RVOSimulator::optimizeNewton(bool requireGrad,bool output) {
   return iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation;
 }
 bool RVOSimulator::optimizeLBFGS(bool requireGrad,bool output) {
-  Eigen::Map<Vec> XFrom(_agentPositions.data(),_agentPositions.size());
+  updateIdentity();
+  VecM XFrom=_agentPositions.getMapV();
   Vec X=XFrom,pos=XFrom,posPrev,s,y;
   Vec g,g2,gPrev,d;
   SMatT h;
   T E;
   int iter;
   T alpha=1,alphaMin=1e-10;
-  Eigen::Matrix<int,4,1> nBarrier;
+  Vec4i nBarrier;
   _LBFGSUpdate.reset(XFrom.size());
   bool succ=energy(mapCV<Vec>(NULL),mapCV(pos),&E,&g,NULL,nBarrier);
   d=-g;
@@ -660,5 +661,14 @@ bool RVOSimulator::optimizeLBFGS(bool requireGrad,bool output) {
   }
   XFrom=pos;
   return iter<_maxIter && alpha>alphaMin && succ;
+}
+void RVOSimulator::updateIdentity() {
+  if(_id.rows()==getNrAgent()*2)
+    return;
+  STrips trips;
+  for(int i=0; i<getNrAgent()*2; i++)
+    trips.push_back(STrip(i,i,1));
+  _id.resize(getNrAgent()*2,getNrAgent()*2);
+  _id.setFromTriplets(trips.begin(),trips.end());
 }
 }

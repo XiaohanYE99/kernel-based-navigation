@@ -3,6 +3,7 @@
 
 #include "BoundingVolumeHierarchy.h"
 #include "ParallelVector.h"
+#include "DynamicMatVec.h"
 #include "LBFGSUpdate.h"
 #include <unordered_map>
 #include <Eigen/Sparse>
@@ -18,6 +19,7 @@ class SpatialHash;
 class RVOSimulator {
  public:
   typedef LSCALAR T;
+  DECL_MAT_VEC_MAP_TYPES_I
   DECL_MAT_VEC_MAP_TYPES_T
 #ifndef SWIG
   DECL_MAP_FUNCS
@@ -43,9 +45,10 @@ class RVOSimulator {
   int getNrObstacle() const;
   int getNrAgent() const;
 #ifndef SWIG
-  Mat2XT& getAgentPositions();
-  Mat2XT& getAgentVelocities();
-  const Vec& getAgentRadius() const;
+  Mat2XTM getAgentPositions();
+  Mat2XTM getAgentVelocities();
+  VecCM getAgentRadius() const;
+  VeciCM getAgentId() const;
 #endif
 #ifdef SWIG
   std::vector<Eigen::Matrix<double,2,1>> getObstacle(int i) const;
@@ -55,7 +58,9 @@ class RVOSimulator {
   Eigen::Matrix<double,2,1> getAgentVelocity(int i) const;
   Eigen::Matrix<double,2,2> getAgentDVDP(int i) const;
   double getAgentRadius(int i) const;
-  int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel,double rad);
+  int getAgentId(int i) const;
+  void removeAgent(int i);
+  int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel,double rad,int id=-1);
   void setAgentPosition(int i,const Eigen::Matrix<double,2,1>& pos);
   void setAgentVelocity(int i,const Eigen::Matrix<double,2,1>& vel);
   void setAgentTarget(int i,const Eigen::Matrix<double,2,1>& target,T maxVelocity);
@@ -69,7 +74,9 @@ class RVOSimulator {
   Vec2T getAgentVelocity(int i) const;
   Mat2T getAgentDVDP(int i) const;
   T getAgentRadius(int i) const;
-  int addAgent(const Vec2T& pos,const Vec2T& vel,T rad);
+  int getAgentId(int i) const;
+  void removeAgent(int i);
+  int addAgent(const Vec2T& pos,const Vec2T& vel,T rad,int id=-1);
   void setAgentPosition(int i,const Vec2T& pos);
   void setAgentVelocity(int i,const Vec2T& vel);
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
@@ -104,19 +111,21 @@ class RVOSimulator {
   static T clog(T d,T* D,T* DD,T d0,T coef);
   bool lineSearch(T E,const Vec& g,const Vec& d,T& alpha,Vec& newX,
                   std::function<bool(const Vec&,T&)> eval,T alphaMin) const;
-  bool energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Eigen::Matrix<int,4,1>& nBarrier);
-  bool energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
-  bool energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Eigen::Matrix<int,4,1>& nBarrier) const;
+  bool energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Vec4i& nBarrier);
+  bool energyAA(int aid,int bid,const Vec2T& a,const Vec2T& b,T* f,Vec* g,STrips* trips,Vec4i& nBarrier) const;
+  bool energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,STrips* trips,Vec4i& nBarrier) const;
   bool optimizeNewton(bool requireGrad,bool output);
   bool optimizeLBFGS(bool requireGrad,bool output);
+  void updateIdentity();
   std::shared_ptr<VisibilityGraph> _vis;
   std::shared_ptr<SpatialHash> _hash;
   BoundingVolumeHierarchy _bvh;
-  Mat2XT _perfVelocities;
-  Mat2XT _agentPositions;
-  Vec _agentRadius;
-  Eigen::SimplicialLDLT<SMatT> _sol;
   std::unordered_map<int,AgentTarget> _agentTargets;
+  DynamicMat<T> _perfVelocities;
+  DynamicMat<T> _agentPositions;
+  DynamicVec<T> _agentRadius;
+  DynamicVec<int> _agentId;
+  Eigen::SimplicialLDLT<SMatT> _sol;
   T _timestep,_gTol,_d0,_coef,_maxRad;
   bool _useHash;
   int _maxIter;

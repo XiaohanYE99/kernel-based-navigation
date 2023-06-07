@@ -21,8 +21,10 @@ class SpatialHash {
   virtual void detectSphereBroadBF(std::function<bool(AgentNeighbor)> VVss,const SpatialHash& other,T margin)=0;
   const std::vector<std::shared_ptr<Agent>>& vss() const;
   void addVertex(std::shared_ptr<Agent> v);
+  void addVertex();
+  void removeVertex();
  protected:
-  std::vector<std::shared_ptr<Agent>> _vss;
+  std::vector<std::shared_ptr<Agent>> _vss,_backup;
 };
 }
 

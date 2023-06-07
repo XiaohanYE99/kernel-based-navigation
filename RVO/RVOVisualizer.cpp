@@ -62,13 +62,6 @@ void RVOVisualizer::setNrLines(int nr) {
 std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput) {
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
   if(!shapesInput) {
-    for(int i=0; i<sim.getNrAgent(); i++) {
-      std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
-      std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<float,2,1>::Zero(),(float)sim.getAgentRadius(i));
-      circle->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
-      agent->addShape(circle);
-      shapes->addShape(agent);
-    }
     for(int i=0; i<sim.getNrObstacle(); i++) {
       std::vector<RVOSimulator::Vec2T> pos=sim.getObstacle(i);
       std::shared_ptr<MeshShape> obs(new MeshShape);
@@ -86,16 +79,35 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulato
       shapes->addShape(obs);
     }
   }
-  for(int i=0; i<sim.getNrAgent(); i++)
-    std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i))->
-    setLocalTranslate(Eigen::Matrix<float,3,1>((float)sim.getAgentPosition(i)[0],(float)sim.getAgentPosition(i)[1],0));
+  //need more children
+  while(shapes->numChildren()<sim.getNrAgent()+1) {
+    std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
+    std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<float,2,1>::Zero(),1);
+    circle->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    agent->addShape(circle);
+    shapes->addShape(agent);
+  }
+  //less children
+  while(shapes->numChildren()>sim.getNrAgent()+1)
+    shapes->removeChild(shapes->getChild(shapes->numChildren()-1));
+  //update translation
+  Eigen::Matrix<float,4,4> t;
+  for(int i=0; i<sim.getNrAgent(); i++) {
+    t=Eigen::Matrix<float,4,4>::Identity();
+    t(0,0)*=sim.getAgentRadius(i);
+    t(1,1)*=sim.getAgentRadius(i);
+    t(0,3)=(float)sim.getAgentPosition(i)[0];
+    t(1,3)=(float)sim.getAgentPosition(i)[1];
+    std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i+1))->setLocalTransform(t);
+  }
   return shapes;
 }
 std::shared_ptr<MeshShape> RVOVisualizer::drawRVOVelocity(const RVOSimulator& sim,std::shared_ptr<MeshShape> shapesInput) {
   std::shared_ptr<MeshShape> shapes=shapesInput?shapesInput:std::shared_ptr<MeshShape>(new MeshShape);
   RVOSimulator::Mat2XT pss=sim.getAgentPositions();
   RVOSimulator::Mat2XT vss=sim.getAgentVelocities()+pss;
-  if(!shapesInput) {
+  if(!shapesInput || shapesInput->nrVertex()!=sim.getNrAgent()*2) {
+    shapes->clear();
     for(int i=0; i<sim.getNrAgent(); i++) {
       shapes->addVertex(Eigen::Matrix<float,3,1>(pss(0,i),pss(1,i),0));
       shapes->addVertex(Eigen::Matrix<float,3,1>(vss(0,i),vss(1,i),0));
@@ -105,10 +117,11 @@ std::shared_ptr<MeshShape> RVOVisualizer::drawRVOVelocity(const RVOSimulator& si
     shapes->setMode(GL_LINES);
     shapes->setColor(GL_LINES,COLOR_VEL[0],COLOR_VEL[1],COLOR_VEL[2]);
     shapes->setLineWidth(5);
-  }
-  for(int i=0; i<sim.getNrAgent(); i++) {
-    shapes->setVertex(i*2+0,Eigen::Matrix<float,3,1>(pss(0,i),pss(1,i),0));
-    shapes->setVertex(i*2+1,Eigen::Matrix<float,3,1>(vss(0,i),vss(1,i),0));
+  } else {
+    for(int i=0; i<sim.getNrAgent(); i++) {
+      shapes->setVertex(i*2+0,Eigen::Matrix<float,3,1>(pss(0,i),pss(1,i),0));
+      shapes->setVertex(i*2+1,Eigen::Matrix<float,3,1>(vss(0,i),vss(1,i),0));
+    }
   }
   return shapes;
 }

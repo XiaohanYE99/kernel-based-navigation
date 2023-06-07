@@ -143,7 +143,7 @@ BoundingVolumeHierarchy::T BoundingVolumeHierarchy::closestT(const Vec2T& pt,con
 //helper
 void BoundingVolumeHierarchy::assembleFull() {
   _bvh.clear();
-  std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash<int>> edgeMap;
+  std::unordered_set<Vec2i,EdgeHash<int>> edgeMap;
   for(int i=0; i<(int)_obs.size(); i++) {
     _bvh.push_back(Node<int,BBox>());
     _bvh.back()._nrCell=1;
@@ -152,7 +152,7 @@ void BoundingVolumeHierarchy::assembleFull() {
     _bvh.back()._bb.setUnion(_obs[i]->_next->_pos);
     //consecutive edges
     if(i<(int)_obs.size()-1 && _obs[i]->_next==_obs[i+1])
-      edgeMap.insert(Eigen::Matrix<int,2,1>(i,i+1));
+      edgeMap.insert(Vec2i(i,i+1));
   }
   Node<int,BBox>::buildBVHBottomUp(_bvh,edgeMap,false);
 }

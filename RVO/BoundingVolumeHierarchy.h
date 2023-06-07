@@ -8,6 +8,7 @@ namespace RVO {
 class BoundingVolumeHierarchy {
  public:
   typedef LSCALAR T;
+  DECL_MAT_VEC_MAP_TYPES_I
   DECL_MAT_VEC_MAP_TYPES_T
   BoundingVolumeHierarchy();
   BoundingVolumeHierarchy(const BoundingVolumeHierarchy& other,bool simplify=false);

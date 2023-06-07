@@ -65,11 +65,11 @@ void Node<T,BBOX>::update(int i,std::vector<Node<T,BBOX>>& bvh,std::function<BBO
   }
 }
 template <typename T,typename BBOX>
-void Node<T,BBOX>::buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash<int>>& edgeMap,bool singleComponent) {
+void Node<T,BBOX>::buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::unordered_set<Vec2i,EdgeHash<int>>& edgeMap,bool singleComponent) {
   //initialize hash
   std::vector<int> heap;
   std::vector<int> heapOffsets;
-  std::vector<Eigen::Matrix<int,2,1>> ess;
+  std::vector<Vec2i> ess;
   std::vector<typename BBOX::Vec2T::Scalar> cost;
   for(auto beg=edgeMap.begin(),end=edgeMap.end(); beg!=end; beg++) {
     heapOffsets.push_back(-1);
@@ -131,10 +131,10 @@ void Node<T,BBOX>::buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::un
       if(bvh[i]._parent==-1)
         roots.push_back(i);
     //build edge map for roots
-    std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash<int>> edgeMapRoot;
+    std::unordered_set<Vec2i,EdgeHash<int>> edgeMapRoot;
     for(int i=0; i<(int)roots.size(); i++)
       for(int j=i+1; j<(int)roots.size(); j++)
-        edgeMapRoot.insert(Eigen::Matrix<int,2,1>(roots[i],roots[j]));
+        edgeMapRoot.insert(Vec2i(roots[i],roots[j]));
     //merge root
     buildBVHBottomUp(bvh,edgeMapRoot,true);
   }

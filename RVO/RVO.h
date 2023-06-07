@@ -40,11 +40,13 @@ class RVOSimulator {
   virtual ~RVOSimulator() {}
   bool getUseHash() const;
   T getMaxRadius() const;
+  T getMinRadius() const;
   void clearAgent();
   void clearObstacle();
   int getNrObstacle() const;
   int getNrAgent() const;
 #ifndef SWIG
+  VecM getAgentPositionsVec();
   Mat2XTM getAgentPositions();
   Mat2XTM getAgentVelocities();
   VecCM getAgentRadius() const;
@@ -94,7 +96,7 @@ class RVOSimulator {
   void updateAgentTargets();
   MatT getDXDX() const;
   MatT getDXDV() const;
-  void debugNeighbor(T scale);
+  void debugNeighbor(T scale,T dscale=1e-3);
   void debugEnergy(T scale,T dscale=1);
 #ifndef SWIG
   std::shared_ptr<SpatialHash> getHash() const;
@@ -126,7 +128,7 @@ class RVOSimulator {
   DynamicVec<T> _agentRadius;
   DynamicVec<int> _agentId;
   Eigen::SimplicialLDLT<SMatT> _sol;
-  T _timestep,_gTol,_d0,_coef,_maxRad;
+  T _timestep,_gTol,_d0,_coef,_maxRad,_minRad;
   bool _useHash;
   int _maxIter;
   LBFGSUpdate _LBFGSUpdate;

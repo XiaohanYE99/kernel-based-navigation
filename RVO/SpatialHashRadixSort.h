@@ -23,6 +23,8 @@ class SpatialHashRadixSort : public SpatialHash {
   void buildSpatialHash(VecCM pos0,VecCM pos1,T R,bool useHash=true) override;
   void detectImplicitShape(std::function<bool(AgentObstacleNeighbor)> VVss,const BoundingVolumeHierarchy& bvh,T margin) override;
   void detectImplicitShapeBF(std::function<bool(AgentObstacleNeighbor)> VVss,const BoundingVolumeHierarchy& bvh,T margin) override;
+  virtual void detectSphereBroad(std::vector<char>& coll,const DynamicMat<T>& sourcePos,const DynamicVec<T>& rad,T margin) override;
+  virtual void detectSphereBroadBF(std::vector<char>& coll,const DynamicMat<T>& sourcePos,const DynamicVec<T>& rad,T margin) override;
   void detectSphereBroad(std::function<bool(AgentNeighbor)> VVss,const SpatialHash& other,T margin) override;
   void detectSphereBroadBF(std::function<bool(AgentNeighbor)> VVss,const SpatialHash& other,T margin) override;
  protected:

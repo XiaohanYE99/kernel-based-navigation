@@ -1,4 +1,5 @@
 #include "SourceSink.h"
+#include "SpatialHash.h"
 
 namespace RVO {
 void SourceSink::addSourceSink(const Vec2T& source,const Vec2T& target,const BBox& sink,T rad) {
@@ -21,8 +22,11 @@ void SourceSink::removeAgents(RVOSimulator& sim) {
     else i++;
   }
 }
-void SourceSink::addAgents(RVOSimulator& sim) {
+void SourceSink::addAgents(RVOSimulator& sim,T eps) {
   std::vector<char> collide;
+  VecCM pos=mapV2CV(sim.getAgentPositionsVec());
+  sim.getHash()->buildSpatialHash(pos,pos,sim.getMaxRadius());
+  sim.getHash()->detectSphereBroad(collide,_sourcePos,_rad,eps);
   for(int i=0; i<_sourcePos.cols(); i++)
     if(!collide[i]) {
       const Vec2T p=_sourcePos.getCMap().col(i);

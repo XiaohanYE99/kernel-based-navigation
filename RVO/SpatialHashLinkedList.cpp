@@ -114,6 +114,37 @@ void SpatialHashLinkedList::detectImplicitShapeBF(std::function<bool(AgentObstac
       }
   }
 }
+void SpatialHashLinkedList::detectSphereBroad(std::vector<char>& coll,const DynamicMat<T>& sourcePos,const DynamicVec<T>& rad,T margin) {
+  coll.assign(sourcePos.cols(),false);
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)sourcePos.cols(); i++) {
+    T r=rad.getCMap()[i];
+    T searchRange=r+margin+_R;
+    Vec2T p=sourcePos.getCMap().col(i);
+    Vec2i L=hash(p-Vec2T::Constant(searchRange)).cwiseMax(Vec2i::Zero());
+    Vec2i U=hash(p+Vec2T::Constant(searchRange)).cwiseMin(_nrCell-Vec2i::Ones());
+    for(int x=L[0],offX=L.dot(_stride); x<=U[0]; x++,offX+=_stride[0])
+      for(int y=L[1],offY=offX; y<=U[1]; y++,offY+=_stride[1]) {
+        int head=_heads[offY];
+        while(head>=0) {
+          if((p-_nodes[head]._ctr).norm()<r+_nodes[head]._radius+margin)
+            coll[i]=true;
+          head=_nodes[head]._next;
+        }
+      }
+  }
+}
+void SpatialHashLinkedList::detectSphereBroadBF(std::vector<char>& coll,const DynamicMat<T>& sourcePos,const DynamicVec<T>& rad,T margin) {
+  coll.assign(sourcePos.cols(),false);
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)sourcePos.cols(); i++) {
+    T r=rad.getCMap()[i];
+    Vec2T p=sourcePos.getCMap().col(i);
+    for(int j=0; j<(int)_vss.size(); j++)
+      if((p-_nodes[j]._ctr).norm()<r+_nodes[j]._radius+margin)
+        coll[i]=true;
+  }
+}
 void SpatialHashLinkedList::detectSphereBroad(std::function<bool(AgentNeighbor)> VVss,const SpatialHash& otherSH,T margin) {
   const SpatialHashLinkedList& other=dynamic_cast<const SpatialHashLinkedList&>(otherSH);
   bool selfCollision=this==&other;

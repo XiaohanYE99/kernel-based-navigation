@@ -15,6 +15,7 @@ RVOSimulator& RVOSimulator::operator=(const RVOSimulator& other) {
   _d0=other._d0;
   _coef=other._coef;
   _maxRad=other._maxRad;
+  _minRad=other._minRad;
   _useHash=other._useHash;
   _maxIter=other._maxIter;
   _LBFGSUpdate.nCorrect(other._LBFGSUpdate.nCorrect());
@@ -48,6 +49,9 @@ bool RVOSimulator::getUseHash() const {
 RVOSimulator::T RVOSimulator::getMaxRadius() const {
   return _maxRad;
 }
+RVOSimulator::T RVOSimulator::getMinRadius() const {
+  return _minRad;
+}
 void RVOSimulator::clearAgent() {
   if(std::dynamic_pointer_cast<SpatialHashRadixSort>(_hash))
     _hash.reset(new SpatialHashRadixSort());
@@ -58,6 +62,7 @@ void RVOSimulator::clearAgent() {
   _agentId.reset();
   _agentTargets.clear();
   _maxRad=0;
+  _minRad=0;
 }
 void RVOSimulator::clearObstacle() {
   _bvh.clearObstacle();
@@ -67,6 +72,9 @@ int RVOSimulator::getNrObstacle() const {
 }
 int RVOSimulator::getNrAgent() const {
   return _agentPositions.cols();
+}
+RVOSimulator::VecM RVOSimulator::getAgentPositionsVec() {
+  return _agentPositions.getMapV();
 }
 RVOSimulator::Mat2XTM RVOSimulator::getAgentPositions() {
   return _agentPositions.getMap();
@@ -125,6 +133,7 @@ int RVOSimulator::addAgent(const Vec2T& pos,const Vec2T& vel,T rad,int id) {
   _agentRadius.add(rad);
   _agentId.add(id);
   _maxRad=_agentRadius.getCMap().maxCoeff();
+  _minRad=_agentRadius.getCMap().minCoeff();
   return _agentPositions.cols()-1;
 }
 void RVOSimulator::setAgentPosition(int i,const Vec2T& pos) {
@@ -205,54 +214,60 @@ RVOSimulator::MatT RVOSimulator::getDXDX() const {
 RVOSimulator::MatT RVOSimulator::getDXDV() const {
   return _DXDV;
 }
-void RVOSimulator::debugNeighbor(T scale) {
+void RVOSimulator::debugNeighbor(T scale,T dscale) {
   std::cout << __FUNCTION__ << std::endl;
   while(true) {
     Vec prevPos=Vec::Random(_agentPositions.getMap().size())*scale;
-    Vec pos=Vec::Random(_agentPositions.getMap().size())*scale;
+    Vec pos=prevPos+Vec::Random(_agentPositions.getMap().size())*dscale;
     _hash->buildSpatialHash(mapCV(prevPos),mapCV(pos),_maxRad);
+    std::vector<char> coll,collBF,collRef;
     std::vector<AgentNeighbor> AAss,AAssBF;
     std::vector<AgentObstacleNeighbor> AOss,AOssBF;
     //fast
-    T margin=sqrt(_maxRad*_maxRad*4+_d0)-_maxRad*2;
+    T margin=sqrt(_minRad*_minRad*4+_d0)-_minRad*2;
+    _hash->detectSphereBroad(coll,_agentPositions,_agentRadius,margin);
     _hash->detectSphereBroad([&](AgentNeighbor n)->bool{
       OMP_CRITICAL_
       AAss.push_back(n);
       return true;
     },*_hash,margin);
-    margin=sqrt(_maxRad*_maxRad+_d0)-_maxRad;
+    margin=sqrt(_minRad*_minRad+_d0)-_minRad;
     _hash->detectImplicitShape([&](AgentObstacleNeighbor n)->bool{
       OMP_CRITICAL_
       AOss.push_back(n);
       return true;
     },_bvh,margin);
     //slow
-    margin=sqrt(_maxRad*_maxRad*4+_d0)-_maxRad*2;
+    margin=sqrt(_minRad*_minRad*4+_d0)-_minRad*2;
+    _hash->detectSphereBroadBF(collBF,_agentPositions,_agentRadius,margin);
     _hash->detectSphereBroadBF([&](AgentNeighbor n)->bool{
       OMP_CRITICAL_
       AAssBF.push_back(n);
       return true;
     },*_hash,margin);
-    margin=sqrt(_maxRad*_maxRad+_d0)-_maxRad;
+    margin=sqrt(_minRad*_minRad+_d0)-_minRad;
     _hash->detectImplicitShapeBF([&](AgentObstacleNeighbor n)->bool{
       OMP_CRITICAL_
       AOssBF.push_back(n);
       return true;
     },_bvh,margin);
     //compare
+    ASSERT_MSG(coll==collBF,"coll!=collBF")
+    ASSERT_MSGV(coll.size()==collBF.size(),"coll.size()=%lu!=collBF.size()=%lu",coll.size(),collBF.size())
     ASSERT_MSGV(AAss.size()==AAssBF.size(),"AAss.size()=%lu!=AAssBF.size()=%lu",AAss.size(),AAssBF.size())
     ASSERT_MSGV(AOss.size()==AOssBF.size(),"AOss.size()=%lu!=AOssBF.size()=%lu",AOss.size(),AOssBF.size())
     if(AAss.empty() || AOss.empty())
       continue;
+    collRef.assign(coll.size(),false);
     std::sort(AAss.begin(),AAss.end());
     std::sort(AAssBF.begin(),AAssBF.end());
     for(int i=0; i<(int)AAss.size(); i++) {
-      ASSERT(AAss[i]==AAssBF[i])
+      ASSERT_MSGV(AAss[i]==AAssBF[i],"AAss[%d]!=AAssBF[%d]",i,i)
     }
     std::sort(AOss.begin(),AOss.end());
     std::sort(AOssBF.begin(),AOssBF.end());
     for(int i=0; i<(int)AOss.size(); i++) {
-      ASSERT(AOss[i]==AOssBF[i])
+      ASSERT_MSGV(AOss[i]==AOssBF[i],"AOss[%d]!=AOssBF[%d]",i,i)
     }
     break;
   }
@@ -369,7 +384,7 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Vec4i& nB
   nBarrier.setZero();
   _hash->buildSpatialHash(prevPos,pos,_maxRad,_useHash);
   //inter-agent query
-  T margin=sqrt(_maxRad*_maxRad*4+_d0)-_maxRad*2;
+  T margin=sqrt(_minRad*_minRad*4+_d0)-_minRad*2;
   auto computeEnergyAA=[&](AgentNeighbor n)->bool{
     if(!succ)
       return false;
@@ -386,7 +401,7 @@ bool RVOSimulator::energy(VecCM prevPos,VecCM pos,T* f,Vec* g,SMatT* h,Vec4i& nB
     _hash->detectSphereBroad(computeEnergyAA,*_hash,margin);
   else _hash->detectSphereBroadBF(computeEnergyAA,*_hash,margin);
   //agent-obstacle query
-  margin=sqrt(_maxRad*_maxRad+_d0)-_maxRad;
+  margin=sqrt(_minRad*_minRad+_d0)-_minRad;
   auto computeEnergyAO=[&](AgentObstacleNeighbor n)->bool{
     if(!succ)
       return false;

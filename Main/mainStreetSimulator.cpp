@@ -1,5 +1,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <chrono>
 #include <RVO/RVO.h>
 #include <RVO/RVOVisualizer.h>
 
@@ -47,7 +48,7 @@ int main(int argc,char** argv) {
   rss.resize(rvo.getNrAgent());
   RVOVisualizer::drawRVO(argc,argv,150,rvo,[&]() {
     rvo.updateAgentTargets();
-    clock_t beg=clock();
+    const auto beg=std::chrono::system_clock::now();
     //set target
     int nGroup=rvo.getNrAgent()/2;
     for(int i=0; i<nGroup*2; i++) {
@@ -58,7 +59,7 @@ int main(int argc,char** argv) {
     }
     //optimize
     rvo.optimize(false,false);
-    std::cout << "cost=" << (double)(clock()-beg)/CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "cost=" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-beg).count() << "s" << std::endl;
   });
   return 0;
 }

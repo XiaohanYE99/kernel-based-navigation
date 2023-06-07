@@ -1,11 +1,12 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <chrono>
 #include <RVO/RVO.h>
 #include <RVO/RVOVisualizer.h>
 
 #define maxV 0.5
 //#define CIRCLE
-//#define BLOCK
+#define BLOCK
 //#define DEBUG_BACKWARD
 using namespace RVO;
 
@@ -82,9 +83,9 @@ int main(int argc,char** argv) {
     Mat2XT pos=rvo.getAgentPositions();
     Mat2XT vel=rvo.getAgentVelocities();
 #endif
-    clock_t beg=clock();
+    const auto start=std::chrono::system_clock::now();
     rvo.optimize(false,false);
-    std::cout << "cost=" << (double)(clock()-beg)/CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "cost=" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start).count() << "s" << std::endl;
 #ifdef DEBUG_BACKWARD
     Mat2XT newPos=rvo.getAgentPositions();
     MatT DXDX=rvo.getDXDX(),DXDV=rvo.getDXDV();

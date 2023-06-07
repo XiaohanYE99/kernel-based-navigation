@@ -15,10 +15,11 @@ class SourceSink {
   DECL_MAT_VEC_MAP_TYPES_I
   DECL_MAT_VEC_MAP_TYPES_T
   DECL_MAP_FUNCS
+  SourceSink(T maxVelocity);
   void addSourceSink(const Vec2T& source,const Vec2T& target,const BBox& sink,T rad);
   void removeAgents(RVOSimulator& sim);
   void addAgents(RVOSimulator& sim,T eps=1e-4);
-  void reset(T maxVelocity);
+  void reset();
  private:
   DynamicMat<T> _sourcePos;
   DynamicMat<T> _targetPos;

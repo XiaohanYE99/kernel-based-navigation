@@ -48,6 +48,9 @@ void MultiRVOSimulator::addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T
   for(int i=0; i<(int)_sss.size(); i++)
     _sss[i].addSourceSink(source+Vec2T::Random()*noise,target,BBox(minC,maxC),rad);
 }
+MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions(int id) const {
+  return _sims[id].getAgentPositions();
+}
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentPosition(int i) const {
   ASSERT_NO_SOURCE_SINK
   std::vector<Vec2T> pos;

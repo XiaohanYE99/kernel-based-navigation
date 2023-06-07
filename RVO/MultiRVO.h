@@ -25,8 +25,8 @@ class MultiRVOSimulator {
   void setupSourceSink(T maxVelocity,int maxBatch);
   std::vector<Trajectory> getTrajectories(int id) const;
   std::vector<std::vector<Trajectory>> getAllTrajectories() const;
-  void addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad,T noise=0.);
 #ifdef SWIG
+  void addSourceSink(Eigen::Matrix<double,2,1> source,Eigen::Matrix<double,2,1> target,Eigen::Matrix<double,2,1> minC,Eigen::Matrix<double,2,1> maxC,double rad,double noise=0.);
   Eigen::Matrix<double,2,-1> getAllAgentPositions(int id) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
@@ -37,6 +37,7 @@ class MultiRVOSimulator {
   void setAgentTarget(int i,std::vector<Eigen::Matrix<double,2,1>> target,T maxVelocity);
   int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
 #else
+  void addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad,T noise=0.);
   Mat2XT getAllAgentPositions(int id) const;
   std::vector<Vec2T> getAgentPosition(int i) const;
   std::vector<Vec2T> getAgentVelocity(int i) const;

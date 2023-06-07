@@ -7,6 +7,8 @@
 #include <TinyVisualizer/CompositeShape.h>
 #include <TinyVisualizer/CaptureGIFPlugin.h>
 #include <TinyVisualizer/CameraExportPlugin.h>
+#include <TinyVisualizer/ImGuiPlugin.h>
+#include <imgui/imgui.h>
 
 namespace RVO {
 float COLOR_AGT[3]= {200/255.,143/255., 29/255.};
@@ -266,6 +268,12 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
     drawRVOPosition(sim,agent);
     drawRVOVelocity(sim,vel);
   });
+  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+    ImGui::Begin("Single-RVO Info");
+    ImGui::Text("Simulation(r) %s",step?"started":"stopped");
+    ImGui::Text("Velocity(w) %s",agent->contain(vel)?"showing":"not showing");
+    ImGui::End();
+  })));
   drawer.mainLoop();
 }
 void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
@@ -312,6 +320,13 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
     drawRVOPosition(sim.getSubSimulator(id),agent);
     drawRVOVelocity(sim.getSubSimulator(id),vel);
   });
+  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+    ImGui::Begin("Multi-RVO Info");
+    ImGui::Text("Simulator id(ad): %d",id);
+    ImGui::Text("Simulation(r) %s",step?"started":"stopped");
+    ImGui::Text("Velocity(w) %s",agent->contain(vel)?"showing":"not showing");
+    ImGui::End();
+  })));
   drawer.mainLoop();
 }
 void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
@@ -345,6 +360,11 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Tra
     drawQuads(quads);
     drawRVOPosition(frameId,trajs,sim,agent);
   });
+  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+    ImGui::Begin("Recorded Single-RVO Info");
+    ImGui::Text("Replay(r) %s",step?"started":"stopped");
+    ImGui::End();
+  })));
   drawer.mainLoop();
 }
 void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
@@ -387,6 +407,12 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std
     drawQuads(quads);
     drawRVOPosition(frameId,trajs[id],sim.getSubSimulator(0),agent);
   });
+  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+    ImGui::Begin("Recorded Multi-RVO Info");
+    ImGui::Text("Simulator id(ad): %d",id);
+    ImGui::Text("Replay(r) %s",step?"started":"stopped");
+    ImGui::End();
+  })));
   drawer.mainLoop();
 }
 //convenient functions

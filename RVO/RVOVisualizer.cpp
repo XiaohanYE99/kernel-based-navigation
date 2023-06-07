@@ -243,8 +243,8 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim),lines,quads;
   std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim);
-  agent->addShape(lines=drawLines(lines));
-  agent->addShape(quads=drawQuads(quads));
+  drawer.addShape(lines=drawLines(lines));
+  drawer.addShape(quads=drawQuads(quads));
   drawer.addShape(agent);
   drawer.addCamera2D(ext);
   drawer.clearLight();
@@ -284,8 +284,8 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim.getSubSimulator(0)),lines,quads;
   std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim.getSubSimulator(0));
-  agent->addShape(lines=drawLines(lines));
-  agent->addShape(quads=drawQuads(quads));
+  drawer.addShape(lines=drawLines(lines));
+  drawer.addShape(quads=drawQuads(quads));
   drawer.addShape(agent);
   drawer.addCamera2D(ext);
   drawer.clearLight();
@@ -337,8 +337,8 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Tra
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(frameId,trajs,sim),lines,quads;
-  agent->addShape(lines=drawLines(lines));
-  agent->addShape(quads=drawQuads(quads));
+  drawer.addShape(lines=drawLines(lines));
+  drawer.addShape(quads=drawQuads(quads));
   drawer.addShape(agent);
   drawer.addCamera2D(ext);
   drawer.clearLight();
@@ -375,8 +375,8 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(frameId,trajs[0],sim.getSubSimulator(0)),lines,quads;
-  agent->addShape(lines=drawLines(lines));
-  agent->addShape(quads=drawQuads(quads));
+  drawer.addShape(lines=drawLines(lines));
+  drawer.addShape(quads=drawQuads(quads));
   drawer.addShape(agent);
   drawer.addCamera2D(ext);
   drawer.clearLight();

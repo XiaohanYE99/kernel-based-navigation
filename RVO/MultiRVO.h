@@ -2,6 +2,7 @@
 #define MULTI_RVO_H
 
 #include "RVO.h"
+#include "SourceSink.h"
 
 namespace RVO {
 class MultiRVOSimulator {
@@ -21,6 +22,8 @@ class MultiRVOSimulator {
   std::vector<Vec2T> getObstacle(int i) const;
 #endif
   int getNrAgent() const;
+  void resetSourceSink(T maxVelocity,int maxBatch);
+  void addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad);
 #ifdef SWIG
   std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
@@ -60,6 +63,7 @@ class MultiRVOSimulator {
 #endif
  private:
   std::vector<RVOSimulator> _sims;
+  std::vector<SourceSink> _sss;
 };
 }
 

@@ -14,9 +14,10 @@ void MultiVisibilityGraph::setAgentTargets(const std::vector<Vec2T>& target,T ma
 }
 std::vector<MultiVisibilityGraph::Vec2T> MultiVisibilityGraph::setAgentPositions(const std::vector<Vec2T>& positions) {
   std::vector<Vec2T> ret(_pathVec.size());
+  _minDistance.resize(_pathVec.size());
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_pathVec.size(); i++) {
-    Vec2T dir=getAgentWayPoint(_pathVec[i],positions[i])-positions[i];
+    Vec2T dir=getAgentWayPoint(_pathVec[i],positions[i],_minDistance[i])-positions[i];
     T len=dir.norm();
     if(len>_pathVec[i]._maxVelocity) {
       T coef=_pathVec[i]._maxVelocity/len;
@@ -35,5 +36,8 @@ std::vector<MultiVisibilityGraph::Mat2T> MultiVisibilityGraph::getAgentDVDPs() c
   for(int i=0; i<(int)_pathVec.size(); i++)
     ret[i]=_pathVec[i]._DVDP;
   return ret;
+}
+std::vector<MultiVisibilityGraph::T> MultiVisibilityGraph::getMinDistance() const {
+  return _minDistance;
 }
 }

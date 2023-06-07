@@ -4,10 +4,14 @@
 #include "RVO.h"
 
 namespace RVO {
-struct State {
+struct Trajectory {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  Vec2T _pos,_vel,_rad;
+  Trajectory();
+  bool _terminated;
+  std::vector<Vec2T> _pos;
+  Vec2T _target;
+  T _rad;
 };
 class SourceSink {
  public:
@@ -15,10 +19,12 @@ class SourceSink {
   DECL_MAT_VEC_MAP_TYPES_I
   DECL_MAT_VEC_MAP_TYPES_T
   DECL_MAP_FUNCS
-  SourceSink(T maxVelocity);
+  SourceSink(T maxVelocity,int maxBatch);
+  std::vector<Trajectory> getTrajectories() const;
   void addSourceSink(const Vec2T& source,const Vec2T& target,const BBox& sink,T rad);
-  void removeAgents(RVOSimulator& sim);
   void addAgents(RVOSimulator& sim,T eps=1e-4);
+  void recordAgents(const RVOSimulator& sim);
+  void removeAgents(RVOSimulator& sim);
   void reset();
  private:
   DynamicMat<T> _sourcePos;
@@ -27,8 +33,9 @@ class SourceSink {
   DynamicVec<T> _rad;
   DynamicVec<int> _id;
   T _maxVelocity;
+  int _maxBatch;
   //recorded trajectories
-  std::vector<std::vector<State>> _trajectories;
+  std::vector<Trajectory> _trajectories;
 };
 }
 

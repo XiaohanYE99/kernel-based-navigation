@@ -116,6 +116,8 @@ int RVOSimulator::getAgentId(int i) const {
 }
 void RVOSimulator::removeAgent(int i) {
   int last=_agentPositions.cols()-1;
+  if(_vis)
+    _vis->removeAgent(i,last);
   if(_agentTargets.find(last)!=_agentTargets.end()) {
     _agentTargets[i]=_agentTargets[last];
     _agentTargets.erase(last);
@@ -526,6 +528,8 @@ bool RVOSimulator::energyAO(int aid,const Vec2T& a,const Vec2T o[2],T* f,Vec* g,
   return true;
 }
 bool RVOSimulator::optimizeNewton(bool requireGrad,bool output) {
+  if(_agentPositions.cols()==0)
+    return true;
   updateIdentity();
   VecM XFrom=_agentPositions.getMapV();
   Vec X=XFrom,newX=XFrom;
@@ -620,6 +624,8 @@ bool RVOSimulator::optimizeNewton(bool requireGrad,bool output) {
   return iter<_maxIter && alpha>alphaMin && perturbation<maxPerturbation;
 }
 bool RVOSimulator::optimizeLBFGS(bool requireGrad,bool output) {
+  if(_agentPositions.cols()==0)
+    return true;
   updateIdentity();
   VecM XFrom=_agentPositions.getMapV();
   Vec X=XFrom,pos=XFrom,posPrev,s,y;

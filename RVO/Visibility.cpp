@@ -282,16 +282,22 @@ void VisibilityGraph::setAgentTarget(int i,const Vec2T& target,T maxVelocity) {
   _paths[i]=buildShortestPath(target);
   _paths[i]._maxVelocity=maxVelocity;
 }
+void VisibilityGraph::removeAgent(int i,int last) {
+  if(_paths.find(last)!=_paths.end()) {
+    _paths[i]=_paths[last];
+    _paths.erase(last);
+  }
+}
 int VisibilityGraph::getNrBoundaryPoint() const {
   return (int)_graph.size();
 }
-VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(const ShortestPath& p,const Vec2T& pos) const {
+VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(const ShortestPath& p,const Vec2T& pos,T& minDistance) const {
   const auto& obs=_bvh.getObstacles();
   if(_bvh.visible(pos,p._target))
     return p._target;
   else {
     int minId=-1;
-    T minDistance=std::numeric_limits<double>::max();
+    minDistance=std::numeric_limits<double>::max();
     for(int id:visible(pos)) {
       T distance=(pos-obs[id]->_pos).norm()+p._distance[id];
       if(distance<minDistance) {
@@ -303,18 +309,19 @@ VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(const ShortestPath& p,c
     return obs[minId]->_pos;
   }
 }
-VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(RVOSimulator& rvo,int i) const {
+VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(RVOSimulator& rvo,int i,T& minDistance) const {
   const ShortestPath& p=_paths.find(i)->second;
   Vec2T pos=rvo.getAgentPosition(i);
-  return getAgentWayPoint(p,pos);
+  return getAgentWayPoint(p,pos,minDistance);
 }
 VisibilityGraph::Mat2T VisibilityGraph::getAgentDVDP(int i) const {
   return _paths.find(i)->second._DVDP;
 }
 void VisibilityGraph::updateAgentTargets(RVOSimulator& rvo) {
+  _minDistance.resize(_paths.size());
   for(auto& p:_paths) {
     int i=p.first;
-    Vec2T pos=rvo.getAgentPosition(i),dir=getAgentWayPoint(rvo,i)-pos;
+    Vec2T pos=rvo.getAgentPosition(i),dir=getAgentWayPoint(rvo,i,_minDistance[i])-pos;
     T len=dir.norm();
     if(len>p.second._maxVelocity) {
       T coef=p.second._maxVelocity/len;
@@ -325,5 +332,8 @@ void VisibilityGraph::updateAgentTargets(RVOSimulator& rvo) {
       p.second._DVDP=-Mat2T::Identity();
     }
   }
+}
+std::vector<VisibilityGraph::T> VisibilityGraph::getMinDistance() const {
+  return _minDistance;
 }
 }

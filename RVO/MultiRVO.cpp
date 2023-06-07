@@ -22,6 +22,13 @@ std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getObstacle(int i) cons
 int MultiRVOSimulator::getNrAgent() const {
   return _sims[0].getNrAgent();
 }
+void MultiRVOSimulator::resetSourceSink(T maxVelocity,int maxBatch) {
+  _sss.assign(_sims.size(),SourceSink(maxVelocity,maxBatch));
+}
+void MultiRVOSimulator::addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad) {
+  for(int i=0; i<(int)_sss.size(); i++)
+    _sss[i].addSourceSink(source,target,BBox(minC,maxC),rad);
+}
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentPosition(int i) const {
   std::vector<Vec2T> pos;
   for(auto& sim:_sims)
@@ -102,8 +109,14 @@ const RVOSimulator& MultiRVOSimulator::getSubSimulator(int id) const {
 std::vector<char> MultiRVOSimulator::optimize(bool requireGrad,bool output) {
   std::vector<char> succ(_sims.size());
   OMP_PARALLEL_FOR_
-  for(int id=0; id<(int)_sims.size(); id++)
+  for(int id=0; id<(int)_sims.size(); id++) {
     succ[id]=_sims[id].optimize(requireGrad,output);
+    if(_sss.size()==_sims.size()) {
+      _sss[id].recordAgents(_sims[id]);
+      _sss[id].addAgents(_sims[id]);
+      _sss[id].removeAgents(_sims[id]);
+    }
+  }
   return succ;
 }
 void MultiRVOSimulator::updateAgentTargets() {

@@ -15,10 +15,12 @@ class MultiVisibilityGraph : protected VisibilityGraph {
   void setAgentTargets(const std::vector<Eigen::Matrix<double,2,1>> target,T maxVelocity);
   std::vector<Eigen::Matrix<double,2,1>> setAgentPositions(const std::vector<Eigen::Matrix<double,2,1>> positions);
   std::vector<Eigen::Matrix<double,2,2>> getAgentDVDPs() const;
+  std::vector<double> getMinDistance() const;
 #else
   void setAgentTargets(const std::vector<Vec2T>& target,T maxVelocity);
   std::vector<Vec2T> setAgentPositions(const std::vector<Vec2T>& positions);
   std::vector<Mat2T> getAgentDVDPs() const;
+  std::vector<T> getMinDistance() const;
 #endif
  protected:
   std::vector<ShortestPath> _pathVec;

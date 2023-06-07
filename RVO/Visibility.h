@@ -64,15 +64,18 @@ class VisibilityGraph {
   std::unordered_set<int> visible(const Vec2T& p,int id=-1) const;
   ShortestPath buildShortestPath(const Vec2T& target) const;
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
+  void removeAgent(int i,int last);
   int getNrBoundaryPoint() const;
-  Vec2T getAgentWayPoint(const ShortestPath& p,const Vec2T& pos) const;
-  Vec2T getAgentWayPoint(RVOSimulator& rvo,int i) const;
+  Vec2T getAgentWayPoint(const ShortestPath& p,const Vec2T& pos,T& minDistance) const;
+  Vec2T getAgentWayPoint(RVOSimulator& rvo,int i,T& minDistance) const;
   Mat2T getAgentDVDP(int i) const;
   void updateAgentTargets(RVOSimulator& rvo);
+  std::vector<T> getMinDistance() const;
  protected:
   BoundingVolumeHierarchy _bvh;
   std::vector<std::unordered_set<int>> _graph;
   std::unordered_map<int,ShortestPath> _paths;
+  std::vector<T> _minDistance;
 };
 }
 

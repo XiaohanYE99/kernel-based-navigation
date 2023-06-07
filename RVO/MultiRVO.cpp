@@ -1,13 +1,20 @@
 #include "MultiRVO.h"
+#define ASSERT_SOURCE_SINK ASSERT_MSGV(!_sss.empty(),"When you have not setup SourceSink, you cannot call %s!",__FUNCTION__)
+#define ASSERT_NO_SOURCE_SINK ASSERT_MSGV(_sss.empty(),"When you have setup SourceSink, you cannot call %s because each environment has different number of agents!",__FUNCTION__)
 
 namespace RVO {
 MultiRVOSimulator::MultiRVOSimulator(int batchSize,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash,const std::string& optimizer) {
   for(int i=0; i<batchSize; i++)
     _sims.push_back(RVOSimulator(d0,gTol,coef,timestep,maxIter,radixSort,useHash,optimizer));
+  clearAgent();
 }
 void MultiRVOSimulator::clearAgent() {
-  for(auto& sim:_sims)
-    sim.clearAgent();
+  for(int i=0; i<(int)_sims.size(); i++) {
+    _sims[i].clearAgent();
+    if(!_sss.empty())
+      _sss[i].reset();
+  }
+  _frameId=0;
 }
 void MultiRVOSimulator::clearObstacle() {
   for(auto& sim:_sims)
@@ -22,51 +29,71 @@ std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getObstacle(int i) cons
 int MultiRVOSimulator::getNrAgent() const {
   return _sims[0].getNrAgent();
 }
-void MultiRVOSimulator::resetSourceSink(T maxVelocity,int maxBatch) {
+void MultiRVOSimulator::setupSourceSink(T maxVelocity,int maxBatch) {
   _sss.assign(_sims.size(),SourceSink(maxVelocity,maxBatch));
 }
+std::vector<Trajectory> MultiRVOSimulator::getTrajectories(int id) const {
+  ASSERT_SOURCE_SINK
+  return _sss[id].getTrajectories();
+}
+std::vector<std::vector<Trajectory>> MultiRVOSimulator::getAllTrajectories() const {
+  ASSERT_SOURCE_SINK
+  std::vector<std::vector<Trajectory>> trajs(_sss.size());
+  for(int i=0; i<(int)_sss.size(); i++)
+    trajs[i]=_sss[i].getTrajectories();
+  return trajs;
+}
 void MultiRVOSimulator::addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad) {
+  ASSERT_SOURCE_SINK
   for(int i=0; i<(int)_sss.size(); i++)
     _sss[i].addSourceSink(source,target,BBox(minC,maxC),rad);
 }
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentPosition(int i) const {
+  ASSERT_NO_SOURCE_SINK
   std::vector<Vec2T> pos;
   for(auto& sim:_sims)
     pos.push_back(sim.getAgentPosition(i));
   return pos;
 }
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentVelocity(int i) const {
+  ASSERT_NO_SOURCE_SINK
   std::vector<Vec2T> vel;
   for(auto& sim:_sims)
     vel.push_back(sim.getAgentVelocity(i));
   return vel;
 }
 std::vector<MultiRVOSimulator::Mat2T> MultiRVOSimulator::getAgentDVDP(int i) const {
+  ASSERT_NO_SOURCE_SINK
   std::vector<Mat2T> DVDP;
   for(auto& sim:_sims)
     DVDP.push_back(sim.getAgentDVDP(i));
   return DVDP;
 }
 std::vector<MultiRVOSimulator::T> MultiRVOSimulator::getAgentRadius(int i) const {
+  ASSERT_NO_SOURCE_SINK
   std::vector<T> rad;
   for(auto& sim:_sims)
     rad.push_back(sim.getAgentRadius(i));
   return rad;
 }
 int MultiRVOSimulator::addAgent(std::vector<Vec2T> pos,std::vector<Vec2T> vel,std::vector<T> rad) {
+  ASSERT_NO_SOURCE_SINK
   for(int i=0; i<(int)_sims.size(); i++)
     _sims[i].addAgent(pos[i],vel[i],rad[i]);
   return _sims[0].getNrAgent()-1;
 }
 void MultiRVOSimulator::setAgentPosition(int i,std::vector<Vec2T> pos) {
+  ASSERT_NO_SOURCE_SINK
   for(int id=0; id<(int)_sims.size(); id++)
     _sims[id].setAgentPosition(i,pos[id]);
 }
 void MultiRVOSimulator::setAgentVelocity(int i,std::vector<Vec2T> vel) {
+  ASSERT_NO_SOURCE_SINK
   for(int id=0; id<(int)_sims.size(); id++)
     _sims[id].setAgentVelocity(i,vel[id]);
 }
 void MultiRVOSimulator::setAgentTarget(int i,std::vector<Vec2T> target,T maxVelocity) {
+  ASSERT_NO_SOURCE_SINK
   for(int id=0; id<(int)_sims.size(); id++)
     _sims[id].setAgentTarget(i,target[id],maxVelocity);
 }
@@ -113,10 +140,11 @@ std::vector<char> MultiRVOSimulator::optimize(bool requireGrad,bool output) {
     succ[id]=_sims[id].optimize(requireGrad,output);
     if(_sss.size()==_sims.size()) {
       _sss[id].recordAgents(_sims[id]);
-      _sss[id].addAgents(_sims[id]);
+      _sss[id].addAgents(_frameId,_sims[id]);
       _sss[id].removeAgents(_sims[id]);
     }
   }
+  _frameId++;
   return succ;
 }
 void MultiRVOSimulator::updateAgentTargets() {

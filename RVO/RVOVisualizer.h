@@ -26,7 +26,9 @@ class RVOVisualizer {
   static int getNrLines();
   static void setNrLines(int nr);
 #ifndef SWIG
+  static void drawObstacle(const RVOSimulator& sim,std::shared_ptr<DRAWER::CompositeShape> shapesInput=NULL);
   static std::shared_ptr<DRAWER::CompositeShape> drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<DRAWER::CompositeShape> shapesInput=NULL);
+  static std::shared_ptr<DRAWER::CompositeShape> drawRVOPosition(int frameId,const std::vector<Trajectory>& trajectories,const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput=NULL);
   static std::shared_ptr<DRAWER::MeshShape> drawRVOVelocity(const RVOSimulator& sim,std::shared_ptr<DRAWER::MeshShape> shapesInput=NULL);
   static std::shared_ptr<MeshShape> drawLines(const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const Eigen::Matrix<float,3,1>& color);
   static std::shared_ptr<CompositeShape> drawLines(std::shared_ptr<CompositeShape> linesRef);
@@ -36,11 +38,18 @@ class RVOVisualizer {
                              const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss);
   static void drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb=NULL);
   static void drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb=NULL);
+  static void drawRVO(int argc,char** argv,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb=NULL);
+  static void drawRVO(int argc,char** argv,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb=NULL);
 #endif
+  //convenient functions
   static void drawRVO(float ext,RVOSimulator& sim);
   static void drawRVO(float ext,MultiRVOSimulator& sim);
   static void drawRVO(float ext,RVOSimulator& sim,PythonCallback* cb);
   static void drawRVO(float ext,MultiRVOSimulator& sim,PythonCallback* cb);
+  static void drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim);
+  static void drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim);
+  static void drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,PythonCallback* cb);
+  static void drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,PythonCallback* cb);
 };
 }
 

@@ -119,23 +119,24 @@ class RVOSimulator {
   bool optimizeNewton(bool requireGrad,bool output);
   bool optimizeLBFGS(bool requireGrad,bool output);
   void updateIdentity();
-  std::shared_ptr<VisibilityGraph> _vis;
   std::shared_ptr<SpatialHash> _hash;
   BoundingVolumeHierarchy _bvh;
-  std::unordered_map<int,AgentTarget> _agentTargets;
-  DynamicMat<T> _perfVelocities;
-  DynamicMat<T> _agentPositions;
-  DynamicVec<T> _agentRadius;
-  DynamicVec<int> _agentId;
   Eigen::SimplicialLDLT<SMatT> _sol;
   T _timestep,_gTol,_d0,_coef,_maxRad,_minRad;
   bool _useHash;
   int _maxIter;
   LBFGSUpdate _LBFGSUpdate;
   RVOOptimizer _optimizer;
-  //data
-  MatT _DXDX,_DXDV;
   SMatT _id;
+  //entries of these data must be synchrnoized
+  std::unordered_map<int,AgentTarget> _agentTargets;
+  std::shared_ptr<VisibilityGraph> _vis;
+  DynamicMat<T> _perfVelocities;
+  DynamicMat<T> _agentPositions;
+  DynamicVec<T> _agentRadius;
+  DynamicVec<int> _agentId;
+  //differentiable data
+  MatT _DXDX,_DXDV;
 #endif
 };
 }

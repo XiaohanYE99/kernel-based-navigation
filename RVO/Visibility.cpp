@@ -149,7 +149,7 @@ void PolarIntervals::addInterval(const PolarInterval& I) {
   }
 }
 void PolarIntervals::updateHeap(int ptr) {
-  std::vector<int>::value_type err;
+  std::vector<int>::value_type err=0;
   if(_pointers[ptr].second) {
     //insert interval into heap
     _distance[_pointers[ptr].first]=1;

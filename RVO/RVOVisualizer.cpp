@@ -59,28 +59,30 @@ void RVOVisualizer::setNrLines(int nr) {
   lss.resize(nr);
   linesUpdate=true;
 }
+void RVOVisualizer::drawObstacle(const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapes) {
+  std::shared_ptr<CompositeShape> obss(new CompositeShape);
+  for(int i=0; i<sim.getNrObstacle(); i++) {
+    std::vector<RVOSimulator::Vec2T> pos=sim.getObstacle(i);
+    std::shared_ptr<MeshShape> obs(new MeshShape);
+    //must be convex
+    for(int j=0; j<(int)pos.size()-2; j++) {
+      obs->addIndexSingle(obs->nrVertex()+0);
+      obs->addIndexSingle(obs->nrVertex()+1);
+      obs->addIndexSingle(obs->nrVertex()+2);
+      obs->addVertex(Eigen::Matrix<float,3,1>((float)pos[0  ][0],(float)pos[0  ][1],0));
+      obs->addVertex(Eigen::Matrix<float,3,1>((float)pos[j+1][0],(float)pos[j+1][1],0));
+      obs->addVertex(Eigen::Matrix<float,3,1>((float)pos[j+2][0],(float)pos[j+2][1],0));
+    }
+    obs->setMode(GL_TRIANGLES);
+    obs->setColor(GL_TRIANGLES,COLOR_OBS[0],COLOR_OBS[1],COLOR_OBS[2]);
+    obss->addShape(obs);
+  }
+  shapes->addShape(obss);
+}
 std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput) {
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
-  if(!shapesInput) {
-    std::shared_ptr<CompositeShape> obss(new CompositeShape);
-    for(int i=0; i<sim.getNrObstacle(); i++) {
-      std::vector<RVOSimulator::Vec2T> pos=sim.getObstacle(i);
-      std::shared_ptr<MeshShape> obs(new MeshShape);
-      //must be convex
-      for(int j=0; j<(int)pos.size()-2; j++) {
-        obs->addIndexSingle(obs->nrVertex()+0);
-        obs->addIndexSingle(obs->nrVertex()+1);
-        obs->addIndexSingle(obs->nrVertex()+2);
-        obs->addVertex(Eigen::Matrix<float,3,1>((float)pos[0  ][0],(float)pos[0  ][1],0));
-        obs->addVertex(Eigen::Matrix<float,3,1>((float)pos[j+1][0],(float)pos[j+1][1],0));
-        obs->addVertex(Eigen::Matrix<float,3,1>((float)pos[j+2][0],(float)pos[j+2][1],0));
-      }
-      obs->setMode(GL_TRIANGLES);
-      obs->setColor(GL_TRIANGLES,COLOR_OBS[0],COLOR_OBS[1],COLOR_OBS[2]);
-      obss->addShape(obs);
-    }
-    shapes->addShape(obss);
-  }
+  if(!shapesInput)
+    drawObstacle(sim,shapes);
   //need more children
   while(shapes->numChildren()<sim.getNrAgent()+1) {
     std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
@@ -100,6 +102,35 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulato
     t(1,1)*=sim.getAgentRadius(i);
     t(0,3)=(float)sim.getAgentPosition(i)[0];
     t(1,3)=(float)sim.getAgentPosition(i)[1];
+    std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i+1))->setLocalTransform(t);
+  }
+  return shapes;
+}
+std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(int frameId,const std::vector<Trajectory>& trajectories,const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput) {
+  std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
+  if(!shapesInput)
+    drawObstacle(sim,shapes);
+  std::pair<Trajectory::Mat2XT,Trajectory::Vec> frame=SourceSink::getAgentPositions(frameId,trajectories);
+  int nrAgent=frame.first.cols();
+  //need more children
+  while(shapes->numChildren()<nrAgent+1) {
+    std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
+    std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<float,2,1>::Zero(),1);
+    circle->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    agent->addShape(circle);
+    shapes->addShape(agent);
+  }
+  //less children
+  while(shapes->numChildren()>nrAgent+1)
+    shapes->removeChild(shapes->getChild(shapes->numChildren()-1));
+  //update translation
+  Eigen::Matrix<float,4,4> t;
+  for(int i=0; i<nrAgent; i++) {
+    t=Eigen::Matrix<float,4,4>::Identity();
+    t(0,0)*=frame.second[i];
+    t(1,1)*=frame.second[i];
+    t(0,3)=(float)frame.first.col(i)[0];
+    t(1,3)=(float)frame.first.col(i)[1];
     std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i+1))->setLocalTransform(t);
   }
   return shapes;
@@ -283,6 +314,82 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
   });
   drawer.mainLoop();
 }
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
+  Drawer drawer(argc,argv);
+  if(cb)
+    drawer.setPythonCallback(cb);
+  int frameId=0;
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
+  std::shared_ptr<CompositeShape> agent=drawRVOPosition(frameId,trajs,sim),lines,quads;
+  agent->addShape(lines=drawLines(lines));
+  agent->addShape(quads=drawQuads(quads));
+  drawer.addShape(agent);
+  drawer.addCamera2D(ext);
+  drawer.clearLight();
+  bool step=false;
+  drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
+    if(captured)
+      return;
+    if(key==GLFW_KEY_R && action==GLFW_PRESS)
+      step=!step;
+    if(key==GLFW_KEY_W && action==GLFW_PRESS)
+      frameId=0;
+  });
+  drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
+    if(step) {
+      frameId++;
+      frm();
+    }
+    drawLines(lines);
+    drawQuads(quads);
+    drawRVOPosition(frameId,trajs,sim,agent);
+  });
+  drawer.mainLoop();
+}
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
+  Drawer drawer(argc,argv);
+  if(cb)
+    drawer.setPythonCallback(cb);
+  int frameId=0;
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
+  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
+  std::shared_ptr<CompositeShape> agent=drawRVOPosition(frameId,trajs[0],sim.getSubSimulator(0)),lines,quads;
+  agent->addShape(lines=drawLines(lines));
+  agent->addShape(quads=drawQuads(quads));
+  drawer.addShape(agent);
+  drawer.addCamera2D(ext);
+  drawer.clearLight();
+  bool step=false;
+  int id=0;
+  drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
+    if(captured)
+      return;
+    if(key==GLFW_KEY_R && action==GLFW_PRESS)
+      step=!step;
+    if(key==GLFW_KEY_D && action==GLFW_PRESS) {
+      id=(id+1)%(int)trajs.size();
+      drawRVOPosition(frameId,trajs[id],sim.getSubSimulator(0),agent);
+    }
+    if(key==GLFW_KEY_A && action==GLFW_PRESS) {
+      id=(id+(int)trajs.size()-1)%(int)trajs.size();
+      drawRVOPosition(frameId,trajs[id],sim.getSubSimulator(0),agent);
+    }
+    if(key==GLFW_KEY_W && action==GLFW_PRESS)
+      frameId=0;
+  });
+  drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
+    if(step) {
+      frameId++;
+      frm();
+    }
+    drawLines(lines);
+    drawQuads(quads);
+    drawRVOPosition(frameId,trajs[id],sim.getSubSimulator(0),agent);
+  });
+  drawer.mainLoop();
+}
+//convenient functions
 void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim) {
   RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
     sim.updateAgentTargets();
@@ -300,5 +407,17 @@ void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim,PythonCallback* cb) {
 }
 void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim,PythonCallback* cb) {
   RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {},cb);
+}
+void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim) {
+  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {});
+}
+void RVOVisualizer::drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim) {
+  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {});
+}
+void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,PythonCallback* cb) {
+  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {},cb);
+}
+void RVOVisualizer::drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,PythonCallback* cb) {
+  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {},cb);
 }
 }

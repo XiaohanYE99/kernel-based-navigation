@@ -4,6 +4,24 @@
 namespace RVO {
 //Trajectory
 Trajectory::Trajectory():_terminated(false) {}
+int Trajectory::startFrame() const {
+  return _startFrame;
+}
+int Trajectory::endFrame() const {
+  return _startFrame+(int)_pos.size();
+}
+bool Trajectory::terminated() const {
+  return _terminated;
+}
+std::vector<Trajectory::Vec2T> Trajectory::pos() const {
+  return _pos;
+}
+Trajectory::Vec2T Trajectory::target() const {
+  return _target;
+}
+Trajectory::T Trajectory::rad() const {
+  return _rad;
+}
 //SourceSink
 SourceSink::SourceSink(T maxVelocity,int maxBatch):_maxVelocity(maxVelocity),_maxBatch(maxBatch) {}
 std::vector<Trajectory> SourceSink::getTrajectories() const {
@@ -17,7 +35,26 @@ void SourceSink::addSourceSink(const Vec2T& source,const Vec2T& target,const BBo
   _rad.add(rad);
   _id.add(_sourcePos.cols()-1);
 }
-void SourceSink::addAgents(RVOSimulator& sim,T eps) {
+std::pair<SourceSink::Mat2XT,SourceSink::Vec> SourceSink::getAgentPositions(int frameId,const std::vector<Trajectory>& trajectories) {
+  //count particle
+  int n=0;
+  for(const auto& t:trajectories)
+    if(t._startFrame<=frameId && frameId<t.endFrame())
+      n++;
+  //fill data
+  std::pair<Mat2XT,Vec> ret;
+  ret.first.resize(2,n);
+  ret.second.resize(n);
+  n=0;
+  for(const auto& t:trajectories)
+    if(t._startFrame<=frameId && frameId<t.endFrame()) {
+      ret.first.col(n)=t._pos[frameId-t._startFrame];
+      ret.second[n]=t._rad;
+      n++;
+    }
+  return ret;
+}
+void SourceSink::addAgents(int frameId,RVOSimulator& sim,T eps) {
   std::vector<char> collide;
   VecCM pos=mapV2CV(sim.getAgentPositionsVec());
   if(sim.getNrAgent()>0) {
@@ -38,6 +75,7 @@ void SourceSink::addAgents(RVOSimulator& sim,T eps) {
       //record: initialize trajectory
       if((int)_trajectories.size()<=id)
         _trajectories.resize(id+1,Trajectory());
+      _trajectories[id]._startFrame=frameId;
       _trajectories[id]._terminated=false;
       _trajectories[id]._pos.push_back(p);
       _trajectories[id]._target=t;
@@ -48,7 +86,8 @@ void SourceSink::recordAgents(const RVOSimulator& sim) {
   for(int i=0; i<sim.getNrAgent(); i++) {
     const Vec2T p=sim.getAgentPosition(i);
     const int id=sim.getAgentId(i);
-    _trajectories[id]._pos.push_back(p);
+    if(id>0 && id<(int)_trajectories.size())
+      _trajectories[id]._pos.push_back(p);
   }
 }
 void SourceSink::removeAgents(RVOSimulator& sim) {

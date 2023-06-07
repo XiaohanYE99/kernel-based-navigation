@@ -2,6 +2,7 @@
 %{
 #include <RVO/Pragma.h>
 #include <RVO/RVO.h>
+#include <RVO/SourceSink.h>
 #include <RVO/MultiRVO.h>
 #include <RVO/Visibility.h>
 #include <RVO/MultiVisibility.h>
@@ -40,6 +41,7 @@ typedef double LSCALAR;
 
 %include <RVO/Pragma.h>
 %include <RVO/RVO.h>
+%include <RVO/SourceSink.h>
 %include <RVO/MultiRVO.h>
 %include <RVO/Visibility.h>
 %include <RVO/MultiVisibility.h>

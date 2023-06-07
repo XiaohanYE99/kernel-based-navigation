@@ -23,6 +23,9 @@ typedef double LSCALAR;
 %template(vectorT) std::vector<double>;
 %template(vectorChar) std::vector<char>;
 
+%template(vectorTraj) std::vector<RVO::Trajectory>;
+%template(vectorvectorTraj) std::vector<std::vector<RVO::Trajectory>>;
+
 %eigen_typemaps(Eigen::Matrix<double,2,1>)
 %eigen_typemaps(Eigen::Matrix<double,2,2>)
 %eigen_typemaps(Eigen::Matrix<double,2,-1>)

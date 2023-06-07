@@ -13,8 +13,12 @@ int Trajectory::endFrame() const {
 bool Trajectory::terminated() const {
   return _terminated;
 }
-std::vector<Trajectory::Vec2T> Trajectory::pos() const {
-  return _pos;
+Trajectory::Mat2XT Trajectory::pos() const {
+  Mat2XT ret;
+  ret.resize(2,(int)_pos.size());
+  for(int i=0; i<(int)_pos.size(); i++)
+    ret.col(i)=_pos[i];
+  return ret;
 }
 Trajectory::Vec2T Trajectory::target() const {
   return _target;
@@ -86,7 +90,7 @@ void SourceSink::recordAgents(const RVOSimulator& sim) {
   for(int i=0; i<sim.getNrAgent(); i++) {
     const Vec2T p=sim.getAgentPosition(i);
     const int id=sim.getAgentId(i);
-    if(id>0 && id<(int)_trajectories.size())
+    if(id>=0 && id<(int)_trajectories.size())
       _trajectories[id]._pos.push_back(p);
   }
 }

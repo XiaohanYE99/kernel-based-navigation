@@ -13,11 +13,11 @@ struct Trajectory {
   int endFrame() const;
   bool terminated() const;
 #ifdef SWIG
-  std::vector<Eigen::Matrix<double,2,1>> pos() const;
+  Eigen::Matrix<double,2,-1> pos() const;
   Eigen::Matrix<double,2,1> target() const;
   double rad() const;
 #else
-  std::vector<Vec2T> pos() const;
+  Mat2XT pos() const;
   Vec2T target() const;
   T rad() const;
 #endif

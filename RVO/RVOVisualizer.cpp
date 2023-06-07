@@ -62,6 +62,7 @@ void RVOVisualizer::setNrLines(int nr) {
 std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulator& sim,std::shared_ptr<CompositeShape> shapesInput) {
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
   if(!shapesInput) {
+    std::shared_ptr<CompositeShape> obss(new CompositeShape);
     for(int i=0; i<sim.getNrObstacle(); i++) {
       std::vector<RVOSimulator::Vec2T> pos=sim.getObstacle(i);
       std::shared_ptr<MeshShape> obs(new MeshShape);
@@ -76,8 +77,9 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulato
       }
       obs->setMode(GL_TRIANGLES);
       obs->setColor(GL_TRIANGLES,COLOR_OBS[0],COLOR_OBS[1],COLOR_OBS[2]);
-      shapes->addShape(obs);
+      obss->addShape(obs);
     }
+    shapes->addShape(obss);
   }
   //need more children
   while(shapes->numChildren()<sim.getNrAgent()+1) {

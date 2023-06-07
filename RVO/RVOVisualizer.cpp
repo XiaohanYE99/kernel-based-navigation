@@ -255,9 +255,9 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
     if(key==GLFW_KEY_R && action==GLFW_PRESS)
       step=!step;
     if(key==GLFW_KEY_W && action==GLFW_PRESS) {
-      if(agent->contain(vel))
-        agent->removeChild(vel);
-      else agent->addShape(vel);
+      if(drawer.contain(vel))
+        drawer.removeShape(vel);
+      else drawer.addShape(vel);
     }
   });
   drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
@@ -271,7 +271,7 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
   drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
     ImGui::Begin("Single-RVO Info");
     ImGui::Text("Simulation(r) %s",step?"started":"stopped");
-    ImGui::Text("Velocity(w) %s",agent->contain(vel)?"showing":"not showing");
+    ImGui::Text("Velocity(w) %s",drawer.contain(vel)?"showing":"not showing");
     ImGui::End();
   })));
   drawer.mainLoop();
@@ -307,9 +307,9 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
       drawRVOVelocity(sim.getSubSimulator(id),vel);
     }
     if(key==GLFW_KEY_W && action==GLFW_PRESS) {
-      if(agent->contain(vel))
-        agent->removeChild(vel);
-      else agent->addShape(vel);
+      if(drawer.contain(vel))
+        drawer.removeShape(vel);
+      else drawer.addShape(vel);
     }
   });
   drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
@@ -322,9 +322,9 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
   });
   drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
     ImGui::Begin("Multi-RVO Info");
-    ImGui::Text("Simulator id(ad): %d",id);
+    ImGui::Text("SimulatorID(ad): %d",id);
     ImGui::Text("Simulation(r) %s",step?"started":"stopped");
-    ImGui::Text("Velocity(w) %s",agent->contain(vel)?"showing":"not showing");
+    ImGui::Text("Velocity(w) %s",drawer.contain(vel)?"showing":"not showing");
     ImGui::End();
   })));
   drawer.mainLoop();
@@ -409,7 +409,7 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std
   });
   drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
     ImGui::Begin("Recorded Multi-RVO Info");
-    ImGui::Text("Simulator id(ad): %d",id);
+    ImGui::Text("SimulatorID(ad): %d",id);
     ImGui::Text("Replay(r) %s",step?"started":"stopped");
     ImGui::End();
   })));

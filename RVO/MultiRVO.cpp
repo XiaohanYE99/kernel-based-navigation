@@ -43,10 +43,10 @@ std::vector<std::vector<Trajectory>> MultiRVOSimulator::getAllTrajectories() con
     trajs[i]=_sss[i].getTrajectories();
   return trajs;
 }
-void MultiRVOSimulator::addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad) {
+void MultiRVOSimulator::addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad,T noise) {
   ASSERT_SOURCE_SINK
   for(int i=0; i<(int)_sss.size(); i++)
-    _sss[i].addSourceSink(source,target,BBox(minC,maxC),rad);
+    _sss[i].addSourceSink(source+Vec2T::Random()*noise,target,BBox(minC,maxC),rad);
 }
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentPosition(int i) const {
   ASSERT_NO_SOURCE_SINK

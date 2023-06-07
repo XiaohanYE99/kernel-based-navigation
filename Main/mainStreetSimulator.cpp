@@ -59,7 +59,7 @@ int main(int argc,char** argv) {
     }
     //optimize
     rvo.optimize(false,false);
-    std::cout << "cost=" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-beg).count() << "s" << std::endl;
+    std::cout << "cost=" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()-beg).count() << "ms" << std::endl;
   });
   return 0;
 }

@@ -85,7 +85,7 @@ int main(int argc,char** argv) {
 #endif
     const auto start=std::chrono::system_clock::now();
     rvo.optimize(false,false);
-    std::cout << "cost=" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start).count() << "s" << std::endl;
+    std::cout << "cost=" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()-start).count() << "ms" << std::endl;
 #ifdef DEBUG_BACKWARD
     Mat2XT newPos=rvo.getAgentPositions();
     MatT DXDX=rvo.getDXDX(),DXDV=rvo.getDXDV();

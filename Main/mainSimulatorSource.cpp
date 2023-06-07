@@ -23,15 +23,15 @@ int main(int argc,char** argv) {
   rvo.addObstacle({Vec2T(-10,-10),Vec2T(10,-10),Vec2T(10,10),Vec2T(-10,10)});
   rvo.buildVisibility();
   //run
-  int frameId=0;
-  RVOVisualizer::drawRVO(argc,argv,150,rvo,[&]() {
+  for(int frameId=0; frameId<1000; frameId++) {
     rvo.updateAgentTargets();
     const auto beg=std::chrono::system_clock::now();
     rvo.optimize(false,false);
     ss.recordAgents(rvo);
-    ss.addAgents(frameId++,rvo);
+    ss.addAgents(frameId,rvo);
     ss.removeAgents(rvo);
-    std::cout << "cost=" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-beg).count() << "s" << std::endl;
-  });
+    std::cout << "frame=" << frameId << " cost=" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()-beg).count() << "ms" << std::endl;
+  }
+  RVOVisualizer::drawRVO(argc,argv,150,ss.getTrajectories(),rvo,[&]() {});
   return 0;
 }

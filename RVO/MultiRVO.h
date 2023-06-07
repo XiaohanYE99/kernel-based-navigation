@@ -27,7 +27,9 @@ class MultiRVOSimulator {
   std::vector<std::vector<Trajectory>> getAllTrajectories() const;
 #ifdef SWIG
   void addSourceSink(Eigen::Matrix<double,2,1> source,Eigen::Matrix<double,2,1> target,Eigen::Matrix<double,2,1> minC,Eigen::Matrix<double,2,1> maxC,double rad,double noise=0.);
+  void setAllAgentVelocities(int id,Eigen::Matrix<double,2,-1> vel);
   Eigen::Matrix<double,2,-1> getAllAgentPositions(int id) const;
+  Eigen::Matrix<double,2,-1> getAllAgentTargets(int id) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
   std::vector<Eigen::Matrix<double,2,2>> getAgentDVDP(int i) const;
@@ -38,7 +40,9 @@ class MultiRVOSimulator {
   int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
 #else
   void addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad,T noise=0.);
+  void setAllAgentVelocities(int id,Mat2XT vel);
   Mat2XT getAllAgentPositions(int id) const;
+  Mat2XT getAllAgentTargets(int id) const;
   std::vector<Vec2T> getAgentPosition(int i) const;
   std::vector<Vec2T> getAgentVelocity(int i) const;
   std::vector<Mat2T> getAgentDVDP(int i) const;

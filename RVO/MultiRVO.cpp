@@ -48,8 +48,15 @@ void MultiRVOSimulator::addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T
   for(int i=0; i<(int)_sss.size(); i++)
     _sss[i].addSourceSink(source+Vec2T::Random()*noise,target,BBox(minC,maxC),rad);
 }
+void MultiRVOSimulator::setAllAgentVelocities(int id,Mat2XT vel) {
+  for(int c=0; c<vel.cols(); c++)
+    _sims[id].setAgentVelocity(c,vel.col(c));
+}
 MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions(int id) const {
   return _sims[id].getAgentPositions();
+}
+MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentTargets(int id) const {
+  return _sims[id].getAgentTargets();
 }
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentPosition(int i) const {
   ASSERT_NO_SOURCE_SINK

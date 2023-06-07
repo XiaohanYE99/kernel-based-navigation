@@ -49,6 +49,7 @@ class RVOSimulator {
   VecM getAgentPositionsVec();
   Mat2XTM getAgentPositions();
   Mat2XTM getAgentVelocities();
+  Mat2XT getAgentTargets() const;
   VecCM getAgentRadius() const;
   VeciCM getAgentId() const;
 #endif

@@ -69,8 +69,8 @@ void SourceSink::addAgents(int frameId,RVOSimulator& sim,T eps) {
       const int id=_id.getCMap()[i];
       if(id>=_maxBatch*_sourcePos.cols())
         continue;
-      sim.addAgent(p,Vec2T::Zero(),r,id);
-      sim.setAgentTarget(sim.getNrAgent()-1,t,_maxVelocity);
+      int aid=sim.addAgent(p,Vec2T::Zero(),r,id);
+      sim.setAgentTarget(aid,t,_maxVelocity);
       _id.getMap()[i]+=_sourcePos.cols();
       //record: initialize trajectory
       if((int)_trajectories.size()<=id)

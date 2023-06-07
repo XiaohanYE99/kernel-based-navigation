@@ -82,6 +82,12 @@ RVOSimulator::Mat2XTM RVOSimulator::getAgentPositions() {
 RVOSimulator::Mat2XTM RVOSimulator::getAgentVelocities() {
   return _perfVelocities.getMap();
 }
+RVOSimulator::Mat2XT RVOSimulator::getAgentTargets() const {
+  Mat2XT targets=Mat2XT::Zero(2,_agentTargets.size());
+  for(const auto& t:_agentTargets)
+    targets.col(t.first)=t.second._target;
+  return targets;
+}
 std::vector<RVOSimulator::Vec2T> RVOSimulator::getObstacle(int i) const {
   return _bvh.getObstacle(i);
 }

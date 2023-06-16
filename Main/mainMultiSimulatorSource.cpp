@@ -2,6 +2,7 @@
 #include <cmath>
 #include <RVO/MultiRVO.h>
 #include <RVO/RVOVisualizer.h>
+#include <chrono>
 
 #define maxV 0.5
 //#define CIRCLE

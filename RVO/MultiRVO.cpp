@@ -98,7 +98,7 @@ MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentBatchTargets() {
   tar.resize(2,_offA.back());
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
-    tar.block(0,_offA[i],2,_nrA[i+1])=_sims[i].getAgentPositions();
+    tar.block(0,_offA[i],2,_nrA[i+1])=_sims[i].getAgentTargets();
   return tar;
 }
 MultiRVOSimulator::Veci MultiRVOSimulator::getAllAgentBatchIds() {

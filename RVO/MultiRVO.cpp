@@ -1,4 +1,5 @@
 #include "MultiRVO.h"
+#include "Scan.h"
 #define ASSERT_SOURCE_SINK ASSERT_MSGV(!_sss.empty(),"When you have not setup SourceSink, you cannot call %s!",__FUNCTION__)
 #define ASSERT_NO_SOURCE_SINK ASSERT_MSGV(_sss.empty(),"When you have setup SourceSink, you cannot call %s because each environment has different number of agents!",__FUNCTION__)
 
@@ -52,11 +53,67 @@ void MultiRVOSimulator::setAllAgentVelocities(int id,Mat2XT vel) {
   for(int c=0; c<vel.cols(); c++)
     _sims[id].setAgentVelocity(c,vel.col(c));
 }
+void MultiRVOSimulator::setAllAgentVelocities(Mat2XT vel) {
+  _nrA.assign(_sims.size()+1,0);
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    _nrA[i+1]=_sims[i+1].getNrAgent();
+  //scan to get offset
+  omp_scan_add(_nrA,_offA);
+  //set velocities
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    _sims[i].getAgentVelocities()=vel.block(0,_offA[i],2,_nrA[i+1]);
+}
 MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions(int id) const {
   return _sims[id].getAgentPositions();
 }
+MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions() {
+  _nrA.assign(_sims.size()+1,0);
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    _nrA[i+1]=_sims[i+1].getNrAgent();
+  //scan to get offset
+  omp_scan_add(_nrA,_offA);
+  //set positions
+  Mat2XT pos;
+  pos.resize(2,_offA.back());
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    pos.block(0,_offA[i],2,_nrA[i+1])=_sims[i].getAgentPositions();
+  return pos;
+}
 MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentTargets(int id) const {
   return _sims[id].getAgentTargets();
+}
+MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentTargets() {
+  _nrA.assign(_sims.size()+1,0);
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    _nrA[i+1]=_sims[i+1].getNrAgent();
+  //scan to get offset
+  omp_scan_add(_nrA,_offA);
+  //set positions
+  Mat2XT tar;
+  tar.resize(2,_offA.back());
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    tar.block(0,_offA[i],2,_nrA[i+1])=_sims[i].getAgentPositions();
+  return tar;
+}
+MultiRVOSimulator::Veci MultiRVOSimulator::getAllAgentBatchIds() {
+  _nrA.assign(_sims.size()+1,0);
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    _nrA[i+1]=_sims[i+1].getNrAgent();
+  //scan to get offset
+  omp_scan_add(_nrA,_offA);
+  //set ids
+  Veci ids(_offA.back());
+  OMP_PARALLEL_FOR_
+  for(int i=0; i<(int)_sims.size(); i++)
+    ids.block(0,_offA[i],2,_nrA[i+1]).setConstant(i);
+  return ids;
 }
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentPosition(int i) const {
   ASSERT_NO_SOURCE_SINK

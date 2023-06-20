@@ -8,6 +8,7 @@ namespace RVO {
 class MultiRVOSimulator {
  public:
   typedef LSCALAR T;
+  DECL_MAT_VEC_MAP_TYPES_I
   DECL_MAT_VEC_MAP_TYPES_T
 #ifndef SWIG
   DECL_MAP_FUNCS
@@ -28,8 +29,11 @@ class MultiRVOSimulator {
 #ifdef SWIG
   void addSourceSink(Eigen::Matrix<double,2,1> source,Eigen::Matrix<double,2,1> target,Eigen::Matrix<double,2,1> minC,Eigen::Matrix<double,2,1> maxC,double rad,double noise=0.);
   void setAllAgentVelocities(int id,Eigen::Matrix<double,2,-1> vel);
+  void setAllAgentVelocities(Eigen::Matrix<double,2,-1> vel);
   Eigen::Matrix<double,2,-1> getAllAgentPositions(int id) const;
+  Eigen::Matrix<double,2,-1> getAllAgentPositions();
   Eigen::Matrix<double,2,-1> getAllAgentTargets(int id) const;
+  Eigen::Matrix<double,2,-1> getAllAgentTargets();
   std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
   std::vector<Eigen::Matrix<double,2,2>> getAgentDVDP(int i) const;
@@ -41,8 +45,12 @@ class MultiRVOSimulator {
 #else
   void addSourceSink(Vec2T source,Vec2T target,Vec2T minC,Vec2T maxC,T rad,T noise=0.);
   void setAllAgentVelocities(int id,Mat2XT vel);
+  void setAllAgentVelocities(Mat2XT vel);
   Mat2XT getAllAgentPositions(int id) const;
+  Mat2XT getAllAgentPositions();
   Mat2XT getAllAgentTargets(int id) const;
+  Mat2XT getAllAgentTargets();
+  Veci getAllAgentBatchIds();
   std::vector<Vec2T> getAgentPosition(int i) const;
   std::vector<Vec2T> getAgentVelocity(int i) const;
   std::vector<Mat2T> getAgentDVDP(int i) const;
@@ -74,6 +82,8 @@ class MultiRVOSimulator {
   std::vector<RVOSimulator> _sims;
   std::vector<SourceSink> _sss;
   int _frameId;
+  //temporary
+  std::vector<int> _nrA,_offA;
 };
 }
 

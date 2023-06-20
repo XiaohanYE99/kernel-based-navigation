@@ -53,7 +53,7 @@ void MultiRVOSimulator::setAllAgentVelocities(int id,Mat2XT vel) {
   for(int c=0; c<vel.cols(); c++)
     _sims[id].setAgentVelocity(c,vel.col(c));
 }
-void MultiRVOSimulator::setAllAgentVelocities(Mat2XT vel) {
+void MultiRVOSimulator::setAllAgentBatchVelocities(Mat2XT vel) {
   _nrA.assign(_sims.size()+1,0);
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
@@ -68,7 +68,7 @@ void MultiRVOSimulator::setAllAgentVelocities(Mat2XT vel) {
 MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions(int id) const {
   return _sims[id].getAgentPositions();
 }
-MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions() {
+MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentBatchPositions() {
   _nrA.assign(_sims.size()+1,0);
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
@@ -86,7 +86,7 @@ MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions() {
 MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentTargets(int id) const {
   return _sims[id].getAgentTargets();
 }
-MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentTargets() {
+MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentBatchTargets() {
   _nrA.assign(_sims.size()+1,0);
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)

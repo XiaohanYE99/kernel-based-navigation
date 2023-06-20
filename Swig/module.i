@@ -42,6 +42,8 @@ typedef double LSCALAR;
 %eigen_typemaps(Eigen::Matrix<float,-1,-1>)
 %eigen_typemaps(Eigen::Matrix<float,-1,1>)
 
+%eigen_typemaps(Eigen::Matrix<int,-1,1>)
+
 %include <RVO/Pragma.h>
 %include <RVO/RVO.h>
 %include <RVO/SourceSink.h>

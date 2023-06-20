@@ -57,7 +57,7 @@ void MultiRVOSimulator::setAllAgentVelocities(Mat2XT vel) {
   _nrA.assign(_sims.size()+1,0);
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
-    _nrA[i+1]=_sims[i+1].getNrAgent();
+    _nrA[i+1]=_sims[i].getNrAgent();
   //scan to get offset
   omp_scan_add(_nrA,_offA);
   //set velocities
@@ -72,7 +72,7 @@ MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentPositions() {
   _nrA.assign(_sims.size()+1,0);
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
-    _nrA[i+1]=_sims[i+1].getNrAgent();
+    _nrA[i+1]=_sims[i].getNrAgent();
   //scan to get offset
   omp_scan_add(_nrA,_offA);
   //set positions
@@ -90,7 +90,7 @@ MultiRVOSimulator::Mat2XT MultiRVOSimulator::getAllAgentTargets() {
   _nrA.assign(_sims.size()+1,0);
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
-    _nrA[i+1]=_sims[i+1].getNrAgent();
+    _nrA[i+1]=_sims[i].getNrAgent();
   //scan to get offset
   omp_scan_add(_nrA,_offA);
   //set positions
@@ -105,14 +105,15 @@ MultiRVOSimulator::Veci MultiRVOSimulator::getAllAgentBatchIds() {
   _nrA.assign(_sims.size()+1,0);
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
-    _nrA[i+1]=_sims[i+1].getNrAgent();
+    _nrA[i+1]=_sims[i].getNrAgent();
   //scan to get offset
   omp_scan_add(_nrA,_offA);
   //set ids
-  Veci ids(_offA.back());
+  Veci ids;
+  ids.resize(_offA.back());
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_sims.size(); i++)
-    ids.block(0,_offA[i],2,_nrA[i+1]).setConstant(i);
+    ids.segment(_offA[i],_nrA[i+1]).setConstant(i);
   return ids;
 }
 std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getAgentPosition(int i) const {

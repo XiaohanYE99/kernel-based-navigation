@@ -34,6 +34,7 @@ class MultiRVOSimulator {
   Eigen::Matrix<double,2,-1> getAllAgentPositions();
   Eigen::Matrix<double,2,-1> getAllAgentTargets(int id) const;
   Eigen::Matrix<double,2,-1> getAllAgentTargets();
+  Eigen::Matrix<int,-1,1> getAllAgentBatchIds();
   std::vector<Eigen::Matrix<double,2,1>> getAgentPosition(int i) const;
   std::vector<Eigen::Matrix<double,2,1>> getAgentVelocity(int i) const;
   std::vector<Eigen::Matrix<double,2,2>> getAgentDVDP(int i) const;

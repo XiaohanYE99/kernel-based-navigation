@@ -220,6 +220,11 @@ void MultiRVOSimulator::updateAgentTargets() {
   for(int id=0; id<(int)_sims.size(); id++)
     _sims[id].updateAgentTargets();
 }
+void MultiRVOSimulator::reset() {
+  _sims.clear();
+  _sss.clear();
+  _frameId=0;
+}
 std::vector<MultiRVOSimulator::MatT> MultiRVOSimulator::getDXDX() const {
   std::vector<MatT> ret;
   for(auto& sim:_sims)

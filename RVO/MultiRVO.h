@@ -72,6 +72,7 @@ class MultiRVOSimulator {
   const RVOSimulator& getSubSimulator(int id) const;
   std::vector<char> optimize(bool requireGrad,bool output);
   void updateAgentTargets();
+  void reset();
 #ifdef SWIG
   std::vector<Eigen::Matrix<double,-1,-1>> getDXDX() const;
   std::vector<Eigen::Matrix<double,-1,-1>> getDXDV() const;

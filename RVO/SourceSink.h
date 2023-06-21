@@ -7,11 +7,14 @@ namespace RVO {
 struct Trajectory {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  friend class SourceSink;
   Trajectory();
+  Trajectory(int frameId,const Vec2T& target,T r);
+  void addPos(const Vec2T& pos);
+  Vec2T pos(int frameId) const;
   int startFrame() const;
   int endFrame() const;
   bool terminated() const;
+  void terminate();
 #ifdef SWIG
   Eigen::Matrix<double,2,-1> pos() const;
   Eigen::Matrix<double,2,1> target() const;

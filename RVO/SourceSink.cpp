@@ -4,6 +4,13 @@
 namespace RVO {
 //Trajectory
 Trajectory::Trajectory():_terminated(false) {}
+Trajectory::Trajectory(int frameId,const Vec2T& target,T r):_startFrame(frameId),_terminated(false),_target(target),_rad(r) {}
+void Trajectory::addPos(const Vec2T& pos) {
+  _pos.push_back(pos);
+}
+Trajectory::Vec2T Trajectory::pos(int frameId) const {
+  return _pos[frameId-_startFrame];
+}
 int Trajectory::startFrame() const {
   return _startFrame;
 }
@@ -12,6 +19,9 @@ int Trajectory::endFrame() const {
 }
 bool Trajectory::terminated() const {
   return _terminated;
+}
+void Trajectory::terminate() {
+  _terminated=true;
 }
 Trajectory::Mat2XT Trajectory::pos() const {
   Mat2XT ret;
@@ -43,7 +53,7 @@ std::pair<SourceSink::Mat2XT,SourceSink::Vec> SourceSink::getAgentPositions(int 
   //count particle
   int n=0;
   for(const auto& t:trajectories)
-    if(t._startFrame<=frameId && frameId<t.endFrame())
+    if(t.startFrame()<=frameId && frameId<t.endFrame())
       n++;
   //fill data
   std::pair<Mat2XT,Vec> ret;
@@ -51,9 +61,9 @@ std::pair<SourceSink::Mat2XT,SourceSink::Vec> SourceSink::getAgentPositions(int 
   ret.second.resize(n);
   n=0;
   for(const auto& t:trajectories)
-    if(t._startFrame<=frameId && frameId<t.endFrame()) {
-      ret.first.col(n)=t._pos[frameId-t._startFrame];
-      ret.second[n]=t._rad;
+    if(t.startFrame()<=frameId && frameId<t.endFrame()) {
+      ret.first.col(n)=t.pos(frameId);
+      ret.second[n]=t.rad();
       n++;
     }
   return ret;
@@ -79,11 +89,8 @@ void SourceSink::addAgents(int frameId,RVOSimulator& sim,T eps) {
       //record: initialize trajectory
       if((int)_trajectories.size()<=id)
         _trajectories.resize(id+1,Trajectory());
-      _trajectories[id]._startFrame=frameId;
-      _trajectories[id]._terminated=false;
-      _trajectories[id]._pos.push_back(p);
-      _trajectories[id]._target=t;
-      _trajectories[id]._rad=r;
+      _trajectories[id]=Trajectory(frameId,t,r);
+      _trajectories[id].addPos(p);
     }
 }
 void SourceSink::recordAgents(const RVOSimulator& sim) {
@@ -91,7 +98,7 @@ void SourceSink::recordAgents(const RVOSimulator& sim) {
     const Vec2T p=sim.getAgentPosition(i);
     const int id=sim.getAgentId(i);
     if(id>=0 && id<(int)_trajectories.size())
-      _trajectories[id]._pos.push_back(p);
+      _trajectories[id].addPos(p);
   }
 }
 void SourceSink::removeAgents(RVOSimulator& sim) {
@@ -102,7 +109,7 @@ void SourceSink::removeAgents(RVOSimulator& sim) {
     const Vec2T minC=_sinkRegion.getCMap().col(idS*2+0);
     const Vec2T maxC=_sinkRegion.getCMap().col(idS*2+1);
     if((p.array()>=minC.array()).all() && (p.array()<=maxC.array()).all()) {
-      _trajectories[id]._terminated=true;
+      _trajectories[id].terminate();
       sim.removeAgent(i);
     } else i++;
   }

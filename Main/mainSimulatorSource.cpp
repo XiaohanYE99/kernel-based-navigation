@@ -14,7 +14,7 @@ using namespace RVO;
 int main(int argc,char** argv) {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
-  SourceSink ss(1,10);
+  SourceSink ss(1,10,true);
   ss.addSourceSink(Vec2T(120,120),Vec2T(-120,-120),BBox(Vec2T(-130,-130),Vec2T(-110,-110)),4);
   ss.addSourceSink(Vec2T(-120,-120),Vec2T(120,120),BBox(Vec2T(110,110),Vec2T(130,130)),5);
   ss.addSourceSink(Vec2T(-120,120),Vec2T(120,-120),BBox(Vec2T(110,-130),Vec2T(130,-110)),4);

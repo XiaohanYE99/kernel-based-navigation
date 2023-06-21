@@ -30,8 +30,8 @@ std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getObstacle(int i) cons
 int MultiRVOSimulator::getNrAgent() const {
   return _sims[0].getNrAgent();
 }
-void MultiRVOSimulator::setupSourceSink(T maxVelocity,int maxBatch) {
-  _sss.assign(_sims.size(),SourceSink(maxVelocity,maxBatch));
+void MultiRVOSimulator::setupSourceSink(T maxVelocity,int maxBatch,bool recordFull) {
+  _sss.assign(_sims.size(),SourceSink(maxVelocity,maxBatch,recordFull));
 }
 std::vector<Trajectory> MultiRVOSimulator::getTrajectories(int id) const {
   ASSERT_SOURCE_SINK

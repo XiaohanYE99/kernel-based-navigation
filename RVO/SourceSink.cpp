@@ -3,19 +3,17 @@
 
 namespace RVO {
 //Trajectory
-Trajectory::Trajectory():_terminated(false) {}
-Trajectory::Trajectory(int frameId,const Vec2T& target,T r):_startFrame(frameId),_terminated(false),_target(target),_rad(r) {}
-void Trajectory::addPos(const Vec2T& pos) {
-  _pos.push_back(pos);
-}
-Trajectory::Vec2T Trajectory::pos(int frameId) const {
-  return _pos[frameId-_startFrame];
-}
+Trajectory::Trajectory():_endFrame(-1),_startFrame(-1),_terminated(false),_recordFull(true) {}
+Trajectory::Trajectory(bool recordFull,int frameId,const Vec2T& target,T r)
+  :_endFrame(frameId),_startFrame(frameId),_terminated(false),_recordFull(recordFull),_target(target),_rad(r) {}
 int Trajectory::startFrame() const {
   return _startFrame;
 }
 int Trajectory::endFrame() const {
-  return _startFrame+(int)_pos.size();
+  return _endFrame;
+}
+bool Trajectory::isFullTrajectory() const {
+  return _recordFull;
 }
 bool Trajectory::terminated() const {
   return _terminated;
@@ -23,12 +21,38 @@ bool Trajectory::terminated() const {
 void Trajectory::terminate() {
   _terminated=true;
 }
+void Trajectory::addPos(const Vec2T& pos) {
+  if(_recordFull) {
+    _fullPos.push_back(pos);
+    _endFrame++;
+  } else {
+    if(_endFrame==_startFrame)
+      _startEndPos.col(0)=pos;
+    _startEndPos.col(1)=pos;
+    _endFrame++;
+  }
+}
+Trajectory::Vec2T Trajectory::pos(int frameId) const {
+  if(_recordFull) {
+    ASSERT_MSGV(frameId>=_startFrame && frameId<_endFrame,
+                "FullTrajectory frameId(%d) out of the range of [%d,%d)!",frameId,_startFrame,_endFrame)
+    return _fullPos[frameId-_startFrame];
+  } else {
+    ASSERT_MSGV(frameId==_startFrame || frameId==_endFrame-1,
+                "StartEndTrajectory frameId(%d) out of the range of %d/%d-1!",frameId,_startFrame,_endFrame)
+    if(frameId==_startFrame)
+      return _startEndPos.col(0);
+    else return _startEndPos.col(1);
+  }
+}
 Trajectory::Mat2XT Trajectory::pos() const {
-  Mat2XT ret;
-  ret.resize(2,(int)_pos.size());
-  for(int i=0; i<(int)_pos.size(); i++)
-    ret.col(i)=_pos[i];
-  return ret;
+  if(_recordFull) {
+    Mat2XT ret;
+    ret.resize(2,(int)_fullPos.size());
+    for(int i=0; i<(int)_fullPos.size(); i++)
+      ret.col(i)=_fullPos[i];
+    return ret;
+  } else return _startEndPos;
 }
 Trajectory::Vec2T Trajectory::target() const {
   return _target;
@@ -37,7 +61,7 @@ Trajectory::T Trajectory::rad() const {
   return _rad;
 }
 //SourceSink
-SourceSink::SourceSink(T maxVelocity,int maxBatch):_maxVelocity(maxVelocity),_maxBatch(maxBatch) {}
+SourceSink::SourceSink(T maxVelocity,int maxBatch,bool recordFull):_maxVelocity(maxVelocity),_maxBatch(maxBatch),_recordFull(recordFull) {}
 std::vector<Trajectory> SourceSink::getTrajectories() const {
   return _trajectories;
 }
@@ -89,7 +113,7 @@ void SourceSink::addAgents(int frameId,RVOSimulator& sim,T eps) {
       //record: initialize trajectory
       if((int)_trajectories.size()<=id)
         _trajectories.resize(id+1,Trajectory());
-      _trajectories[id]=Trajectory(frameId,t,r);
+      _trajectories[id]=Trajectory(_recordFull,frameId,t,r);
       _trajectories[id].addPos(p);
     }
 }

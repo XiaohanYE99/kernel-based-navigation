@@ -23,7 +23,7 @@ class MultiRVOSimulator {
   std::vector<Vec2T> getObstacle(int i) const;
 #endif
   int getNrAgent() const;
-  void setupSourceSink(T maxVelocity,int maxBatch);
+  void setupSourceSink(T maxVelocity,int maxBatch,bool recordFull);
   std::vector<Trajectory> getTrajectories(int id) const;
   std::vector<std::vector<Trajectory>> getAllTrajectories() const;
 #ifdef SWIG

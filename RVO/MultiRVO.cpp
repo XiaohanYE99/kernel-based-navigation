@@ -21,6 +21,9 @@ void MultiRVOSimulator::clearObstacle() {
   for(auto& sim:_sims)
     sim.clearObstacle();
 }
+void MultiRVOSimulator::clearSourceSink() {
+  _sss.clear();
+}
 int MultiRVOSimulator::getNrObstacle() const {
   return _sims[0].getNrObstacle();
 }
@@ -219,11 +222,6 @@ void MultiRVOSimulator::updateAgentTargets() {
   OMP_PARALLEL_FOR_
   for(int id=0; id<(int)_sims.size(); id++)
     _sims[id].updateAgentTargets();
-}
-void MultiRVOSimulator::reset() {
-  _sims.clear();
-  _sss.clear();
-  _frameId=0;
 }
 std::vector<MultiRVOSimulator::MatT> MultiRVOSimulator::getDXDX() const {
   std::vector<MatT> ret;

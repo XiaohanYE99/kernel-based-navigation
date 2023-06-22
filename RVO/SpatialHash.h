@@ -25,6 +25,7 @@ class SpatialHash {
   const std::vector<std::shared_ptr<Agent>>& vss() const;
   void addVertex(std::shared_ptr<Agent> v);
   void addVertex();
+  void clearVertex();
   void removeVertex();
  protected:
   std::vector<std::shared_ptr<Agent>> _vss,_backup;

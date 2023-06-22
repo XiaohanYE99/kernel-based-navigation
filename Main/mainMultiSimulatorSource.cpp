@@ -14,6 +14,10 @@ int main(int argc,char** argv) {
   DECL_MAT_VEC_MAP_TYPES_T
   T noise=5.;
   MultiRVOSimulator rvo(16,1,1e-4,1,1,1000,false,true,"NEWTON");
+  rvo.clearAgent();
+  rvo.clearObstacle();
+  rvo.clearSourceSink();
+  rvo.clearVisibility();
   rvo.setupSourceSink(1,10,true);
   rvo.addSourceSink(Vec2T(120,120),Vec2T(-120,-120),Vec2T(-130,-130),Vec2T(-110,-110),4,noise);
   rvo.addSourceSink(Vec2T(-120,-120),Vec2T(120,120),Vec2T(110,110),Vec2T(130,130),5,noise);

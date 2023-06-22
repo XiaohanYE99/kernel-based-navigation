@@ -9,7 +9,13 @@ BoundingVolumeHierarchy::BoundingVolumeHierarchy(const BoundingVolumeHierarchy& 
     assembleSimplified();
   else assembleFull();
 }
+BoundingVolumeHierarchy::~BoundingVolumeHierarchy() {
+  clearObstacle();
+}
 void BoundingVolumeHierarchy::clearObstacle() {
+  for(auto& obs:_obs)
+    obs->_next=NULL;
+  _backup.insert(_backup.end(),_obs.begin(),_obs.end());
   _obs.clear();
   _bvh.clear();
 }
@@ -209,7 +215,13 @@ template <typename T2>
 void BoundingVolumeHierarchy::addObstacleInternal(const std::vector<Eigen::Matrix<T2,2,1>>& vss) {
   int offset=(int)_obs.size();
   for(int i=0; i<(int)vss.size(); i++)
-    _obs.push_back(std::shared_ptr<Obstacle>(new Obstacle(vss[i].template cast<T>(),(int)_obs.size())));
+    if(_backup.empty())
+      _obs.push_back(std::shared_ptr<Obstacle>(new Obstacle(vss[i].template cast<T>(),(int)_obs.size())));
+    else {
+      *(_backup.back())=Obstacle(vss[i].template cast<T>(),(int)_obs.size());
+      _obs.push_back(_backup.back());
+      _backup.pop_back();
+    }
   for(int i=0; i<(int)vss.size(); i++)
     _obs[offset+i]->_next=_obs[offset+(i+1)%(int)vss.size()];
 }

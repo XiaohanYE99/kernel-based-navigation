@@ -16,6 +16,10 @@ void SpatialHash::addVertex() {
     _vss.push_back(std::shared_ptr<Agent>(new Agent((int)_vss.size())));
   }
 }
+void SpatialHash::clearVertex() {
+  _backup.insert(_backup.end(),_vss.begin(),_vss.end());
+  _vss.clear();
+}
 void SpatialHash::removeVertex() {
   _backup.push_back(_vss.back());
   _vss.pop_back();

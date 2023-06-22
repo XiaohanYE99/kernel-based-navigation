@@ -53,9 +53,7 @@ RVOSimulator::T RVOSimulator::getMinRadius() const {
   return _minRad;
 }
 void RVOSimulator::clearAgent() {
-  if(std::dynamic_pointer_cast<SpatialHashRadixSort>(_hash))
-    _hash.reset(new SpatialHashRadixSort());
-  else _hash.reset(new SpatialHashLinkedList());
+  _hash->clearVertex();
   _perfVelocities.reset();
   _agentPositions.reset();
   _agentRadius.reset();

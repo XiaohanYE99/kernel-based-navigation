@@ -12,6 +12,7 @@ class BoundingVolumeHierarchy {
   DECL_MAT_VEC_MAP_TYPES_T
   BoundingVolumeHierarchy();
   BoundingVolumeHierarchy(const BoundingVolumeHierarchy& other,bool simplify=false);
+  virtual ~BoundingVolumeHierarchy();
   void clearObstacle();
   int getNrObstacle() const;
   std::vector<Vec2T> getObstacle(int i) const;
@@ -34,7 +35,7 @@ class BoundingVolumeHierarchy {
   void addObstacleInternal(const std::vector<Eigen::Matrix<T2,2,1>>& vss);
   template <typename T2>
   static void removeDuplicateVertices(std::vector<Eigen::Matrix<T2,2,1>>& vss);
-  std::vector<std::shared_ptr<Obstacle>> _obs;
+  std::vector<std::shared_ptr<Obstacle>> _obs,_backup;
   std::vector<Node<int,BBox>> _bvh;
 };
 }

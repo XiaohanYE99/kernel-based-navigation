@@ -11,6 +11,36 @@
 #include <imgui/imgui.h>
 
 namespace RVO {
+//RVOPythonCallback
+void RVOPythonCallback::mouse(int button,int action,int mods) {
+  if(_mouse)
+    _mouse(button,action,mods);
+}
+void RVOPythonCallback::wheel(double xoffset,double yoffset) {
+  if(_wheel)
+    _wheel(xoffset,yoffset);
+}
+void RVOPythonCallback::motion(double x,double y) {
+  if(_motion)
+    _motion(x,y);
+}
+void RVOPythonCallback::key(int key,int scan,int action,int mods) {
+  if(_key)
+    _key(key,scan,action,mods);
+}
+void RVOPythonCallback::frame(std::shared_ptr<SceneNode>& root) {
+  if(_frame)
+    _frame();
+}
+void RVOPythonCallback::draw() {
+  if(_draw)
+    _draw();
+}
+void RVOPythonCallback::setup() {
+  if(_setup)
+    _setup();
+}
+//RVOVisualizer
 float COLOR_AGT[3]= {200/255.,143/255., 29/255.};
 float COLOR_OBS[3]= {000/255.,000/255.,000/255.};
 float COLOR_VEL[3]= {120/255.,000/255.,000/255.};
@@ -235,10 +265,10 @@ void RVOVisualizer::drawVisibleApp(int argc,char** argv,float ext,const RVOSimul
   drawer.clearLight();
   drawer.mainLoop();
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
   Drawer drawer(argc,argv);
   if(cb)
-    drawer.setPythonCallback(cb);
+    drawer.setPythonCallback(cb.get());
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim),lines,quads;
@@ -276,10 +306,10 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
   })));
   drawer.mainLoop();
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
   Drawer drawer(argc,argv);
   if(cb)
-    drawer.setPythonCallback(cb);
+    drawer.setPythonCallback(cb.get());
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
   std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim.getSubSimulator(0)),lines,quads;
@@ -329,10 +359,10 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
   })));
   drawer.mainLoop();
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
   Drawer drawer(argc,argv);
   if(cb)
-    drawer.setPythonCallback(cb);
+    drawer.setPythonCallback(cb.get());
   int frameId=0;
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
@@ -367,10 +397,10 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Tra
   })));
   drawer.mainLoop();
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
   Drawer drawer(argc,argv);
   if(cb)
-    drawer.setPythonCallback(cb);
+    drawer.setPythonCallback(cb.get());
   int frameId=0;
   drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
   drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
@@ -428,10 +458,10 @@ void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim) {
     sim.optimize(false,false);
   },NULL);
 }
-void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
   RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {},cb);
 }
-void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
   RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {},cb);
 }
 void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim) {
@@ -440,10 +470,10 @@ void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const
 void RVOVisualizer::drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim) {
   RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {});
 }
-void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
   RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {},cb);
 }
-void RVOVisualizer::drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,PythonCallback* cb) {
+void RVOVisualizer::drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
   RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {},cb);
 }
 }

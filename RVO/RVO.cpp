@@ -88,6 +88,12 @@ RVOSimulator::Mat2XT RVOSimulator::getAgentTargets() const {
     targets.col(t.first)=t.second._target;
   return targets;
 }
+RVOSimulator::VecCM RVOSimulator::getAgentRadius() const {
+  return _agentRadius.getCMap();
+}
+RVOSimulator::VeciCM RVOSimulator::getAgentId() const {
+  return _agentId.getCMap();
+}
 std::vector<RVOSimulator::Vec2T> RVOSimulator::getObstacle(int i) const {
   return _bvh.getObstacle(i);
 }
@@ -96,12 +102,6 @@ RVOSimulator::Mat2XT RVOSimulator::getAgentPositions() const {
 }
 RVOSimulator::Mat2XT RVOSimulator::getAgentVelocities() const {
   return _perfVelocities.getCMap();
-}
-RVOSimulator::VecCM RVOSimulator::getAgentRadius() const {
-  return _agentRadius.getCMap();
-}
-RVOSimulator::VeciCM RVOSimulator::getAgentId() const {
-  return _agentId.getCMap();
 }
 RVOSimulator::Vec2T RVOSimulator::getAgentPosition(int i) const {
   return _agentPositions.getCMap().col(i);

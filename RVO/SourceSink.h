@@ -14,19 +14,11 @@ struct Trajectory {
   bool isFullTrajectory() const;
   bool terminated() const;
   void terminate();
-#ifdef SWIG
-  void addPos(const Eigen::Matrix<double,2,1>& pos);
-  Eigen::Matrix<double,2,1> pos(int frameId) const;
-  Eigen::Matrix<double,2,-1> pos() const;
-  Eigen::Matrix<double,2,1> target() const;
-  double rad() const;
-#else
   void addPos(const Vec2T& pos);
   Vec2T pos(int frameId) const;
   Mat2XT pos() const;
   Vec2T target() const;
   T rad() const;
-#endif
  private:
   int _endFrame;
   int _startFrame;
@@ -44,10 +36,8 @@ class SourceSink {
   DECL_MAP_FUNCS
   SourceSink(T maxVelocity,int maxBatch,bool recordFull);
   std::vector<Trajectory> getTrajectories() const;
-#ifndef SWIG
   void addSourceSink(const Vec2T& source,const Vec2T& target,const BBox& sink,T rad);
   static std::pair<Mat2XT,Vec> getAgentPositions(int frameId,const std::vector<Trajectory>& trajectories);
-#endif
   void addAgents(int frameId,RVOSimulator& sim,T eps=1e-4);
   void recordAgents(const RVOSimulator& sim);
   void removeAgents(RVOSimulator& sim);

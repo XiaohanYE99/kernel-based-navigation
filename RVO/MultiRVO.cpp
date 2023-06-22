@@ -33,7 +33,7 @@ std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getObstacle(int i) cons
 int MultiRVOSimulator::getNrAgent() const {
   return _sims[0].getNrAgent();
 }
-void MultiRVOSimulator::setupSourceSink(T maxVelocity,int maxBatch,int recordFull) {
+void MultiRVOSimulator::setupSourceSink(T maxVelocity,int maxBatch,bool recordFull) {
   _sss.assign(_sims.size(),SourceSink(maxVelocity,maxBatch,recordFull));
 }
 std::vector<Trajectory> MultiRVOSimulator::getTrajectories(int id) const {
@@ -187,6 +187,10 @@ void MultiRVOSimulator::clearVisibility() {
 void MultiRVOSimulator::setNewtonParameter(int maxIter,T gTol,T d0,T coef) {
   for(auto& sim:_sims)
     sim.setNewtonParameter(maxIter,gTol,d0,coef);
+}
+void MultiRVOSimulator::setLBFGSParameter(int nrCorrect) {
+  for(auto& sim:_sims)
+    sim.setLBFGSParameter(nrCorrect);
 }
 void MultiRVOSimulator::setTimestep(T timestep) {
   for(auto& sim:_sims)

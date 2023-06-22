@@ -21,7 +21,6 @@ class RVOSimulator {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_I
   DECL_MAT_VEC_MAP_TYPES_T
-#ifndef SWIG
   DECL_MAP_FUNCS
   typedef Eigen::Triplet<T,int> STrip;
   typedef ParallelVector<STrip> STrips;
@@ -31,11 +30,8 @@ class RVOSimulator {
     T _maxVelocity;
     Mat2T _DVDP;
   };
-#endif
   RVOSimulator(const RVOSimulator& other);
-#ifndef SWIG
   RVOSimulator& operator=(const RVOSimulator& other);
-#endif
   RVOSimulator(T d0=1,T gTol=1e-4,T coef=1,T timestep=1,int maxIter=1000,bool radixSort=false,bool useHash=true,const std::string& optimizer="NEWTON");
   virtual ~RVOSimulator() {}
   bool getUseHash() const;
@@ -45,34 +41,15 @@ class RVOSimulator {
   void clearObstacle();
   int getNrObstacle() const;
   int getNrAgent() const;
-#ifndef SWIG
   VecM getAgentPositionsVec();
   Mat2XTM getAgentPositions();
   Mat2XTM getAgentVelocities();
   Mat2XT getAgentTargets() const;
   VecCM getAgentRadius() const;
   VeciCM getAgentId() const;
-#endif
-#ifdef SWIG
-  std::vector<Eigen::Matrix<double,2,1>> getObstacle(int i) const;
-  Eigen::Matrix<double,2,-1> getAgentPositions() const;
-  Eigen::Matrix<double,2,-1> getAgentVelocities() const;
-  Eigen::Matrix<double,2,1> getAgentPosition(int i) const;
-  Eigen::Matrix<double,2,1> getAgentVelocity(int i) const;
-  Eigen::Matrix<double,2,2> getAgentDVDP(int i) const;
-  double getAgentRadius(int i) const;
-  int getAgentId(int i) const;
-  void removeAgent(int i);
-  int addAgent(const Eigen::Matrix<double,2,1>& pos,const Eigen::Matrix<double,2,1>& vel,double rad,int id=-1);
-  void setAgentPosition(int i,const Eigen::Matrix<double,2,1>& pos);
-  void setAgentVelocity(int i,const Eigen::Matrix<double,2,1>& vel);
-  void setAgentTarget(int i,const Eigen::Matrix<double,2,1>& target,T maxVelocity);
-  int addObstacle(std::vector<Eigen::Matrix<double,2,1>> vss);
-#else
   std::vector<Vec2T> getObstacle(int i) const;
   Mat2XT getAgentPositions() const;
   Mat2XT getAgentVelocities() const;
-  Mat2XT getAgentDiffVelocities() const;
   Vec2T getAgentPosition(int i) const;
   Vec2T getAgentVelocity(int i) const;
   Mat2T getAgentDVDP(int i) const;
@@ -85,7 +62,6 @@ class RVOSimulator {
   void setAgentTarget(int i,const Vec2T& target,T maxVelocity);
   int addObstacle(std::vector<Vec2T> vss);
   std::shared_ptr<VisibilityGraph> getVisibility() const;
-#endif
   void buildVisibility(const RVOSimulator& ref);
   void buildVisibility();
   void clearVisibility();
@@ -99,7 +75,6 @@ class RVOSimulator {
   MatT getDXDV() const;
   void debugNeighbor(T scale,T dscale=1e-3);
   void debugEnergy(T scale,T dscale=1);
-#ifndef SWIG
   std::shared_ptr<SpatialHash> getHash() const;
   const BoundingVolumeHierarchy& getBVH() const;
   static void addBlock(Vec& g,int r,const Vec2T& blk);
@@ -138,7 +113,6 @@ class RVOSimulator {
   DynamicVec<int> _agentId;
   //differentiable data
   MatT _DXDX,_DXDV;
-#endif
 };
 }
 

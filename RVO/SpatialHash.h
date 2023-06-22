@@ -13,6 +13,7 @@ class SpatialHash {
   typedef LSCALAR T;
   DECL_MAT_VEC_MAP_TYPES_T
   DECL_MAP_FUNCS
+  SpatialHash();
   virtual void lock()=0;
   virtual void unlock()=0;
   virtual void buildSpatialHash(VecCM pos0,VecCM pos1,T R,bool useHash=true)=0;
@@ -28,6 +29,8 @@ class SpatialHash {
   void clearVertex();
   void removeVertex();
  protected:
+  SpatialHash(const SpatialHash&);
+  SpatialHash& operator=(const SpatialHash&);
   std::vector<std::shared_ptr<Agent>> _vss,_backup;
 };
 }

@@ -103,12 +103,12 @@ PYBIND11_MODULE(pyRVO, m) {
   .def("removeAgents",&SourceSink::removeAgents)
   .def("reset",&SourceSink::reset);
   //RVO
-  py::class_<RVOSimulator>(m,"RVOSimulator")
+  py::class_<RVOSimulator,std::shared_ptr<RVOSimulator>>(m,"RVOSimulator")
   .def(py::init([](const RVOSimulator& other) {
-    return RVOSimulator(other);
+    return std::shared_ptr<RVOSimulator>(new RVOSimulator(other));
   }))
   .def(py::init([](T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash,const std::string& optimizer) {
-    return RVOSimulator(d0,gTol,coef,timestep,maxIter,radixSort,useHash,optimizer);
+    return std::shared_ptr<RVOSimulator>(new RVOSimulator(d0,gTol,coef,timestep,maxIter,radixSort,useHash,optimizer));
   }))
   .def("getUseHash",&RVOSimulator::getUseHash)
   .def("getMaxRadius",&RVOSimulator::getMaxRadius)
@@ -145,9 +145,9 @@ PYBIND11_MODULE(pyRVO, m) {
   .def("getDXDX",&RVOSimulator::getDXDX)
   .def("getDXDV",&RVOSimulator::getDXDV);
   //MultiRVOSimulator
-  py::class_<MultiRVOSimulator>(m,"MultiRVOSimulator")
+  py::class_<MultiRVOSimulator,std::shared_ptr<MultiRVOSimulator>>(m,"MultiRVOSimulator")
   .def(py::init([](int batchSize,T d0,T gTol,T coef,T timestep,int maxIter,bool radixSort,bool useHash,const std::string& optimizer) {
-    return MultiRVOSimulator(batchSize,d0,gTol,coef,timestep,maxIter,radixSort,useHash,optimizer);
+    return std::shared_ptr<MultiRVOSimulator>(new MultiRVOSimulator(batchSize,d0,gTol,coef,timestep,maxIter,radixSort,useHash,optimizer));
   }))
   .def("clearAgent",&MultiRVOSimulator::clearAgent)
   .def("clearObstacle",&MultiRVOSimulator::clearObstacle)
@@ -196,12 +196,12 @@ PYBIND11_MODULE(pyRVO, m) {
   .def_readwrite("maxVelocity",&ShortestPath::_maxVelocity)
   .def_readwrite("DVDP",&ShortestPath::_DVDP);
   //VisibilityGraph
-  py::class_<VisibilityGraph>(m,"VisibilityGraph")
+  py::class_<VisibilityGraph,std::shared_ptr<VisibilityGraph>>(m,"VisibilityGraph")
   .def(py::init([](RVOSimulator& rvo) {
-    return VisibilityGraph(rvo);
+    return std::shared_ptr<VisibilityGraph>(new VisibilityGraph(rvo));
   }))
   .def(py::init([](RVOSimulator& rvo,const VisibilityGraph& other) {
-    return VisibilityGraph(rvo,other);
+    return std::shared_ptr<VisibilityGraph>(new VisibilityGraph(rvo,other));
   }))
   .def("lines",static_cast<std::vector<std::pair<Vec2T,Vec2T>>(VisibilityGraph::*)(const Vec2T&)const>(&VisibilityGraph::lines))
   .def("lines",static_cast<std::vector<std::pair<Vec2T,Vec2T>>(VisibilityGraph::*)(int)const>(&VisibilityGraph::lines))
@@ -217,12 +217,12 @@ PYBIND11_MODULE(pyRVO, m) {
   .def("updateAgentTargets",&VisibilityGraph::updateAgentTargets)
   .def("getMinDistance",&VisibilityGraph::getMinDistance);
   //MultiVisibilityGraph
-  py::class_<MultiVisibilityGraph>(m,"MultiVisibilityGraph")
+  py::class_<MultiVisibilityGraph,std::shared_ptr<MultiVisibilityGraph>>(m,"MultiVisibilityGraph")
   .def(py::init([](RVOSimulator& rvo) {
-    return MultiVisibilityGraph(rvo);
+    return std::shared_ptr<MultiVisibilityGraph>(new MultiVisibilityGraph(rvo));
   }))
   .def(py::init([](MultiRVOSimulator& rvo) {
-    return MultiVisibilityGraph(rvo);
+    return std::shared_ptr<MultiVisibilityGraph>(new MultiVisibilityGraph(rvo));
   }))
   .def("setAgentTargets",&MultiVisibilityGraph::setAgentTargets)
   .def("setAgentPositions",&MultiVisibilityGraph::setAgentPositions)

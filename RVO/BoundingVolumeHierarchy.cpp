@@ -154,6 +154,10 @@ BoundingVolumeHierarchy::T BoundingVolumeHierarchy::closestT(const Vec2T& pt,con
   return fmax((T)0,fmin((T)1,-b/2/a));
 }
 //helper
+BoundingVolumeHierarchy::BoundingVolumeHierarchy(const BoundingVolumeHierarchy&) {}
+BoundingVolumeHierarchy& BoundingVolumeHierarchy::operator=(const BoundingVolumeHierarchy&) {
+  return *this;
+}
 void BoundingVolumeHierarchy::assembleFull() {
   _bvh.clear();
   std::unordered_set<Vec2i,EdgeHash<int>> edgeMap;

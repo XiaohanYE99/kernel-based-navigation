@@ -29,6 +29,8 @@ class BoundingVolumeHierarchy {
   static T distance(const Vec2T& pt,const Vec2T edgeB[2]);
   static T closestT(const Vec2T& pt,const Vec2T edgeB[2]);
  private:
+  BoundingVolumeHierarchy(const BoundingVolumeHierarchy&);
+  BoundingVolumeHierarchy& operator=(const BoundingVolumeHierarchy&);
   void assembleFull();
   void assembleSimplified();
   template <typename T2>

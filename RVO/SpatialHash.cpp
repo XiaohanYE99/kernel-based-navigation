@@ -1,6 +1,7 @@
 #include "SpatialHash.h"
 
 namespace RVO {
+SpatialHash::SpatialHash() {}
 const std::vector<std::shared_ptr<Agent>>& SpatialHash::vss() const {
   return _vss;
 }
@@ -23,5 +24,10 @@ void SpatialHash::clearVertex() {
 void SpatialHash::removeVertex() {
   _backup.push_back(_vss.back());
   _vss.pop_back();
+}
+//helper
+SpatialHash::SpatialHash(const SpatialHash&) {}
+SpatialHash& SpatialHash::operator=(const SpatialHash&) {
+  return *this;
 }
 }

@@ -5,6 +5,13 @@
 namespace RVO {
 BoundingVolumeHierarchy::BoundingVolumeHierarchy() {}
 BoundingVolumeHierarchy::BoundingVolumeHierarchy(const BoundingVolumeHierarchy& other,bool simplify):_obs(other._obs) {
+  //copy obs
+  _obs.resize(other._obs.size());
+  for(int i=0; i<(int)_obs.size(); i++)
+    _obs[i].reset(new Obstacle(other._obs[i]->_pos,other._obs[i]->_id));
+  for(int i=0; i<(int)_obs.size(); i++)
+    _obs[i]->_next=_obs[other._obs[i]->_next->_id];
+  //assemble
   if(simplify)
     assembleSimplified();
   else assembleFull();

@@ -41,7 +41,10 @@ std::vector<MultiVisibilityGraph::Vec2T> MultiVisibilityGraph::setAgentPositions
   for(int i=0; i<(int)_pathVec.size(); i++) {
     Vec2T dir=getAgentWayPoint(_pathVec[i],positions[i],_minDistance[i])-positions[i];
     T len=dir.norm();
-    if(len>_pathVec[i]._maxVelocity) {
+    if(_pathVec[i]._maxVelocity<0) {
+      T coef=1.0f/len;
+      ret[i]=dir*coef;
+    } else if(len>_pathVec[i]._maxVelocity) {
       T coef=_pathVec[i]._maxVelocity/len;
       ret[i]=dir*coef;
       _pathVec[i]._DVDP=(ret[i]*ret[i].transpose()-Mat2T::Identity())*coef;

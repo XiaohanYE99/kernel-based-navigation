@@ -12,6 +12,7 @@ class MultiVisibilityGraph : protected VisibilityGraph {
   DECL_MAT_VEC_MAP_TYPES_T
   MultiVisibilityGraph(RVOSimulator& rvo);
   MultiVisibilityGraph(MultiRVOSimulator& rvo);
+  //if maxVelocity<0, we will always normalize velocity
   void setAgentTargets(const std::vector<Vec2T>& target,T maxVelocity);
   std::vector<Vec2T> setAgentPositions(const std::vector<Vec2T>& positions);
   std::vector<Mat2T> getAgentDVDPs() const;

@@ -33,6 +33,9 @@ std::vector<MultiRVOSimulator::Vec2T> MultiRVOSimulator::getObstacle(int i) cons
 int MultiRVOSimulator::getNrAgent() const {
   return _sims[0].getNrAgent();
 }
+bool MultiRVOSimulator::hasSourceSink() const {
+  return !_sss.empty();
+}
 void MultiRVOSimulator::setupSourceSink(T maxVelocity,int maxBatch,bool recordFull) {
   _sss.assign(_sims.size(),SourceSink(maxVelocity,maxBatch,recordFull));
 }
@@ -201,6 +204,14 @@ MultiRVOSimulator::T MultiRVOSimulator::timestep() const {
 }
 int MultiRVOSimulator::getBatchSize() const {
   return (int)_sims.size();
+}
+SourceSink& MultiRVOSimulator::getSubSourceSink(int id) {
+  ASSERT_SOURCE_SINK
+  return _sss[id];
+}
+const SourceSink& MultiRVOSimulator::getSubSourceSink(int id) const {
+  ASSERT_SOURCE_SINK
+  return _sss[id];
 }
 RVOSimulator& MultiRVOSimulator::getSubSimulator(int id) {
   return _sims[id];

@@ -62,6 +62,15 @@ Trajectory::T Trajectory::rad() const {
 }
 //SourceSink
 SourceSink::SourceSink(T maxVelocity,int maxBatch,bool recordFull):_maxVelocity(maxVelocity),_maxBatch(maxBatch),_recordFull(recordFull) {}
+const DynamicMat<SourceSink::T>& SourceSink::getSourcePos() const {
+  return _sourcePos;
+}
+const DynamicMat<SourceSink::T>& SourceSink::getTargetPos() const {
+  return _targetPos;
+}
+const DynamicMat<SourceSink::T>& SourceSink::getSinkRegion() const {
+  return _sinkRegion;
+}
 std::vector<Trajectory> SourceSink::getTrajectories() const {
   return _trajectories;
 }

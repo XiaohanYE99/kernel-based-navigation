@@ -18,6 +18,7 @@ class MultiRVOSimulator {
   int getNrObstacle() const;
   std::vector<Vec2T> getObstacle(int i) const;
   int getNrAgent() const;
+  bool hasSourceSink() const;
   void setupSourceSink(T maxVelocity,int maxBatch,bool recordFull);
   std::vector<Trajectory> getTrajectories(int id) const;
   std::vector<std::vector<Trajectory>> getAllTrajectories() const;
@@ -45,6 +46,8 @@ class MultiRVOSimulator {
   void setTimestep(T timestep);
   T timestep() const;
   int getBatchSize() const;
+  SourceSink& getSubSourceSink(int id);
+  const SourceSink& getSubSourceSink(int id) const;
   RVOSimulator& getSubSimulator(int id);
   const RVOSimulator& getSubSimulator(int id) const;
   std::vector<char> optimize(bool requireGrad,bool output);

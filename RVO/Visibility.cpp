@@ -293,9 +293,10 @@ int VisibilityGraph::getNrBoundaryPoint() const {
 }
 VisibilityGraph::Vec2T VisibilityGraph::getAgentWayPoint(const ShortestPath& p,const Vec2T& pos,T& minDistance) const {
   const auto& obs=_bvh.getObstacles();
-  if(_bvh.visible(pos,p._target))
+  if(_bvh.visible(pos,p._target)) {
+    minDistance=(pos-p._target).norm();
     return p._target;
-  else {
+  } else {
     int minId=-1;
     minDistance=std::numeric_limits<double>::max();
     for(int id:visible(pos)) {

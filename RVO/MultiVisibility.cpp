@@ -3,13 +3,35 @@
 namespace RVO {
 //MultiVisibility
 MultiVisibilityGraph::MultiVisibilityGraph(RVOSimulator& rvo):VisibilityGraph(rvo) {}
-MultiVisibilityGraph::MultiVisibilityGraph(MultiRVOSimulator& rvo):VisibilityGraph(rvo.getSubSimulator(0)) {}
+MultiVisibilityGraph::MultiVisibilityGraph(MultiRVOSimulator& rvo):VisibilityGraph(rvo.getSubSimulator(0)) {
+  if(rvo.hasSourceSink()) {
+    const SourceSink& ss=rvo.getSubSourceSink(0);
+    const DynamicMat<T>& targetPos=ss.getTargetPos();
+    for(int c=0; c<targetPos.cols(); c++) {
+      Vec2T t=targetPos.getCMap().col(c);
+      _pathCache[t]=buildShortestPath(t);
+    }
+    std::cout << "MultiVisibilityGraph using pathCache!" << std::endl;
+  } else {
+    std::cout << "MultiVisibilityGraph not using pathCache!" << std::endl;
+  }
+}
 void MultiVisibilityGraph::setAgentTargets(const std::vector<Vec2T>& target,T maxVelocity) {
   _pathVec.resize(target.size());
-  OMP_PARALLEL_FOR_
-  for(int i=0; i<(int)_pathVec.size(); i++) {
-    _pathVec[i]=buildShortestPath(target[i]);
-    _pathVec[i]._maxVelocity=maxVelocity;
+  if(_pathCache.empty()) {
+    OMP_PARALLEL_FOR_
+    for(int i=0; i<(int)_pathVec.size(); i++) {
+      _pathVec[i]=buildShortestPath(target[i]);
+      _pathVec[i]._maxVelocity=maxVelocity;
+    }
+  } else {
+    OMP_PARALLEL_FOR_
+    for(int i=0; i<(int)_pathVec.size(); i++) {
+      auto it=_pathCache.find(target[i]);
+      ASSERT_MSG(it!=_pathCache.end(),"Cannot find path in pathCache!")
+      _pathVec[i]=it->second;
+      _pathVec[i]._maxVelocity=maxVelocity;
+    }
   }
 }
 std::vector<MultiVisibilityGraph::Vec2T> MultiVisibilityGraph::setAgentPositions(const std::vector<Vec2T>& positions) {

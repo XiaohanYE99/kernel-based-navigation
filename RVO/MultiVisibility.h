@@ -3,6 +3,7 @@
 
 #include "Visibility.h"
 #include "MultiRVO.h"
+#include "BVHNode.h"
 
 namespace RVO {
 class MultiVisibilityGraph : protected VisibilityGraph {
@@ -17,6 +18,7 @@ class MultiVisibilityGraph : protected VisibilityGraph {
   std::vector<T> getMinDistance() const;
  protected:
   std::vector<ShortestPath> _pathVec;
+  std::unordered_map<Vec2T,ShortestPath,EdgeHash<T>> _pathCache;
 };
 }
 

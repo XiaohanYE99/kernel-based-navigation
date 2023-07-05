@@ -35,6 +35,9 @@ class SourceSink {
   DECL_MAT_VEC_MAP_TYPES_T
   DECL_MAP_FUNCS
   SourceSink(T maxVelocity,int maxBatch,bool recordFull);
+  const DynamicMat<T>& getSourcePos() const;
+  const DynamicMat<T>& getTargetPos() const;
+  const DynamicMat<T>& getSinkRegion() const;
   std::vector<Trajectory> getTrajectories() const;
   void addSourceSink(const Vec2T& source,const Vec2T& target,const BBox& sink,T rad);
   static std::pair<Mat2XT,Vec> getAgentPositions(int frameId,const std::vector<Trajectory>& trajectories);

@@ -11,9 +11,9 @@ MultiVisibilityGraph::MultiVisibilityGraph(MultiRVOSimulator& rvo):VisibilityGra
       Vec2T t=targetPos.getCMap().col(c);
       _pathCache[t]=buildShortestPath(t);
     }
-    std::cout << "MultiVisibilityGraph using pathCache!" << std::endl;
+    //std::cout << "MultiVisibilityGraph using pathCache!" << std::endl;
   } else {
-    std::cout << "MultiVisibilityGraph not using pathCache!" << std::endl;
+    //std::cout << "MultiVisibilityGraph not using pathCache!" << std::endl;
   }
 }
 void MultiVisibilityGraph::setAgentTargets(const std::vector<Vec2T>& target,T maxVelocity) {

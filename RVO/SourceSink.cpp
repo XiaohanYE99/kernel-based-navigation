@@ -4,8 +4,8 @@
 namespace RVO {
 //Trajectory
 Trajectory::Trajectory():_endFrame(-1),_startFrame(-1),_terminated(false),_recordFull(true) {}
-Trajectory::Trajectory(bool recordFull,int frameId,const Vec2T& target,T r)
-  :_endFrame(frameId),_startFrame(frameId),_terminated(false),_recordFull(recordFull),_target(target),_rad(r) {}
+Trajectory::Trajectory(bool recordFull,int frameId,const Vec2T& target,T r,int id)
+  :_endFrame(frameId),_startFrame(frameId),_terminated(false),_recordFull(recordFull),_target(target),_rad(r),_id(-1) {}
 int Trajectory::startFrame() const {
   return _startFrame;
 }
@@ -60,6 +60,12 @@ Trajectory::Vec2T Trajectory::target() const {
 Trajectory::T Trajectory::rad() const {
   return _rad;
 }
+short Trajectory::sid() const {
+  return SourceSink::extractSourceId(_id);
+}
+short Trajectory::aid() const {
+  return SourceSink::extractAgentId(_id);
+}
 //SourceSink
 SourceSink::SourceSink(T maxVelocity,int maxBatch,bool recordFull):_maxVelocity(maxVelocity),_maxBatch(maxBatch),_recordFull(recordFull) {}
 const DynamicMat<SourceSink::T>& SourceSink::getSourcePos() const {
@@ -82,24 +88,39 @@ void SourceSink::addSourceSink(const Vec2T& source,const Vec2T& target,const BBo
   _rad.add(rad);
   _id.add(_sourcePos.cols()-1);
 }
-std::pair<SourceSink::Mat2XT,SourceSink::Vec> SourceSink::getAgentPositions(int frameId,const std::vector<Trajectory>& trajectories) {
+SourceSink::Frame SourceSink::getAgentPositions(int frameId,const std::vector<Trajectory>& trajectories) {
   //count particle
   int n=0;
   for(const auto& t:trajectories)
     if(t.startFrame()<=frameId && frameId<t.endFrame())
       n++;
   //fill data
-  std::pair<Mat2XT,Vec> ret;
-  ret.first.resize(2,n);
-  ret.second.resize(n);
+  Frame ret;
+  std::get<0>(ret).resize(2,n);
+  std::get<1>(ret).resize(n);
+  std::get<2>(ret).resize(n);
   n=0;
   for(const auto& t:trajectories)
     if(t.startFrame()<=frameId && frameId<t.endFrame()) {
-      ret.first.col(n)=t.pos(frameId);
-      ret.second[n]=t.rad();
+      std::get<0>(ret).col(n)=t.pos(frameId);
+      std::get<1>(ret)[n]=t.rad();
+      std::get<2>(ret)[n]=t.sid();
       n++;
     }
   return ret;
+}
+int SourceSink::assembleAgentId(short sid,short aid) {
+  unsigned short usid=(unsigned short)sid;
+  unsigned short uaid=(unsigned short)aid;
+  return (int)((usid<<16)+uaid);
+}
+short SourceSink::extractSourceId(int id) {
+  unsigned int uid=(unsigned int)id;
+  return uid>>16;
+}
+short SourceSink::extractAgentId(int id) {
+  unsigned int uid=(unsigned int)id;
+  return uid&((1<<16)-1);
 }
 void SourceSink::addAgents(int frameId,RVOSimulator& sim,T eps) {
   std::vector<char> collide;
@@ -116,20 +137,20 @@ void SourceSink::addAgents(int frameId,RVOSimulator& sim,T eps) {
       const int id=_id.getCMap()[i];
       if(id>=_maxBatch*_sourcePos.cols())
         continue;
-      int aid=sim.addAgent(p,Vec2T::Zero(),r,id);
+      int aid=sim.addAgent(p,Vec2T::Zero(),r,assembleAgentId(i,id));
       sim.setAgentTarget(aid,t,_maxVelocity);
       _id.getMap()[i]+=_sourcePos.cols();
       //record: initialize trajectory
       if((int)_trajectories.size()<=id)
         _trajectories.resize(id+1,Trajectory());
-      _trajectories[id]=Trajectory(_recordFull,frameId,t,r);
+      _trajectories[id]=Trajectory(_recordFull,frameId,t,r,assembleAgentId(i,id));
       _trajectories[id].addPos(p);
     }
 }
 void SourceSink::recordAgents(const RVOSimulator& sim) {
   for(int i=0; i<sim.getNrAgent(); i++) {
     const Vec2T p=sim.getAgentPosition(i);
-    const int id=sim.getAgentId(i);
+    const int id=extractAgentId(sim.getAgentId(i));
     if(id>=0 && id<(int)_trajectories.size())
       _trajectories[id].addPos(p);
   }
@@ -137,7 +158,7 @@ void SourceSink::recordAgents(const RVOSimulator& sim) {
 void SourceSink::removeAgents(RVOSimulator& sim) {
   for(int i=0; i<sim.getAgentId().size();) {
     const Vec2T p=sim.getAgentPosition(i);
-    const int id=sim.getAgentId(i);
+    const int id=extractAgentId(sim.getAgentId(i));
     const int idS=id%_sourcePos.cols();
     const Vec2T minC=_sinkRegion.getCMap().col(idS*2+0);
     const Vec2T maxC=_sinkRegion.getCMap().col(idS*2+1);

@@ -47,8 +47,15 @@ float COLOR_VEL[3]= {120/255.,000/255.,000/255.};
 float COLOR_VIS[3]= {000/255.,255/255.,000/255.};
 bool quadsUpdate=true;
 bool linesUpdate=true;
+std::unordered_map<unsigned short,Eigen::Matrix<float,3,1>> css;
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> qss;
 std::vector<std::tuple<Eigen::Matrix<float,2,1>,Eigen::Matrix<float,2,1>,Eigen::Matrix<float,3,1>>> lss;
+void RVOVisualizer::clearSourceColor() {
+  css.clear();
+}
+void RVOVisualizer::setSourceColor(unsigned short sid,Eigen::Matrix<float,3,1> color) {
+  css[sid]=color;
+}
 void RVOVisualizer::drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color) {
   qss.push_back(std::make_tuple(from,to,color));
   quadsUpdate=true;
@@ -134,7 +141,14 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulato
     t(1,1)*=sim.getAgentRadius(i);
     t(0,3)=(float)sim.getAgentPosition(i)[0];
     t(1,3)=(float)sim.getAgentPosition(i)[1];
-    std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i+1))->setLocalTransform(t);
+    //set agent color
+    std::shared_ptr<Bullet3DShape> shape=std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i+1));
+    unsigned short sid=SourceSink::extractSourceId(sim.getAgentId(i));
+    const auto it=css.find(sid);
+    if(it==css.end())
+      shape->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    else shape->setColor(GL_TRIANGLE_FAN,it->second.x(),it->second.y(),it->second.z());
+    shape->setLocalTransform(t);
   }
   return shapes;
 }
@@ -142,8 +156,8 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(int frameId,const
   std::shared_ptr<CompositeShape> shapes=shapesInput?shapesInput:std::shared_ptr<CompositeShape>(new CompositeShape);
   if(!shapesInput)
     drawObstacle(sim,shapes);
-  std::pair<Trajectory::Mat2XT,Trajectory::Vec> frame=SourceSink::getAgentPositions(frameId,trajectories);
-  int nrAgent=frame.first.cols();
+  SourceSink::Frame frame=SourceSink::getAgentPositions(frameId,trajectories);
+  int nrAgent=std::get<0>(frame).cols();
   //need more children
   while(shapes->numChildren()<nrAgent+1) {
     std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
@@ -159,11 +173,18 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(int frameId,const
   Eigen::Matrix<float,4,4> t;
   for(int i=0; i<nrAgent; i++) {
     t=Eigen::Matrix<float,4,4>::Identity();
-    t(0,0)*=frame.second[i];
-    t(1,1)*=frame.second[i];
-    t(0,3)=(float)frame.first.col(i)[0];
-    t(1,3)=(float)frame.first.col(i)[1];
-    std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i+1))->setLocalTransform(t);
+    t(0,0)*=std::get<1>(frame)[i];
+    t(1,1)*=std::get<1>(frame)[i];
+    t(0,3)=(float)std::get<0>(frame).col(i)[0];
+    t(1,3)=(float)std::get<0>(frame).col(i)[1];
+    //set agent color
+    std::shared_ptr<Bullet3DShape> shape=std::dynamic_pointer_cast<Bullet3DShape>(shapes->getChild(i+1));
+    unsigned short sid=std::get<2>(frame)[i];
+    const auto it=css.find(sid);
+    if(it==css.end())
+      shape->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    else shape->setColor(GL_TRIANGLE_FAN,it->second.x(),it->second.y(),it->second.z());
+    shape->setLocalTransform(t);
   }
   return shapes;
 }

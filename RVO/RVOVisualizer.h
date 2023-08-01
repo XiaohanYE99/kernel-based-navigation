@@ -32,6 +32,8 @@ class RVOPythonCallback : public PythonCallback {
 };
 class RVOVisualizer {
  public:
+  static void clearSourceColor();
+  static void setSourceColor(unsigned short sid,Eigen::Matrix<float,3,1> color);
   static void drawQuad(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color);
   static void drawLine(Eigen::Matrix<float,2,1> from,Eigen::Matrix<float,2,1> to,Eigen::Matrix<float,3,1> color);
   static void drawVisibility(const VisibilityGraph& graph,const Eigen::Matrix<LSCALAR,2,1> p);

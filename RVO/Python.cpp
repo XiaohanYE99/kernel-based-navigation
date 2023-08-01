@@ -77,8 +77,8 @@ PYBIND11_MODULE(pyRVO, m) {
   .def(py::init([]() {
     return Trajectory();
   }))
-  .def(py::init([](bool recordFull,int frameId,const Vec2T& target,T r) {
-    return Trajectory(recordFull,frameId,target,r);
+  .def(py::init([](bool recordFull,int frameId,const Vec2T& target,T r,int id) {
+    return Trajectory(recordFull,frameId,target,r,id);
   }))
   .def("startFrame",&Trajectory::startFrame)
   .def("endFrame",&Trajectory::endFrame)

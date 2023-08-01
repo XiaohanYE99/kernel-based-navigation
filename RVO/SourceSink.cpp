@@ -5,7 +5,7 @@ namespace RVO {
 //Trajectory
 Trajectory::Trajectory():_endFrame(-1),_startFrame(-1),_terminated(false),_recordFull(true) {}
 Trajectory::Trajectory(bool recordFull,int frameId,const Vec2T& target,T r,int id)
-  :_endFrame(frameId),_startFrame(frameId),_terminated(false),_recordFull(recordFull),_target(target),_rad(r),_id(-1) {}
+  :_endFrame(frameId),_startFrame(frameId),_terminated(false),_recordFull(recordFull),_target(target),_rad(r),_id(id) {}
 int Trajectory::startFrame() const {
   return _startFrame;
 }

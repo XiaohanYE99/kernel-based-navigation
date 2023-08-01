@@ -242,6 +242,8 @@ PYBIND11_MODULE(pyRVO, m) {
   .def_readwrite("setup",&RVOPythonCallback::_setup);
   //RVOVisualizer
   py::class_<RVOVisualizer>(m,"RVOVisualizer")
+  .def_static("clearSourceColor",&RVOVisualizer::clearSourceColor)
+  .def_static("setSourceColor",&RVOVisualizer::setSourceColor)
   .def_static("drawQuad",&RVOVisualizer::drawQuad)
   .def_static("drawLine",&RVOVisualizer::drawLine)
   .def_static("drawVisibility",static_cast<void(*)(const VisibilityGraph&,const Eigen::Matrix<LSCALAR,2,1>)>(&RVOVisualizer::drawVisibility))

@@ -113,7 +113,7 @@ void RVOVisualizer::drawObstacle(const RVOSimulator& sim,std::shared_ptr<Composi
       obs->addVertex(Eigen::Matrix<float,3,1>((float)pos[j+2][0],(float)pos[j+2][1],0));
     }
     obs->setMode(GL_TRIANGLES);
-    obs->setColor(GL_TRIANGLES,COLOR_OBS[0],COLOR_OBS[1],COLOR_OBS[2]);
+    obs->setColorDiffuse(GL_TRIANGLES,COLOR_OBS[0],COLOR_OBS[1],COLOR_OBS[2]);
     obss->addShape(obs);
   }
   shapes->addShape(obss);
@@ -126,7 +126,7 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulato
   while(shapes->numChildren()<sim.getNrAgent()+1) {
     std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
     std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<float,2,1>::Zero(),1);
-    circle->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    circle->setColorDiffuse(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
     agent->addShape(circle);
     shapes->addShape(agent);
   }
@@ -146,8 +146,8 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(const RVOSimulato
     unsigned short sid=SourceSink::extractSourceId(sim.getAgentId(i));
     const auto it=css.find(sid);
     if(it==css.end())
-      shape->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
-    else shape->setColor(GL_TRIANGLE_FAN,it->second.x(),it->second.y(),it->second.z());
+      shape->setColorDiffuse(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    else shape->setColorDiffuse(GL_TRIANGLE_FAN,it->second.x(),it->second.y(),it->second.z());
     shape->setLocalTransform(t);
   }
   return shapes;
@@ -162,7 +162,7 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(int frameId,const
   while(shapes->numChildren()<nrAgent+1) {
     std::shared_ptr<Bullet3DShape> agent(new Bullet3DShape);
     std::shared_ptr<MeshShape> circle=makeCircle(16,true,Eigen::Matrix<float,2,1>::Zero(),1);
-    circle->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    circle->setColorDiffuse(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
     agent->addShape(circle);
     shapes->addShape(agent);
   }
@@ -182,8 +182,8 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawRVOPosition(int frameId,const
     unsigned short sid=std::get<2>(frame)[i];
     const auto it=css.find(sid);
     if(it==css.end())
-      shape->setColor(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
-    else shape->setColor(GL_TRIANGLE_FAN,it->second.x(),it->second.y(),it->second.z());
+      shape->setColorDiffuse(GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2]);
+    else shape->setColorDiffuse(GL_TRIANGLE_FAN,it->second.x(),it->second.y(),it->second.z());
     shape->setLocalTransform(t);
   }
   return shapes;
@@ -201,7 +201,7 @@ std::shared_ptr<MeshShape> RVOVisualizer::drawRVOVelocity(const RVOSimulator& si
       shapes->addIndexSingle(i*2+1);
     }
     shapes->setMode(GL_LINES);
-    shapes->setColor(GL_LINES,COLOR_VEL[0],COLOR_VEL[1],COLOR_VEL[2]);
+    shapes->setColorDiffuse(GL_LINES,COLOR_VEL[0],COLOR_VEL[1],COLOR_VEL[2]);
     shapes->setLineWidth(5);
   } else {
     for(int i=0; i<sim.getNrAgent(); i++) {
@@ -218,7 +218,7 @@ std::shared_ptr<MeshShape> RVOVisualizer::drawLines(const std::vector<Eigen::Mat
     mesh->addIndexSingle(i);
   }
   mesh->setMode(GL_LINES);
-  mesh->setColor(GL_LINES,color[0],color[1],color[2]);
+  mesh->setColorDiffuse(GL_LINES,color[0],color[1],color[2]);
   mesh->setLineWidth(5);
   return mesh;
 }
@@ -238,7 +238,7 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawLines(std::shared_ptr<Composi
     line->addIndexSingle(0);
     line->addIndexSingle(1);
     line->setMode(GL_LINES);
-    line->setColor(GL_LINES,std::get<2>(lss[i])[0],std::get<2>(lss[i])[1],std::get<2>(lss[i])[2]);
+    line->setColorDiffuse(GL_LINES,std::get<2>(lss[i])[0],std::get<2>(lss[i])[1],std::get<2>(lss[i])[2]);
     line->setLineWidth(5);
     lines->addShape(line);
   }
@@ -265,7 +265,7 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawQuads(std::shared_ptr<Composi
     quad->addIndexSingle(2);
     quad->addIndexSingle(3);
     quad->setMode(GL_TRIANGLE_FAN);
-    quad->setColor(GL_TRIANGLE_FAN,std::get<2>(qss[i])[0],std::get<2>(qss[i])[1],std::get<2>(qss[i])[2]);
+    quad->setColorDiffuse(GL_TRIANGLE_FAN,std::get<2>(qss[i])[0],std::get<2>(qss[i])[1],std::get<2>(qss[i])[2]);
     quads->addShape(quad);
   }
   quadsUpdate=false;

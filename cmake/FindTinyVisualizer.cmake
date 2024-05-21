@@ -30,20 +30,12 @@ FIND_LIBRARY(TinyVisualizer_LIBRARY NAMES TinyVisualizer PATHS
   C:/TinyVisualizer/lib/${CMAKE_BUILD_TYPE}
   NO_CACHE)
   
-FIND_LIBRARY(glfw_LIBRARY NAMES glfw3 PATHS 
-  ${PROJECT_SOURCE_DIR}/lib/${CMAKE_BUILD_TYPE}
-  ${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}
-  $ENV{TinyVisualizer_ROOT}/lib/${CMAKE_BUILD_TYPE}
-  $ENV{TinyVisualizer_ROOT}/${CMAKE_BUILD_TYPE}
-  /usr/lib/${CMAKE_BUILD_TYPE}
-  /usr/local/lib/${CMAKE_BUILD_TYPE}
-  C:/TinyVisualizer/lib/${CMAKE_BUILD_TYPE}
-  NO_CACHE)
+FIND_PACKAGE(GLFW QUIET REQUIRED)
 
-IF(TinyVisualizer_INCLUDE_DIR AND TinyVisualizer_LIBRARY AND glfw_LIBRARY)
+IF(TinyVisualizer_INCLUDE_DIR AND TinyVisualizer_LIBRARY AND GLFW_LIBRARY)
   SET(TinyVisualizer_FOUND TRUE)
-  SET(TinyVisualizer_LIBRARIES ${TinyVisualizer_LIBRARY} ${glfw_LIBRARY})
-  SET(TinyVisualizer_INCLUDE_DIRS ${TinyVisualizer_INCLUDE_DIR} ${ImGui_INCLUDE_DIR})
+  SET(TinyVisualizer_LIBRARIES ${TinyVisualizer_LIBRARY} ${GLFW_LIBRARY})
+  SET(TinyVisualizer_INCLUDE_DIRS ${TinyVisualizer_INCLUDE_DIR} ${ImGui_INCLUDE_DIR} ${GLFW_INCLUDE_DIR})
 ENDIF(TinyVisualizer_INCLUDE_DIR AND TinyVisualizer_LIBRARY AND glfw_LIBRARY)
 
 MARK_AS_ADVANCED(TinyVisualizer_FOUND)

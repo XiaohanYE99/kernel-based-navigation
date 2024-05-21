@@ -1,4 +1,5 @@
 
+
 # LibRVO
 
 ![](example.gif)
@@ -43,6 +44,7 @@ Then you could open: ```C:\TinyVisualizer-build\TinyVisualizer.sln``` and run th
 ```
 cd /d C:\
 git clone https://github.com/XiaohanYE99/kernel-based-navigation.git
+cd C:/kernel-based-navigation
 git checkout variable-radius-rvo
 git submodule update --recursive --init
 mkdir C:\kernel-based-navigation-build
@@ -52,7 +54,33 @@ cmake C:\kernel-based-navigation -DCMAKE_BUILD_TYPE=Debug -DEIGEN3_INCLUDE_DIR=C
 Now you can open ```C:\kernel-based-navigation-build``` and play with it. Note that the ```CMAKE_BUILD_TYPE``` should match in two projects. Also, we assume cmake is installed and added to system path, otherwise, one could use the GUI interface of cmake.
 
 ### Ubuntu Installation
-Installation on ubuntu is much easier.
+Installation on ubuntu is much easier and I assume the installation is under home direction, then we start by preparing the packages:
+```
+sudo apt install libglfw3 libboost-dev libeigen3-dev
+cd ~
+git clone https://github.com/gaoxifeng/TinyVisualizer.git
+cd ~/TinyVisualizer
+git submodule update --recursive --init
+mkdir ~/TinyVisualizer-build
+cd ~/TinyVisualizer-build
+cmake ../TinyVisualizer -DCMAKE_BUILD_TYPE=Debug
+sudo make install
+```
+And then we move on to install ```RVO```:
+```
+cd ~
+git clone https://github.com/XiaohanYE99/kernel-based-navigation.git
+cd ~/kernel-based-navigation
+git checkout variable-radius-rvo
+git submodule update --recursive --init
+mkdir ~/kernel-based-navigation-build
+cd ~/kernel-based-navigation-build
+cmake ../kernel-based-navigation -DCMAKE_BUILD_TYPE=Debug
+sudo make install
+```
+
+## Python Binding
+If you would like to call RVO from python, you could add the the option ```-DPYTHON_BINDING=Python3``` to the cmake command, and a new library will be compiled for python binding.
 
 ## Examples
 

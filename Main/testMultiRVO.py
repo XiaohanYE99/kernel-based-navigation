@@ -1,5 +1,4 @@
 import sys,random, inspect
-import pyTinyVisualizer as vis
 import pyRVO as pyrvo
 import numpy as np
 
@@ -9,7 +8,7 @@ batchSize=15
 scale=100.
 
 #add obstacle
-rvo=pyrvo.MultiRVOSimulator(batchSize,2)
+rvo=pyrvo.MultiRVOSimulator(batchSize,1,1e-4,1,1,10,False,True,"NEWTON")
 for off in [np.array([-70.,-70.]),np.array([30.,-70.]),np.array([30.,30.]),np.array([-70.,30.])]:
     v=[off+np.array([ 0., 0.]),
        off+np.array([40., 0.]),
@@ -63,24 +62,5 @@ for x in range(80,120,10):
         id=rvo.addAgent(pos,vel,rad)
         rvo.setAgentTarget(id,tar,maxVelocity)
         
-#MultiCoverageEnergy
-C=pyrvo.MultiCoverageEnergy(rvo,50.,True)
-poss=[]
-for i in range(batchSize):
-    pos=np.zeros((rvo.getNrAgent()*2),dtype=float)
-    for i in range(rvo.getNrAgent()*2):
-        pos[i]=random.randrange(-scale,scale)
-    poss.append(pos)
-loss=C.loss(poss)
-grad=C.grad()
-        
 #simulate
-class CustomPythonCallback(vis.PythonCallback):
-    def __init__(self):
-        vis.PythonCallback.__init__(self)
-        
-    def frame(self, root):
-        print("on frame!")
-    
-setup=CustomPythonCallback()
-pyrvo.RVOVisualizer.drawRVO(100,rvo,setup)
+pyrvo.RVOVisualizer.drawRVO(100,rvo)

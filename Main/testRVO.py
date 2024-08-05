@@ -45,4 +45,17 @@ print('agent positions=',rvo.getAgentPositions())
 print('agent velocities=',rvo.getAgentVelocities())
 
 #simulate
-pyrvo.RVOVisualizer.drawRVO(100,rvo)
+sim = False
+def key(key, scan, action, mods):
+    global sim
+    if key==82 and action==1:
+        sim = not sim
+def frame():
+    global sim
+    if sim:
+        rvo.updateAgentTargets()
+        rvo.optimize(False,False)
+cb=pyrvo.RVOPythonCallback()
+cb.key=key
+cb.frame=frame
+pyrvo.RVOVisualizer.drawRVO(100,rvo,cb)

@@ -37,8 +37,9 @@ int main(int argc,char** argv) {
       }
   rvo.buildVisibility();
   //run
-  RVOVisualizer::drawVisibility(*(rvo.getVisibility()));
-  int nr=RVOVisualizer::getNrLines();
+  RVOVisualizer vis;
+  vis.drawVisibility(*(rvo.getVisibility()));
+  int nr=vis.getNrLines();
   Vec2T src=Vec2T(0,0);
   T speed=5;
   std::shared_ptr<RVOPythonCallback> cb(new RVOPythonCallback);
@@ -59,11 +60,11 @@ int main(int argc,char** argv) {
     }
     if(!change)
       return;
-    RVOVisualizer::setNrLines(nr);
-    RVOVisualizer::drawVisibility(*(rvo.getVisibility()),src);
+    vis.setNrLines(nr);
+    vis.drawVisibility(*(rvo.getVisibility()),src);
     std::cout << "Checking visibility at: " << src.transpose() << std::endl;
   };
   cb->_key=key;
-  RVOVisualizer::drawRVO(argc,argv,false,150,rvo,[]() {},cb);
+  vis.drawRVO(argc,argv,false,150,rvo,[]() {},cb);
   return 0;
 }

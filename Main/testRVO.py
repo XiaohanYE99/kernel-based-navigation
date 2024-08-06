@@ -46,6 +46,7 @@ print('agent velocities=',rvo.getAgentVelocities())
 
 #simulate
 sim = False
+offscreen = True
 def key(key, scan, action, mods):
     global sim
     if key==82 and action==1:
@@ -58,4 +59,8 @@ def frame():
 cb=pyrvo.RVOPythonCallback()
 cb.key=key
 cb.frame=frame
-pyrvo.RVOVisualizer.drawRVO(100,rvo,cb)
+vis=pyrvo.RVOVisualizer()
+vis.drawRVO(offscreen,100,rvo)
+w,h,dat=vis.getScreenshot()
+print("Screenshot Data: ",w,h,len(dat))
+vis.takeScreenshot()

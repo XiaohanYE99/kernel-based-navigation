@@ -241,25 +241,34 @@ PYBIND11_MODULE(pyRVO, m) {
   .def_readwrite("draw",&RVOPythonCallback::_draw)
   .def_readwrite("setup",&RVOPythonCallback::_setup);
   //RVOVisualizer
-  py::class_<RVOVisualizer>(m,"RVOVisualizer")
-  .def_static("clearSourceColor",&RVOVisualizer::clearSourceColor)
-  .def_static("setSourceColor",&RVOVisualizer::setSourceColor)
-  .def_static("drawQuad",&RVOVisualizer::drawQuad)
-  .def_static("drawLine",&RVOVisualizer::drawLine)
-  .def_static("drawVisibility",static_cast<void(*)(const VisibilityGraph&,const Eigen::Matrix<LSCALAR,2,1>)>(&RVOVisualizer::drawVisibility))
-  .def_static("drawVisibility",static_cast<void(*)(const VisibilityGraph& graph,int id)>(&RVOVisualizer::drawVisibility))
-  .def_static("clearQuad",&RVOVisualizer::clearQuad)
-  .def_static("clearLine",&RVOVisualizer::clearLine)
-  .def_static("getNrQuads",&RVOVisualizer::getNrQuads)
-  .def_static("setNrQuads",&RVOVisualizer::setNrQuads)
-  .def_static("getNrLines",&RVOVisualizer::getNrLines)
-  .def_static("setNrLines",&RVOVisualizer::setNrLines)
-  .def_static("drawRVO",static_cast<void(*)(float,RVOSimulator&)>(&RVOVisualizer::drawRVO))
-  .def_static("drawRVO",static_cast<void(*)(float,MultiRVOSimulator&)>(&RVOVisualizer::drawRVO))
-  .def_static("drawRVO",static_cast<void(*)(float,RVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO))
-  .def_static("drawRVO",static_cast<void(*)(float,MultiRVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO))
-  .def_static("drawRVO",static_cast<void(*)(float,const std::vector<Trajectory>&,const RVOSimulator&)>(&RVOVisualizer::drawRVO))
-  .def_static("drawRVO",static_cast<void(*)(float,const std::vector<std::vector<Trajectory>>&,const MultiRVOSimulator&)>(&RVOVisualizer::drawRVO))
-  .def_static("drawRVO",static_cast<void(*)(float,const std::vector<Trajectory>&,const RVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO))
-  .def_static("drawRVO",static_cast<void(*)(float,const std::vector<std::vector<Trajectory>>&,const MultiRVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO));
+  py::class_<RVOVisualizer,
+  std::shared_ptr<RVOVisualizer>>(m,"RVOVisualizer")
+  .def(py::init())
+  .def("clearSourceColor",&RVOVisualizer::clearSourceColor)
+  .def("setSourceColor",&RVOVisualizer::setSourceColor)
+  .def("drawQuad",&RVOVisualizer::drawQuad)
+  .def("drawLine",&RVOVisualizer::drawLine)
+  .def("drawVisibility",static_cast<void(RVOVisualizer::*)(const VisibilityGraph&,const Eigen::Matrix<LSCALAR,2,1>)>(&RVOVisualizer::drawVisibility))
+  .def("drawVisibility",static_cast<void(RVOVisualizer::*)(const VisibilityGraph& graph,int id)>(&RVOVisualizer::drawVisibility))
+  .def("clearQuad",&RVOVisualizer::clearQuad)
+  .def("clearLine",&RVOVisualizer::clearLine)
+  .def("getNrQuads",&RVOVisualizer::getNrQuads)
+  .def("setNrQuads",&RVOVisualizer::setNrQuads)
+  .def("getNrLines",&RVOVisualizer::getNrLines)
+  .def("setNrLines",&RVOVisualizer::setNrLines)
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,RVOSimulator&)>(&RVOVisualizer::drawRVO))
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,MultiRVOSimulator&)>(&RVOVisualizer::drawRVO))
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,RVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO))
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,MultiRVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO))
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,const std::vector<Trajectory>&,const RVOSimulator&)>(&RVOVisualizer::drawRVO))
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,const std::vector<std::vector<Trajectory>>&,const MultiRVOSimulator&)>(&RVOVisualizer::drawRVO))
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,const std::vector<Trajectory>&,const RVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO))
+  .def("drawRVO",static_cast<void(RVOVisualizer::*)(bool,float,const std::vector<std::vector<Trajectory>>&,const MultiRVOSimulator&,std::shared_ptr<RVOPythonCallback>)>(&RVOVisualizer::drawRVO))
+  .def("getScreenshot",[](std::shared_ptr<RVOVisualizer> vis)->std::tuple<int,int,std::vector<unsigned char>> {
+    int width,height;
+    std::vector<unsigned char> data;
+    vis->getScreenshot(width,height,data);
+    return std::make_tuple(width,height,data);
+  })
+  .def("takeScreenshot",&RVOVisualizer::takeScreenshot);
 }

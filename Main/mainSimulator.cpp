@@ -74,10 +74,11 @@ int main(int argc,char** argv) {
       rvo.setAgentTarget(id,-rvo.getAgentPosition(id),maxV);
     }
   //run
-  RVOVisualizer::drawLine({-50,0}, {50,0}, {1,0,0});
-  RVOVisualizer::drawLine({0,-50}, {0,50}, {0,1,0});
-  RVOVisualizer::drawQuad({-20,-20}, {20,20}, {.6,.6,.6});
-  RVOVisualizer::drawRVO(argc,argv,true,150,rvo,[&]() {
+  RVOVisualizer vis;
+  vis.drawLine({-50,0}, {50,0}, {1,0,0});
+  vis.drawLine({0,-50}, {0,50}, {0,1,0});
+  vis.drawQuad({-20,-20}, {20,20}, {.6,.6,.6});
+  vis.drawRVO(argc,argv,true,150,rvo,[&]() {
     rvo.updateAgentTargets();
 #ifdef DEBUG_BACKWARD
     Mat2XT pos=rvo.getAgentPositions();
@@ -118,6 +119,9 @@ int main(int argc,char** argv) {
     rvo.updateAgentTargets();
     rvo.optimize(false,false);
   }
-  RVOVisualizer::takeScreenshot();
+  int width,height;
+  std::vector<unsigned char> data;
+  vis.getScreenshot(width,height,data);
+  vis.takeScreenshot();
   return 0;
 }

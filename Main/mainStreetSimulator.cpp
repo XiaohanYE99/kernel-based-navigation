@@ -46,7 +46,8 @@ int main(int argc,char** argv) {
   //run
   std::vector<T> rss;
   rss.resize(rvo.getNrAgent());
-  RVOVisualizer::drawRVO(argc,argv,false,150,rvo,[&]() {
+  RVOVisualizer vis;
+  vis.drawRVO(argc,argv,false,150,rvo,[&]() {
     rvo.updateAgentTargets();
     const auto beg=std::chrono::system_clock::now();
     //set target

@@ -63,4 +63,6 @@ for x in range(80,120,10):
         rvo.setAgentTarget(id,tar,maxVelocity)
         
 #simulate
-pyrvo.RVOVisualizer.drawRVO(100,rvo)
+offscreen=False
+vis=pyrvo.RVOVisualizer()
+vis.drawRVO(offscreen,100,rvo)

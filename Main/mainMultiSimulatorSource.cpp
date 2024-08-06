@@ -26,16 +26,17 @@ int main(int argc,char** argv) {
   rvo.addObstacle({Vec2T(-10,-10),Vec2T(10,-10),Vec2T(10,10),Vec2T(-10,10)});
   rvo.buildVisibility();
   //run
-  RVOVisualizer::setSourceColor(0,Eigen::Matrix<float,3,1>(1,0,0));
-  RVOVisualizer::setSourceColor(1,Eigen::Matrix<float,3,1>(0,1,0));
-  RVOVisualizer::setSourceColor(2,Eigen::Matrix<float,3,1>(0,0,1));
-  RVOVisualizer::setSourceColor(3,Eigen::Matrix<float,3,1>(1,0,1));
+  RVOVisualizer vis;
+  vis.setSourceColor(0,Eigen::Matrix<float,3,1>(1,0,0));
+  vis.setSourceColor(1,Eigen::Matrix<float,3,1>(0,1,0));
+  vis.setSourceColor(2,Eigen::Matrix<float,3,1>(0,0,1));
+  vis.setSourceColor(3,Eigen::Matrix<float,3,1>(1,0,1));
   for(int frameId=0; frameId<1000; frameId++) {
     rvo.updateAgentTargets();
     const auto beg=std::chrono::system_clock::now();
     rvo.optimize(false,false);
     std::cout << "frame=" << frameId << " cost=" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()-beg).count() << "ms" << std::endl;
   }
-  RVOVisualizer::drawRVO(argc,argv,false,150,rvo.getAllTrajectories(),rvo,[&]() {});
+  vis.drawRVO(argc,argv,false,150,rvo.getAllTrajectories(),rvo,[&]() {});
   return 0;
 }

@@ -51,13 +51,11 @@ class RVOVisualizer {
   static std::shared_ptr<MeshShape> drawLines(const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const Eigen::Matrix<float,3,1>& color);
   static std::shared_ptr<CompositeShape> drawLines(std::shared_ptr<CompositeShape> linesRef);
   static std::shared_ptr<CompositeShape> drawQuads(std::shared_ptr<CompositeShape> quadsRef);
-  static void drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
-                             const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,
-                             const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss);
-  static void drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
-  static void drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
-  static void drawRVO(int argc,char** argv,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
-  static void drawRVO(int argc,char** argv,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
+  static void drawVisibleApp(int argc,char** argv,bool offscreen,float ext,const RVOSimulator& sim,const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss);
+  static void drawRVO(int argc,char** argv,bool offscreen,float ext,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
+  static void drawRVO(int argc,char** argv,bool offscreen,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
+  static void drawRVO(int argc,char** argv,bool offscreen,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
+  static void drawRVO(int argc,char** argv,bool offscreen,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb=NULL);
   //convenient functions
   static void drawRVO(float ext,RVOSimulator& sim);
   static void drawRVO(float ext,MultiRVOSimulator& sim);
@@ -67,6 +65,7 @@ class RVOVisualizer {
   static void drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim);
   static void drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb);
   static void drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb);
+  static void takeScreenshot();
 };
 }
 

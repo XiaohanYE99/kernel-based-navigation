@@ -77,7 +77,7 @@ int main(int argc,char** argv) {
   RVOVisualizer::drawLine({-50,0}, {50,0}, {1,0,0});
   RVOVisualizer::drawLine({0,-50}, {0,50}, {0,1,0});
   RVOVisualizer::drawQuad({-20,-20}, {20,20}, {.6,.6,.6});
-  RVOVisualizer::drawRVO(argc,argv,150,rvo,[&]() {
+  RVOVisualizer::drawRVO(argc,argv,true,150,rvo,[&]() {
     rvo.updateAgentTargets();
 #ifdef DEBUG_BACKWARD
     Mat2XT pos=rvo.getAgentPositions();
@@ -114,5 +114,10 @@ int main(int argc,char** argv) {
     }
 #endif
   });
+  for(int i=0; i<50; i++) {
+    rvo.updateAgentTargets();
+    rvo.optimize(false,false);
+  }
+  RVOVisualizer::takeScreenshot();
   return 0;
 }

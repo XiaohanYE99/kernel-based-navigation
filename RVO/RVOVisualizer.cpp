@@ -11,6 +11,12 @@
 #include <imgui/imgui.h>
 
 namespace RVO {
+std::shared_ptr<Drawer> drawer;
+std::shared_ptr<CompositeShape> lines,quads;
+std::shared_ptr<CameraExportPlugin> exporter;
+std::shared_ptr<CaptureGIFPlugin> capturer;
+std::shared_ptr<CompositeShape> agent;
+std::shared_ptr<MeshShape> vel;
 //RVOPythonCallback
 void RVOPythonCallback::mouse(int button,int action,int mods) {
   if(_mouse)
@@ -271,47 +277,50 @@ std::shared_ptr<CompositeShape> RVOVisualizer::drawQuads(std::shared_ptr<Composi
   quadsUpdate=false;
   return quads;
 }
-void RVOVisualizer::drawVisibleApp(int argc,char** argv,float ext,const RVOSimulator& sim,
-                                   const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,
-                                   const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss) {
-  Drawer drawer(argc,argv);
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  drawer.addShape(drawRVOPosition(sim));
+void RVOVisualizer::drawVisibleApp(int argc,char** argv,bool offscreen,float ext,const RVOSimulator& sim,const std::vector<Eigen::Matrix<LSCALAR,2,1>>& vss,const std::vector<Eigen::Matrix<LSCALAR,2,1>>& nvss) {
+  drawer.reset(new Drawer(argc,argv));
+  exporter.reset(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat"));
+  capturer.reset(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer->FPS()));
+  drawer->addPlugin(exporter);
+  drawer->addPlugin(capturer);
+  drawer->addShape(drawRVOPosition(sim));
   if(!vss.empty())
-    drawer.addShape(drawLines(vss,Eigen::Matrix<float,3,1>(.7,.2,.2)));
+    drawer->addShape(drawLines(vss,Eigen::Matrix<float,3,1>(.7,.2,.2)));
   if(!nvss.empty())
-    drawer.addShape(drawLines(nvss,Eigen::Matrix<float,3,1>(.2,.7,.7)));
-  drawer.addCamera2D(ext);
-  drawer.clearLight();
-  drawer.mainLoop();
+    drawer->addShape(drawLines(nvss,Eigen::Matrix<float,3,1>(.2,.7,.7)));
+  drawer->addCamera2D(ext);
+  drawer->clearLight();
+  if(!offscreen)
+    drawer->mainLoop();
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
-  Drawer drawer(argc,argv);
+void RVOVisualizer::drawRVO(int argc,char** argv,bool offscreen,float ext,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
+  drawer.reset(new Drawer(argc,argv));
   if(cb)
-    drawer.setPythonCallback(cb.get());
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim),lines,quads;
-  std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim);
-  drawer.addShape(lines=drawLines(lines));
-  drawer.addShape(quads=drawQuads(quads));
-  drawer.addShape(agent);
-  drawer.addCamera2D(ext);
-  drawer.clearLight();
+    drawer->setPythonCallback(cb.get());
+  exporter.reset(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat"));
+  capturer.reset(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer->FPS()));
+  drawer->addPlugin(exporter);
+  drawer->addPlugin(capturer);
+  agent=drawRVOPosition(sim);
+  vel=drawRVOVelocity(sim);
+  drawer->addShape(lines=drawLines(lines));
+  drawer->addShape(quads=drawQuads(quads));
+  drawer->addShape(agent);
+  drawer->addCamera2D(ext);
+  drawer->clearLight();
   bool step=false;
-  drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
+  drawer->setKeyFunc([&](GLFWwindowPtr,int key,int,int action,int,bool captured) {
     if(captured)
       return;
     if(key==GLFW_KEY_R && action==GLFW_PRESS)
       step=!step;
     if(key==GLFW_KEY_W && action==GLFW_PRESS) {
-      if(drawer.contain(vel))
-        drawer.removeShape(vel);
-      else drawer.addShape(vel);
+      if(drawer->contain(vel))
+        drawer->removeShape(vel);
+      else drawer->addShape(vel);
     }
   });
-  drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
+  drawer->setFrameFunc([&](std::shared_ptr<SceneNode>&) {
     if(step)
       frm();
     drawLines(lines);
@@ -319,30 +328,34 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const RVOSimulator& s
     drawRVOPosition(sim,agent);
     drawRVOVelocity(sim,vel);
   });
-  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
-    ImGui::Begin("Single-RVO Info");
-    ImGui::Text("Simulation(r) %s",step?"started":"stopped");
-    ImGui::Text("Velocity(w) %s",drawer.contain(vel)?"showing":"not showing");
-    ImGui::End();
-  })));
-  drawer.mainLoop();
+  if(!offscreen) {
+    drawer->addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+      ImGui::Begin("Single-RVO Info");
+      ImGui::Text("Simulation(r) %s",step?"started":"stopped");
+      ImGui::Text("Velocity(w) %s",drawer->contain(vel)?"showing":"not showing");
+      ImGui::End();
+    })));
+    drawer->mainLoop();
+  }
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
-  Drawer drawer(argc,argv);
+void RVOVisualizer::drawRVO(int argc,char** argv,bool offscreen,float ext,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
+  drawer.reset(new Drawer(argc,argv));
   if(cb)
-    drawer.setPythonCallback(cb.get());
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> agent=drawRVOPosition(sim.getSubSimulator(0)),lines,quads;
-  std::shared_ptr<MeshShape> vel=drawRVOVelocity(sim.getSubSimulator(0));
-  drawer.addShape(lines=drawLines(lines));
-  drawer.addShape(quads=drawQuads(quads));
-  drawer.addShape(agent);
-  drawer.addCamera2D(ext);
-  drawer.clearLight();
+    drawer->setPythonCallback(cb.get());
+  exporter.reset(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat"));
+  capturer.reset(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer->FPS()));
+  drawer->addPlugin(exporter);
+  drawer->addPlugin(capturer);
+  agent=drawRVOPosition(sim.getSubSimulator(0));
+  vel=drawRVOVelocity(sim.getSubSimulator(0));
+  drawer->addShape(lines=drawLines(lines));
+  drawer->addShape(quads=drawQuads(quads));
+  drawer->addShape(agent);
+  drawer->addCamera2D(ext);
+  drawer->clearLight();
   bool step=false;
   int id=0;
-  drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
+  drawer->setKeyFunc([&](GLFWwindowPtr,int key,int,int action,int,bool captured) {
     if(captured)
       return;
     if(key==GLFW_KEY_R && action==GLFW_PRESS)
@@ -358,12 +371,12 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
       drawRVOVelocity(sim.getSubSimulator(id),vel);
     }
     if(key==GLFW_KEY_W && action==GLFW_PRESS) {
-      if(drawer.contain(vel))
-        drawer.removeShape(vel);
-      else drawer.addShape(vel);
+      if(drawer->contain(vel))
+        drawer->removeShape(vel);
+      else drawer->addShape(vel);
     }
   });
-  drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
+  drawer->setFrameFunc([&](std::shared_ptr<SceneNode>&) {
     if(step)
       frm();
     drawLines(lines);
@@ -371,30 +384,34 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const MultiRVOSimulat
     drawRVOPosition(sim.getSubSimulator(id),agent);
     drawRVOVelocity(sim.getSubSimulator(id),vel);
   });
-  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
-    ImGui::Begin("Multi-RVO Info");
-    ImGui::Text("SimulatorID(ad): %d",id);
-    ImGui::Text("Simulation(r) %s",step?"started":"stopped");
-    ImGui::Text("Velocity(w) %s",drawer.contain(vel)?"showing":"not showing");
-    ImGui::End();
-  })));
-  drawer.mainLoop();
+  if(!offscreen) {
+    drawer->addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+      ImGui::Begin("Multi-RVO Info");
+      ImGui::Text("SimulatorID(ad): %d",id);
+      ImGui::Text("Simulation(r) %s",step?"started":"stopped");
+      ImGui::Text("Velocity(w) %s",drawer->contain(vel)?"showing":"not showing");
+      ImGui::End();
+    })));
+    drawer->mainLoop();
+  }
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
-  Drawer drawer(argc,argv);
+void RVOVisualizer::drawRVO(int argc,char** argv,bool offscreen,float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
+  drawer.reset(new Drawer(argc,argv));
   if(cb)
-    drawer.setPythonCallback(cb.get());
+    drawer->setPythonCallback(cb.get());
   int frameId=0;
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> agent=drawRVOPosition(frameId,trajs,sim),lines,quads;
-  drawer.addShape(lines=drawLines(lines));
-  drawer.addShape(quads=drawQuads(quads));
-  drawer.addShape(agent);
-  drawer.addCamera2D(ext);
-  drawer.clearLight();
+  exporter.reset(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat"));
+  capturer.reset(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer->FPS()));
+  drawer->addPlugin(exporter);
+  drawer->addPlugin(capturer);
+  agent=drawRVOPosition(frameId,trajs,sim);
+  drawer->addShape(lines=drawLines(lines));
+  drawer->addShape(quads=drawQuads(quads));
+  drawer->addShape(agent);
+  drawer->addCamera2D(ext);
+  drawer->clearLight();
   bool step=false;
-  drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
+  drawer->setKeyFunc([&](GLFWwindowPtr,int key,int,int action,int,bool captured) {
     if(captured)
       return;
     if(key==GLFW_KEY_R && action==GLFW_PRESS)
@@ -402,7 +419,7 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Tra
     if(key==GLFW_KEY_W && action==GLFW_PRESS)
       frameId=0;
   });
-  drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
+  drawer->setFrameFunc([&](std::shared_ptr<SceneNode>&) {
     if(step) {
       frameId++;
       frm();
@@ -411,29 +428,33 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<Tra
     drawQuads(quads);
     drawRVOPosition(frameId,trajs,sim,agent);
   });
-  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
-    ImGui::Begin("Recorded Single-RVO Info");
-    ImGui::Text("Replay(r) %s",step?"started":"stopped");
-    ImGui::End();
-  })));
-  drawer.mainLoop();
+  if(!offscreen) {
+    drawer->addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+      ImGui::Begin("Recorded Single-RVO Info");
+      ImGui::Text("Replay(r) %s",step?"started":"stopped");
+      ImGui::End();
+    })));
+    drawer->mainLoop();
+  }
 }
-void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
-  Drawer drawer(argc,argv);
+void RVOVisualizer::drawRVO(int argc,char** argv,bool offscreen,float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::function<void()> frm,std::shared_ptr<RVOPythonCallback> cb) {
+  drawer.reset(new Drawer(argc,argv));
   if(cb)
-    drawer.setPythonCallback(cb.get());
+    drawer->setPythonCallback(cb.get());
   int frameId=0;
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat")));
-  drawer.addPlugin(std::shared_ptr<Plugin>(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS())));
-  std::shared_ptr<CompositeShape> agent=drawRVOPosition(frameId,trajs[0],sim.getSubSimulator(0)),lines,quads;
-  drawer.addShape(lines=drawLines(lines));
-  drawer.addShape(quads=drawQuads(quads));
-  drawer.addShape(agent);
-  drawer.addCamera2D(ext);
-  drawer.clearLight();
+  exporter.reset(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat"));
+  capturer.reset(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer->FPS()));
+  drawer->addPlugin(exporter);
+  drawer->addPlugin(capturer);
+  agent=drawRVOPosition(frameId,trajs[0],sim.getSubSimulator(0));
+  drawer->addShape(lines=drawLines(lines));
+  drawer->addShape(quads=drawQuads(quads));
+  drawer->addShape(agent);
+  drawer->addCamera2D(ext);
+  drawer->clearLight();
   bool step=false;
   int id=0;
-  drawer.setKeyFunc([&](GLFWwindow*,int key,int,int action,int,bool captured) {
+  drawer->setKeyFunc([&](GLFWwindowPtr,int key,int,int action,int,bool captured) {
     if(captured)
       return;
     if(key==GLFW_KEY_R && action==GLFW_PRESS)
@@ -449,7 +470,7 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std
     if(key==GLFW_KEY_W && action==GLFW_PRESS)
       frameId=0;
   });
-  drawer.setFrameFunc([&](std::shared_ptr<SceneNode>&) {
+  drawer->setFrameFunc([&](std::shared_ptr<SceneNode>&) {
     if(step) {
       frameId++;
       frm();
@@ -458,43 +479,52 @@ void RVOVisualizer::drawRVO(int argc,char** argv,float ext,const std::vector<std
     drawQuads(quads);
     drawRVOPosition(frameId,trajs[id],sim.getSubSimulator(0),agent);
   });
-  drawer.addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
-    ImGui::Begin("Recorded Multi-RVO Info");
-    ImGui::Text("SimulatorID(ad): %d",id);
-    ImGui::Text("Replay(r) %s",step?"started":"stopped");
-    ImGui::End();
-  })));
-  drawer.mainLoop();
+  if(!offscreen) {
+    drawer->addPlugin(std::shared_ptr<Plugin>(new ImGuiPlugin([&]() {
+      ImGui::Begin("Recorded Multi-RVO Info");
+      ImGui::Text("SimulatorID(ad): %d",id);
+      ImGui::Text("Replay(r) %s",step?"started":"stopped");
+      ImGui::End();
+    })));
+    drawer->mainLoop();
+  }
 }
 //convenient functions
 void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim) {
-  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
+  RVOVisualizer::drawRVO(0,NULL,false,ext,sim,[&]() {
     sim.updateAgentTargets();
     sim.optimize(false,false);
   },NULL);
 }
 void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim) {
-  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {
+  RVOVisualizer::drawRVO(0,NULL,false,ext,sim,[&]() {
     sim.updateAgentTargets();
     sim.optimize(false,false);
   },NULL);
 }
 void RVOVisualizer::drawRVO(float ext,RVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
-  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {},cb);
+  RVOVisualizer::drawRVO(0,NULL,false,ext,sim,[&]() {},cb);
 }
 void RVOVisualizer::drawRVO(float ext,MultiRVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
-  RVOVisualizer::drawRVO(0,NULL,ext,sim,[&]() {},cb);
+  RVOVisualizer::drawRVO(0,NULL,false,ext,sim,[&]() {},cb);
 }
 void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim) {
-  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {});
+  RVOVisualizer::drawRVO(0,NULL,false,ext,trajs,sim,[&]() {});
 }
 void RVOVisualizer::drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim) {
-  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {});
+  RVOVisualizer::drawRVO(0,NULL,false,ext,trajs,sim,[&]() {});
 }
 void RVOVisualizer::drawRVO(float ext,const std::vector<Trajectory>& trajs,const RVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
-  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {},cb);
+  RVOVisualizer::drawRVO(0,NULL,false,ext,trajs,sim,[&]() {},cb);
 }
 void RVOVisualizer::drawRVO(float ext,const std::vector<std::vector<Trajectory>>& trajs,const MultiRVOSimulator& sim,std::shared_ptr<RVOPythonCallback> cb) {
-  RVOVisualizer::drawRVO(0,NULL,ext,trajs,sim,[&]() {},cb);
+  RVOVisualizer::drawRVO(0,NULL,false,ext,trajs,sim,[&]() {},cb);
+}
+void RVOVisualizer::takeScreenshot() {
+  if(drawer && capturer) {
+    drawer->frame();
+    drawer->draw();
+    capturer->takeScreenshot();
+  }
 }
 }

@@ -64,6 +64,6 @@ int main(int argc,char** argv) {
     std::cout << "Checking visibility at: " << src.transpose() << std::endl;
   };
   cb->_key=key;
-  RVOVisualizer::drawRVO(argc,argv,150,rvo,[]() {},cb);
+  RVOVisualizer::drawRVO(argc,argv,false,150,rvo,[]() {},cb);
   return 0;
 }

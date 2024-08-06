@@ -88,7 +88,7 @@ int main(int argc,char** argv) {
       rvo.setAgentTarget(id, {-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y),-Vec2T(x,y)},maxV);
     }
   //run
-  RVOVisualizer::drawRVO(argc,argv,150,rvo,[&]() {
+  RVOVisualizer::drawRVO(argc,argv,false,150,rvo,[&]() {
     rvo.updateAgentTargets();
     rvo.optimize(true,false);
     rvo.getDXDV();

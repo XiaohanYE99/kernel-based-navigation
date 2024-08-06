@@ -59,6 +59,6 @@ int main(int argc,char** argv) {
     rvo.optimize(false,false);
     std::cout << "frame=" << frameId << " cost=" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()-beg).count() << "ms" << std::endl;
   }
-  RVOVisualizer::drawRVO(argc,argv,150,rvo.getAllTrajectories(),rvo,[&]() {});
+  RVOVisualizer::drawRVO(argc,argv,false,150,rvo.getAllTrajectories(),rvo,[&]() {});
   return 0;
 }

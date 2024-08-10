@@ -2,7 +2,7 @@ include/
 lib/
 build/
 dist/
-pyrvo2.egg-info/
+pyRVO.egg-info/
 robot_envs/runs/
 robot_envs/__pycache__/
 src/__pycache__/

@@ -32,13 +32,13 @@ def draw_RVO(rvo, shapes, css):
     #more children
     while shapes.numChildren() < rvo.getNrAgent()+1:
         agent = vis.Bullet3DShape()
-        circle = vis.makeCircle(vis.GL_TRIANGLE_FAN,True,[0,0],1)
+        circle = vis.makeCircle(16,True,[0,0],1)
         circle.setColorDiffuse(vis.GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2])
         agent.addShape(circle)
         shapes.addShape(agent)
     #less children
     while shapes.numChildren() > rvo.getNrAgent()+1:
-        shapes.addShape(shapes.getChild(shapes.numChildren()-1))
+        shapes.removeChild(shapes.getChild(shapes.numChildren()-1))
     #update translation
     for i in range(rvo.getNrAgent()):
         t=np.identity(4)
@@ -51,7 +51,7 @@ def draw_RVO(rvo, shapes, css):
         sid=pyrvo.SourceSink.extractSourceId(rvo.getAgentId(i))
         if sid in css:
             shape.setColorDiffuse(vis.GL_TRIANGLE_FAN,css[sid][0],css[sid][1],css[sid][2])
-        shape.setColorDiffuse(vis.GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2])
+        else: shape.setColorDiffuse(vis.GL_TRIANGLE_FAN,COLOR_AGT[0],COLOR_AGT[1],COLOR_AGT[2])
         shape.setLocalTransform(t)
     return shapes
 

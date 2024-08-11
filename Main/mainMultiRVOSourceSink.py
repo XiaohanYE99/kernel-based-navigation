@@ -9,8 +9,10 @@ def setup_multi_RVO_SourceSink():
 
     # add obstacle
     rvo = pyrvo.MultiRVOSimulator(batchSize, 1, 1e-4, 1, 1, 1000, False, True, "NEWTON")
-    rvo.addObstacle([np.array([-10.,-10.]), np.array([10.,-10.]), np.array([10.,10.]), np.array([-10.,10.])])
-    rvo.buildVisibility()
+    rvo.clearAgent()
+    rvo.clearObstacle()
+    rvo.clearSourceSink()
+    rvo.clearVisibility()
 
     # add source sink
     rvo.setupSourceSink(1,10,True)
@@ -18,6 +20,8 @@ def setup_multi_RVO_SourceSink():
     rvo.addSourceSink(np.array([-120.,-120.]),np.array([120.,120.]),np.array([110.,110.]),np.array([130.,130.]),5,noise)
     rvo.addSourceSink(np.array([-120.,120.]),np.array([120.,-120.]),np.array([110.,-130.]),np.array([130.,-110.]),4,noise)
     rvo.addSourceSink(np.array([120.,-120.]),np.array([-120.,120.]),np.array([-130.,110.]),np.array([-110.,130.]),5,noise)
+    rvo.addObstacle([np.array([-10.,-10.]), np.array([10.,-10.]), np.array([10.,10.]), np.array([-10.,10.])])
+    rvo.buildVisibility()
     return rvo
 
 if __name__=='__main__':

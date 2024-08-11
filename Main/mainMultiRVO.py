@@ -5,7 +5,6 @@ def setup_multi_RVO():
     #you can change this to be very large
     maxVelocity=1
     batchSize=15
-    scale=100.
 
     #add obstacle
     rvo=pyrvo.MultiRVOSimulator(batchSize,1,1e-4,1,1,10,False,True,"NEWTON")

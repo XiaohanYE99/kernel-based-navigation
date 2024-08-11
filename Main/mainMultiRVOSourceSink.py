@@ -33,7 +33,7 @@ if __name__=='__main__':
     css[2] = [0, 0, 1]
     css[3] = [1, 0, 1]
     rvo = setup_multi_RVO_SourceSink()
-    drawer,shapes = setup_visualizer(rvo, 100, css)
+    drawer,shapes = setup_visualizer(rvo, 100, css, 0)
     def key(wnd,key,scan,action,mods,captured):
         global sim,id
         if captured:
@@ -42,16 +42,16 @@ if __name__=='__main__':
             sim = not sim
         elif key == vis.GLFW_KEY_D and action == vis.GLFW_PRESS:
             id=(id+1)%rvo.getBatchSize()
-            draw_RVO(rvo.getSubSimulator(id), shapes, css)
+            draw_RVO(rvo, shapes, css, id)
         elif key == vis.GLFW_KEY_A and action == vis.GLFW_PRESS:
             id=(id+rvo.getBatchSize()-1)%rvo.getBatchSize()
-            draw_RVO(rvo.getSubSimulator(id), shapes, css)
+            draw_RVO(rvo, shapes, css, id)
     def frame(sceneRoot):
         global sim,rvo,shapes,id
         if sim:
             rvo.updateAgentTargets()
             rvo.optimize(False, False)
-            draw_RVO(rvo.getSubSimulator(id), shapes, css)
+            draw_RVO(rvo, shapes, css, id)
     #initiate main loop
     drawer.setKeyFunc(key)
     drawer.setFrameFunc(frame)

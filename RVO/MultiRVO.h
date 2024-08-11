@@ -29,6 +29,8 @@ class MultiRVOSimulator {
   Mat2XT getAllAgentBatchPositions();
   Mat2XT getAllAgentTargets(int id) const;
   Mat2XT getAllAgentBatchTargets();
+  Vec getAllAgentRadius(int id) const;
+  Veci getAllAgentIds(int id) const;
   Veci getAllAgentBatchIds();
   std::vector<Vec2T> getAgentPosition(int i) const;
   std::vector<Vec2T> getAgentVelocity(int i) const;

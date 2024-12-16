@@ -74,8 +74,42 @@ def draw_RVO(rvo, shapes, css, batchId=None):
         shape.setLocalTransform(t)
     return shapes
 
-def setup_visualizer(rvo, ext, css, batchId=None):
-    drawer = vis.Drawer([])
+def take_screenshot(capturer, path=None):
+    from PIL import Image
+    w,h,dat=capturer.getScreenshot()
+    dat = np.array(dat, dtype=np.uint8).reshape((w,h,4))
+    img = Image.fromarray(dat, mode='RGBA')
+    if path is not None:
+        img.save(path)
+    else: return img
+
+def record_video(drawer, capturer, nFrame, path, imageFolder='tmp'):
+    import cv2, os, shutil
+    # Get list of images
+    try:
+        os.mkdir(imageFolder)
+    except FileExistsError:
+        print("Folder already exists, deleting!")
+        shutil.rmtree(imageFolder)
+        os.mkdir(imageFolder)
+    for frame in range(nFrame):
+        take_screenshot(capturer, os.path.join(imageFolder,f'{frame}.png'))
+        drawer.nextFrame()
+    images = [f'{frame}.png' for frame in range(nFrame)]
+    # Read the first image to get the size
+    frame = cv2.imread(os.path.join(imageFolder,images[0]))
+    height, width, _ = frame.shape
+    # Create a VideoWriter object
+    video = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*'mp4v'), drawer.FPS(), (width, height))
+    # Loop through each image and write to the video
+    for image in images:
+        img = cv2.imread(os.path.join(imageFolder,image))
+        video.write(img)
+    # Release the video writer
+    video.release()
+
+def setup_visualizer(rvo, ext, css, batchId=None, headless=False):
+    drawer = vis.Drawer(['--headless','1' if headless else '0'])
     export = vis.CameraExportPlugin(vis.GLFW_KEY_2,vis.GLFW_KEY_3,"camera.dat")
     capturer = vis.CaptureGIFPlugin(vis.GLFW_KEY_1,"record.gif",drawer.FPS(),True)
     drawer.addPlugin(export)
@@ -84,4 +118,4 @@ def setup_visualizer(rvo, ext, css, batchId=None):
     drawer.addShape(shapes)
     drawer.addCamera2D(ext)
     drawer.clearLight()
-    return drawer, shapes
+    return drawer, shapes, export, capturer

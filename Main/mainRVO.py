@@ -44,20 +44,23 @@ def setup_RVO():
     return rvo
 
 if __name__=='__main__':
-    sim = False
+    offlineRecording = True
+    sim = offlineRecording
     css = {}
     css[0] = [1, 0, 0]
     css[1] = [0, 1, 0]
     css[2] = [0, 0, 1]
     css[3] = [1, 0, 1]
     rvo = setup_RVO()
-    drawer,shapes = setup_visualizer(rvo, 100, css)
+    drawer,shapes,export,capturer = setup_visualizer(rvo, 100, css)
     def key(wnd,key,scan,action,mods,captured):
-        global sim
+        global sim,capturer
         if captured:
             return
         if key == vis.GLFW_KEY_R and action == vis.GLFW_PRESS:
             sim = not sim
+        if key == vis.GLFW_KEY_T and action == vis.GLFW_PRESS:
+            take_screenshot(capturer,'screenshot.png')
     def frame(sceneRoot):
         global sim,rvo,shapes
         if sim:
@@ -67,4 +70,7 @@ if __name__=='__main__':
     #initiate main loop
     drawer.setKeyFunc(key)
     drawer.setFrameFunc(frame)
-    drawer.mainLoop()
+    if offlineRecording:
+        record_video(drawer, capturer, 100, 'record.mp4')
+    else:
+        drawer.mainLoop()

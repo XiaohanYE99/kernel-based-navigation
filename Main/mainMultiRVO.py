@@ -71,7 +71,7 @@ if __name__=='__main__':
     css[2] = [0, 0, 1]
     css[3] = [1, 0, 1]
     rvo = setup_multi_RVO()
-    drawer,shapes = setup_visualizer(rvo, 100, css, 0)
+    drawer,shapes,export,capturer = setup_visualizer(rvo, 100, css, 0)
     def key(wnd,key,scan,action,mods,captured):
         global sim,id
         if captured:

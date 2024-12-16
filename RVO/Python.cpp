@@ -235,7 +235,7 @@ PYBIND11_MODULE(pyRVO, m) {
   .def("setAgentPositions",&MultiVisibilityGraph::setAgentPositions)
   .def("getAgentDVDPs",&MultiVisibilityGraph::getAgentDVDPs)
   .def("getMinDistance",&MultiVisibilityGraph::getMinDistance);
-  //RVOPythonCallback
+  /*//RVOPythonCallback
   py::class_<RVOPythonCallback,std::shared_ptr<RVOPythonCallback>>(m,"RVOPythonCallback")
   .def(py::init([]() {
     return std::shared_ptr<RVOPythonCallback>(new RVOPythonCallback);
@@ -277,5 +277,5 @@ PYBIND11_MODULE(pyRVO, m) {
     vis->getScreenshot(width,height,data);
     return std::make_tuple(width,height,data);
   })
-  .def("takeScreenshot",&RVOVisualizer::takeScreenshot);
+  .def("takeScreenshot",&RVOVisualizer::takeScreenshot);*/
 }

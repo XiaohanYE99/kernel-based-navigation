@@ -6,7 +6,7 @@
 #include <TinyVisualizer/Bullet3DShape.h>
 #include <TinyVisualizer/CompositeShape.h>
 #include <TinyVisualizer/ImGuiPlugin.h>
-#include <imgui/imgui.h>
+#include <TinyVisualizer/imgui/imgui.h>
 
 namespace RVO {
 float COLOR_AGT[3]= {200/255.,143/255., 29/255.};

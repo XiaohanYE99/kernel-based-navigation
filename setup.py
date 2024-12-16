@@ -43,10 +43,13 @@ class CMakeBuild(build_ext):
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
         cmake_args = [
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
+            f"-DCMAKE_INSTALL_LIBDIR={extdir}{os.sep}",
+            f"-DCMAKE_INSTALL_INCLUDEDIR={extdir}{os.sep}include{os.sep}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
-            f"-DPYTHON_BINDING=Python3"
+            f"-DPYTHON_BINDING=Python3",
+            f"-DUSE_BULLET=ON",
+            f"-DUSE_BOX2D=ON"
         ]
         build_args = []
         # Adding CMake arguments set as environment variable
@@ -109,6 +112,8 @@ class CMakeBuild(build_ext):
             if hasattr(self, "parallel") and self.parallel:
                 # CMake 3.12+ only.
                 build_args += [f"-j{self.parallel}"]
+            else: 
+                build_args += [f"-j{os.cpu_count()}"]
 
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():
@@ -119,6 +124,9 @@ class CMakeBuild(build_ext):
         )
         subprocess.run(
             ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
+        )
+        subprocess.run(
+            ["cmake", "--install", "."], cwd=build_temp, check=True
         )
 
 

@@ -10,7 +10,7 @@ FIND_PATH(TinyVisualizer_INCLUDE_DIR TinyVisualizer/Drawer.h
   C:/TinyVisualizer/include
   )
 
-FIND_PATH(ImGui_INCLUDE_DIR imgui/imgui.h
+FIND_PATH(ImGui_INCLUDE_DIR TinyVisualizer/imgui/imgui.h
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}
   $ENV{TinyVisualizer_ROOT}/include
